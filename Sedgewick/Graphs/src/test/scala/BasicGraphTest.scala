@@ -9,6 +9,14 @@ class BasicGraphTest extends FlatSpec with Matchers {
     val g = BasicGraph(edgeList)
     g.V should be (6)
     g.E should be (3)
+
+    // More complex example
+    val edgeList2 = List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
+      (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
+      (5, 3))
+    val g2 = BasicGraph(edgeList2)
+    g2.V should be (13)
+    g2.E should be (13)
   }
 
   "A BasicGraph" should "support querying of edges" in {
