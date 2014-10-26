@@ -19,7 +19,7 @@ class BasicGraphTest extends FlatSpec with Matchers {
     g2.E should be (13)
   }
 
-  "A BasicGraph" should "support querying of edges" in {
+  it should "support querying of edges" in {
     val edgeList = List((0, 1), (3, 4), (3, 5))
     val g = BasicGraph(edgeList)
     g.adj(0).contains(1) should be (true)
@@ -31,21 +31,21 @@ class BasicGraphTest extends FlatSpec with Matchers {
 
   }
 
-  "A BasicGraph" should "ignore duplicate edges unless specified" in {
+  it should "ignore duplicate edges unless specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (4, 3))
     val g = BasicGraph(edgeList)
     g.V should be (6)
     g.E should be (3)
   }
 
-  "A BasicGraph" should "ignore self loops unless specified" in {
+  it should "ignore self loops unless specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (1, 1))
     val g = BasicGraph(edgeList)
     g.V should be (6)
     g.E should be (3)
   }
 
-  "A BasicGraph" should "allow duplicate edges if specified" in {
+  it should "allow duplicate edges if specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (4, 3))
     val g = BasicGraph(edgeList, allowDup=true)
     g.V should be (6)
@@ -53,7 +53,7 @@ class BasicGraphTest extends FlatSpec with Matchers {
     g.adj(3).count(_ == 4) should be (2)
   }
 
-  "A BasicGraph" should "allow self loops if specified" in {
+  it should "allow self loops if specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (2, 2))
     val g = BasicGraph(edgeList, allowSelf=true)
     g.V should be (6)
