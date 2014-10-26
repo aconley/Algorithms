@@ -1,15 +1,21 @@
 package sedgewick.graphs
 
 // Vertex visitor trait -- does something whenever
-//  it visits a vertex
+//  it visits a vertex during a search.  These get
+//  passed to dfsVisit or bfsVisit
 trait VertexVisitor {
-  def visit(v: Int): Unit // Call on each visit
+  def discoverVertex(v: Int, g: GraphLike) = {}
+  def treeEdge(v: Int, g: GraphLike) = {}
+  def backEdge(v: Int, g: GraphLike) = {}
+  def crossEdge(v: Int, g: GraphLike) = {}
 }
 
+// A few simple examples -- more useful ones
+// are found in the Search interface
 class VisitCount extends VertexVisitor {
   private[this] var n = 0
 
-  def visit(v: Int) = n += 1
+  override def discoverVertex(v: Int, g: GraphLike) = n += 1
   def resetNVisited() = n = 0
   def getNVisited = n
 }
@@ -19,16 +25,15 @@ class VisitCount extends VertexVisitor {
 class VisitList extends VertexVisitor {
   private[this] val visited = collection.mutable.MutableList[Int]()
 
-  def visit(v: Int) = visited += v
+  override def discoverVertex(v: Int, g: GraphLike) = visited += v
   def order = visited.toList
 }
 
-// This keeps a boolean array of all vertices visited,
-// allowing constant time queries
+// Marks which vertices were visited
 class VertexVisited(val g: GraphLike) extends VertexVisitor {
   private[this] var marked = Array.fill(g.V)(false)
 
-  def visit(v: Int) = {
+  override def discoverVertex(v: Int, g: GraphLike) = {
     assert(v < marked.length, "Vertex index %d out of range".format(v))
     marked(v) = true
   }

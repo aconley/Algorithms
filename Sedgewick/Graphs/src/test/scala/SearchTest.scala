@@ -1,6 +1,6 @@
 package sedgewick.graphs
 
-import Search.dfsVisitPre
+import Search.dfsVisitVertex
 import org.scalatest._
 
 // Test of search algorithms
@@ -16,54 +16,54 @@ class SearchTest extends FlatSpec with Matchers {
     (5, 3))
   val g2 = BasicGraph(edgeList2)
 
-  "dfsSearchPre" should "visit the right number of vertices" in {
+  "dfsVisitVertex" should "visit the right number of vertices" in {
     // Simple graph
     val v1 = new VisitCount
 
     // Visit 0
-    dfsVisitPre(g1, 0, v1)
+    dfsVisitVertex(g1, 0, v1)
     v1.getNVisited should be(2)
 
     // Visit 1
     v1.resetNVisited()
-    dfsVisitPre(g1, 1, v1)
+    dfsVisitVertex(g1, 1, v1)
     v1.getNVisited should be(2)
 
     // Visit 2
     v1.resetNVisited()
-    dfsVisitPre(g1, 2, v1)
+    dfsVisitVertex(g1, 2, v1)
     v1.getNVisited should be(1)
 
     // Visit 3, 4, 5
     v1.resetNVisited()
-    dfsVisitPre(g1, 3, v1)
+    dfsVisitVertex(g1, 3, v1)
     v1.getNVisited should be(3)
     v1.resetNVisited()
-    dfsVisitPre(g1, 4, v1)
+    dfsVisitVertex(g1, 4, v1)
     v1.getNVisited should be(3)
     v1.resetNVisited()
-    dfsVisitPre(g1, 5, v1)
+    dfsVisitVertex(g1, 5, v1)
     v1.getNVisited should be(3)
 
     // More complex graph; the example tinyG example in Sedgewick v4
     v1.resetNVisited()
-    dfsVisitPre(g2, 1, v1)
+    dfsVisitVertex(g2, 1, v1)
     v1.getNVisited should be (7)
     v1.resetNVisited()
-    dfsVisitPre(g2, 4, v1)
+    dfsVisitVertex(g2, 4, v1)
     v1.getNVisited should be (7)
     v1.resetNVisited()
-    dfsVisitPre(g2, 8, v1)
+    dfsVisitVertex(g2, 8, v1)
     v1.getNVisited should be (2)
     v1.resetNVisited()
-    dfsVisitPre(g2, 9, v1)
+    dfsVisitVertex(g2, 9, v1)
     v1.getNVisited should be (4)
     v1.resetNVisited()
   }
 
   it should "visit the right vertices" in {
     val vis = new VertexVisited(g2)
-    dfsVisitPre(g2, 0, vis)
+    dfsVisitVertex(g2, 0, vis)
     vis.getNVisited should be (7)
     vis.allVisited should be (false)
     vis.didVisit(4) should be (true)
@@ -71,7 +71,7 @@ class SearchTest extends FlatSpec with Matchers {
     vis.visitList shouldEqual List(0, 1, 2, 3, 4, 5, 6)
 
     vis.reset()
-    dfsVisitPre(g2, 8, vis)
+    dfsVisitVertex(g2, 8, vis)
     vis.getNVisited should be (2)
     vis.didVisit(7) should be (true)
     vis.didVisit(8) should be (true)
@@ -79,7 +79,7 @@ class SearchTest extends FlatSpec with Matchers {
     vis.visitList shouldEqual List(7, 8)
 
     vis.reset()
-    dfsVisitPre(g2, 9, vis)
+    dfsVisitVertex(g2, 9, vis)
     vis.getNVisited should be (4)
     vis.didVisit(7) should be (false)
     vis.didVisit(9) should be (true)

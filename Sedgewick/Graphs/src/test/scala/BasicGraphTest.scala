@@ -20,7 +20,7 @@ class BasicGraphTest extends FlatSpec with Matchers {
   }
 
   it should "support querying of edges" in {
-    val edgeList = List((0, 1), (3, 4), (3, 5))
+    val edgeList: List[(Int, Int)] = List((0, 1), (3, 4), (3, 5))
     val g = BasicGraph(edgeList)
     g.adj(0).contains(1) should be (true)
     g.adj(0).contains(2) should be (false)
