@@ -2,12 +2,12 @@ package sedgewick.graphs
 
 // Vertex visitor trait -- does something whenever
 //  it visits a vertex during a search.  These get
-//  passed to dfsVisit or bfsVisit
+//  passed to dfsVisit or bfsVisit.
 trait VertexVisitor {
-  def discoverVertex(v: Int, g: GraphLike) = {}
-  def treeEdge(v: Int, g: GraphLike) = {}
-  def backEdge(v: Int, g: GraphLike) = {}
-  def crossEdge(v: Int, g: GraphLike) = {}
+  def discoverVertex(v: Int, g: GraphLike) = {} // On visiting v
+  def treeEdge(v: Int, u: Int, g: GraphLike) = {} // Going from v to unvisited u
+  def backEdge(v: Int, u: Int, g: GraphLike) = {} // Encounter back edge from v -> u
+  def crossEdge(v: Int, u: Int, g: GraphLike) = {} // Encounter cross edge v -> u
 }
 
 // A few simple examples -- more useful ones

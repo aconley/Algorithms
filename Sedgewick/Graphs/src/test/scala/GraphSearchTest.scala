@@ -1,6 +1,6 @@
 package sedgewick.graphs
 
-import Search.dfsVisitVertex
+import GraphSearch._
 import org.scalatest._
 
 // Test of search algorithms
@@ -85,5 +85,18 @@ class SearchTest extends FlatSpec with Matchers {
     vis.didVisit(9) should be (true)
     vis.didVisit(11) should be (true)
     vis.visitList shouldEqual List(9, 10, 11, 12)
+  }
+
+  "connectedToVertex" should "find the connected vertices" in {
+    connectedToVertex(0, g2) shouldEqual List(0, 1, 2, 3, 4, 5 ,6)
+    connectedToVertex(3, g2) shouldEqual List(0, 1, 2, 3, 4, 5 ,6)
+    connectedToVertex(7, g2) shouldEqual List(7, 8)
+    connectedToVertex(10, g2) shouldEqual List(9, 10, 11, 12)
+  }
+
+  "findDFSPathBetween" should "find the path between vertices" in {
+    findDFSPathBetween(0, 4, g2) shouldEqual List(0, 5, 3, 4)
+    findDFSPathBetween(0, 0, g2) shouldEqual List(0)
+    findDFSPathBetween(0, 9, g2) shouldEqual List()
   }
 }
