@@ -124,11 +124,13 @@ object GraphSearch {
 
     override def startVertex(v: Int, g: GraphLike) = idx += 1
     override def discoverVertex(v: Int, g: GraphLike) = comps(v) = idx
-    def components: List[Int] = comps.toList
+    def components: IndexedSeq[Int] = comps.toIndexedSeq
   }
 
   // Labels all connected components with increasing index
-  def findConnectedComponents(g: GraphLike): List[Int] = {
+  // Any two vertices with the same value are connected and
+  // in the same component
+  def findConnectedComponents(g: GraphLike): IndexedSeq[Int] = {
     val vis = new ConnectedComponents(g)
     dfsVisitAll(g, vis)
     vis.components
@@ -200,7 +202,9 @@ object GraphSearch {
   }
 
   // Find BFS path between v and u, returning an empty
-  //  list if there is none
+  //  list if there is none.  This is the shortest
+  // path between the two vertices, although it may not
+  // be unique
   def findBFSPathBetween(v: Int, u: Int, g: GraphLike): List[Int] = {
     val vis = new Path(g, v)
     bfsVisitVertex(g, v, vis)

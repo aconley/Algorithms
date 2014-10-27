@@ -189,6 +189,6 @@ class GraphSearchTest extends FlatSpec with Matchers {
 
   "findConnectedComponents" should "find the connected components" in {
     findConnectedComponents(g2) shouldEqual
-      List(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2)
+      IndexedSeq(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2)
   }
 }
