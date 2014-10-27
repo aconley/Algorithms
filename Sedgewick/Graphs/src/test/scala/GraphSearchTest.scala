@@ -4,7 +4,7 @@ import GraphSearch._
 import org.scalatest._
 
 // Test of search algorithms
-class SearchTest extends FlatSpec with Matchers {
+class GraphSearchTest extends FlatSpec with Matchers {
 
   // Two graphs to play with -- a very simple
   //  one and the more complex one used as a preliminary
@@ -87,6 +87,70 @@ class SearchTest extends FlatSpec with Matchers {
     vis.visitList shouldEqual List(9, 10, 11, 12)
   }
 
+  "bfsVisitVertex" should "visit the right number of vertices" in {
+    // Simple graph
+    val v1 = new VisitCount
+
+    bfsVisitVertex(g1, 0, v1)
+    v1.getNVisited should be(2)
+    v1.resetNVisited()
+    bfsVisitVertex(g1, 1, v1)
+    v1.getNVisited should be(2)
+    v1.resetNVisited()
+    bfsVisitVertex(g1, 2, v1)
+    v1.getNVisited should be(1)
+    v1.resetNVisited()
+    bfsVisitVertex(g1, 3, v1)
+    v1.getNVisited should be(3)
+    v1.resetNVisited()
+    bfsVisitVertex(g1, 4, v1)
+    v1.getNVisited should be(3)
+    v1.resetNVisited()
+    bfsVisitVertex(g1, 5, v1)
+    v1.getNVisited should be(3)
+
+    // More complex graph; the example tinyG example in Sedgewick v4
+    v1.resetNVisited()
+    bfsVisitVertex(g2, 1, v1)
+    v1.getNVisited should be (7)
+    v1.resetNVisited()
+    bfsVisitVertex(g2, 4, v1)
+    v1.getNVisited should be (7)
+    v1.resetNVisited()
+    bfsVisitVertex(g2, 8, v1)
+    v1.getNVisited should be (2)
+    v1.resetNVisited()
+    bfsVisitVertex(g2, 9, v1)
+    v1.getNVisited should be (4)
+    v1.resetNVisited()
+  }
+
+  it should "visit the right vertices" in {
+    val vis = new VertexVisited(g2)
+    bfsVisitVertex(g2, 0, vis)
+    vis.getNVisited should be (7)
+    vis.allVisited should be (false)
+    vis.didVisit(4) should be (true)
+    vis.didVisit(9) should be (false)
+    vis.visitList shouldEqual List(0, 1, 2, 3, 4, 5, 6)
+
+    vis.reset()
+    bfsVisitVertex(g2, 8, vis)
+    vis.getNVisited should be (2)
+    vis.didVisit(7) should be (true)
+    vis.didVisit(8) should be (true)
+    vis.didVisit(9) should be (false)
+    vis.visitList shouldEqual List(7, 8)
+
+    vis.reset()
+    bfsVisitVertex(g2, 9, vis)
+    vis.getNVisited should be (4)
+    vis.didVisit(7) should be (false)
+    vis.didVisit(9) should be (true)
+    vis.didVisit(11) should be (true)
+    vis.visitList shouldEqual List(9, 10, 11, 12)
+  }
+
   "connectedToVertex" should "find the connected vertices" in {
     connectedToVertex(0, g2) shouldEqual List(0, 1, 2, 3, 4, 5 ,6)
     connectedToVertex(3, g2) shouldEqual List(0, 1, 2, 3, 4, 5 ,6)
@@ -98,5 +162,33 @@ class SearchTest extends FlatSpec with Matchers {
     findDFSPathBetween(0, 4, g2) shouldEqual List(0, 5, 3, 4)
     findDFSPathBetween(0, 0, g2) shouldEqual List(0)
     findDFSPathBetween(0, 9, g2) shouldEqual List()
+  }
+
+  "findDFSPathsFrom" should "find the paths between vertices" in {
+    val paths = findDFSPathsFrom(0, g2)
+    paths get 4 shouldEqual Some(List(0, 5, 3, 4))
+    paths get 0 shouldEqual Some(List(0))
+    paths get 9  shouldEqual None
+    paths get 3 shouldEqual Some(List(0, 5, 3))
+    paths get 5 shouldEqual Some(List(0, 5))
+  }
+
+  "findBFSPathBetween" should "find the path between vertices" in {
+    findBFSPathBetween(0, 3, g2) shouldEqual List(0, 5, 3)
+    findBFSPathBetween(0, 0, g2) shouldEqual List(0)
+    findBFSPathBetween(0, 9, g2) shouldEqual List()
+  }
+
+  "findBFSPathsFrom" should "find the paths between vertices" in {
+    val paths = findBFSPathsFrom(0, g2)
+    paths get 0 shouldEqual Some(List(0))
+    paths get 9  shouldEqual None
+    paths get 3 shouldEqual Some(List(0, 5, 3))
+    paths get 5 shouldEqual Some(List(0, 5))
+  }
+
+  "findConnectedComponents" should "find the connected components" in {
+    findConnectedComponents(g2) shouldEqual
+      List(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2)
   }
 }

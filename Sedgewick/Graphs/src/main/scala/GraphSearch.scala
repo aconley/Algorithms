@@ -15,11 +15,12 @@ object GraphSearch {
   // in pre-order
 
   import VertexSearchStatus._
+  import collection.mutable.{Stack => MStack, Queue => MQueue}
 
   // dfs visitor function from a given vertex
   // Relies on caller to set up visitor on initial call
   private def dfsInner(g: GraphLike, v: Int, visitor: VertexVisitor,
-    visited: Array[VertexSearchStatus]): Unit = {
+                       visited: Array[VertexSearchStatus]): Unit = {
 
     visited(v) = Discovered
     visitor.discoverVertex(v, g) // Pre-order
@@ -41,6 +42,7 @@ object GraphSearch {
     require(v < g.V & v >= 0, s"Invalid start vertex $v")
 
     val visited = Array.fill(g.V)(Undiscovered)
+    visitor.startVertex(v, g)
     dfsInner(g, v, visitor, visited)
   }
 
@@ -48,9 +50,63 @@ object GraphSearch {
   def dfsVisitAll(g: GraphLike, visitor: VertexVisitor): Unit = {
     require(g.V > 0, "Empty graph")
     val visited = Array.fill(g.V)(Undiscovered)
-    for (v <- 0 to g.V)
-      if (visited(v) == Undiscovered)
+    for (v <- 0 until g.V)
+      if (visited(v) == Undiscovered) {
+        visitor.startVertex(v, g)
         dfsInner(g, v, visitor, visited)
+      }
+  }
+
+  // bfs visitor function from a given vertex
+  // Relies on caller to set up visited on initial call
+  private def bfsInner(g: GraphLike, s: Int,
+                       visitor: VertexVisitor,
+                       visited: Array[VertexSearchStatus]): Unit = {
+
+    val q = new MQueue[Int]
+
+    visited(s) = Discovered
+    visitor.discoverVertex(s, g) // Pre-order
+    q += s // Enqueue start vertex or else this exits immediately
+
+    // Main loop
+    while (!q.isEmpty) {
+      val v = q.dequeue()
+      for (u <- g.adj(v)) {
+        if (visited(u) == Undiscovered) {
+          visitor.treeEdge(v, u, g)
+          visited(u) = Discovered
+          visitor.discoverVertex(u, g)
+          q += u
+        }
+        else if (visited(u) == Discovered)
+          visitor.backEdge(v, u, g)
+        else
+          visitor.crossEdge(v, u, g)
+      }
+      visited(v) = Finished
+    }
+  }
+
+  // Visit all vertices connected to a start vertex v using bfs
+  def bfsVisitVertex(g: GraphLike, v: Int, visitor: VertexVisitor): Unit = {
+    require(g.V > 0, "Empty graph")
+    require(v < g.V & v >= 0, s"Invalid start vertex $v")
+
+    val visited = Array.fill(g.V)(Undiscovered)
+    visitor.startVertex(v, g)
+    bfsInner(g, v, visitor, visited)
+  }
+
+  // Visit all vertices in a graph using bfs
+  def bfsVisitAll(g: GraphLike, visitor: VertexVisitor): Unit = {
+    require(g.V > 0, "Empty graph")
+    val visited = Array.fill(g.V)(Undiscovered)
+    for (v <- 0 until g.V)
+      if (visited(v) == Undiscovered) {
+        visitor.startVertex(v, g)
+        bfsInner(g, v, visitor, visited)
+      }
   }
 
   // Get list of vertices connected to specified one
@@ -59,6 +115,23 @@ object GraphSearch {
 
     dfsVisitVertex(g, v, vdet)
     vdet.visitList
+  }
+
+  // Mark connected components
+  private class ConnectedComponents(g: GraphLike) extends VertexVisitor {
+    private[this] var idx: Int = -1;
+    private[this] val comps = Array.fill[Int](g.V)(idx)
+
+    override def startVertex(v: Int, g: GraphLike) = idx += 1
+    override def discoverVertex(v: Int, g: GraphLike) = comps(v) = idx
+    def components: List[Int] = comps.toList
+  }
+
+  // Labels all connected components with increasing index
+  def findConnectedComponents(g: GraphLike): List[Int] = {
+    val vis = new ConnectedComponents(g)
+    dfsVisitAll(g, vis)
+    vis.components
   }
 
   // Cycle visitor
@@ -77,8 +150,9 @@ object GraphSearch {
   }
 
   // Visitor for finding paths from initial node
-  //  to all nodes reachable from that vertex
-  private class DFSPath(g: GraphLike, initVertex: Int) extends VertexVisitor {
+  //  to all nodes reachable from that vertex.  Works for
+  //  BFS or DFS
+  private class Path(g: GraphLike, initVertex: Int) extends VertexVisitor {
     val V = g.V
     val startVertex = initVertex
     val edgeTo = Array.fill[Int](V)(V)
@@ -93,7 +167,7 @@ object GraphSearch {
         List()
       } else {
         // Use stack to back it out
-        val s = new collection.mutable.Stack[Int]
+        val s = new MStack[Int]
         var currVertex = u
         while (currVertex != startVertex) {
           s.push(currVertex)
@@ -108,7 +182,7 @@ object GraphSearch {
   // Find DFS path between v and u, returning an empty
   //  list if there is none
   def findDFSPathBetween(v: Int, u: Int, g: GraphLike): List[Int] = {
-    val vis = new DFSPath(g, v)
+    val vis = new Path(g, v)
     dfsVisitVertex(g, v, vis)
     vis.pathTo(u)
   }
@@ -116,11 +190,31 @@ object GraphSearch {
   // Find DFS path between v and all reachable vertices as
   // a map
   def findDFSPathsFrom(v: Int, g: GraphLike): Map[Int, List[Int]] = {
-    val vis = new DFSPath(g, v)
+    val vis = new Path(g, v)
     dfsVisitVertex(g, v, vis)
 
     val ret = collection.mutable.Map.empty[Int, List[Int]]
-    for (u <- 0 to g.V filter (_ != v))
+    for (u <- 0 until g.V)
+      if (vis.hasPathTo(u)) ret += (u -> vis.pathTo(u))
+    ret.toMap
+  }
+
+  // Find BFS path between v and u, returning an empty
+  //  list if there is none
+  def findBFSPathBetween(v: Int, u: Int, g: GraphLike): List[Int] = {
+    val vis = new Path(g, v)
+    bfsVisitVertex(g, v, vis)
+    vis.pathTo(u)
+  }
+
+  // Find BFS path between v and all reachable vertices as
+  // a map
+  def findBFSPathsFrom(v: Int, g: GraphLike): Map[Int, List[Int]] = {
+    val vis = new Path(g, v)
+    bfsVisitVertex(g, v, vis)
+
+    val ret = collection.mutable.Map.empty[Int, List[Int]]
+    for (u <- 0 until g.V)
       if (vis.hasPathTo(u)) ret += (u -> vis.pathTo(u))
     ret.toMap
   }

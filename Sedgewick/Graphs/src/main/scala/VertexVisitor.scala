@@ -4,6 +4,7 @@ package sedgewick.graphs
 //  it visits a vertex during a search.  These get
 //  passed to dfsVisit or bfsVisit.
 trait VertexVisitor {
+  def startVertex(v: Int, g: GraphLike) = {} // Called once on start vertex
   def discoverVertex(v: Int, g: GraphLike) = {} // On visiting v
   def treeEdge(v: Int, u: Int, g: GraphLike) = {} // Going from v to unvisited u
   def backEdge(v: Int, u: Int, g: GraphLike) = {} // Encounter back edge from v -> u
