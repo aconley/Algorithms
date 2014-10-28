@@ -6,15 +6,18 @@ import org.scalatest._
 // Test of search algorithms
 class GraphSearchTest extends FlatSpec with Matchers {
 
-  // Two graphs to play with -- a very simple
-  //  one and the more complex one used as a preliminary
+  // Three graphs to play with
+  // 1) a very simple one
+  // 2) the more complex one used as a preliminary
   //  example in Sedgewick 4th Ed
+  // 3) A small tree (no cycles)
   val edgeList1 = List((0, 1), (3, 4), (3, 5))
   val g1 = BasicGraph(edgeList1)
   val edgeList2 = List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
     (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
     (5, 3))
   val g2 = BasicGraph(edgeList2)
+  val g3 = BasicGraph(List((0, 1), (0, 2), (1, 3), (2, 4), (2, 6)))
 
   "dfsVisitVertex" should "visit the right number of vertices" in {
     // Simple graph
@@ -190,5 +193,13 @@ class GraphSearchTest extends FlatSpec with Matchers {
   "findConnectedComponents" should "find the connected components" in {
     findConnectedComponents(g2) shouldEqual
       IndexedSeq(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2)
+    findConnectedComponents(g3) shouldEqual
+      IndexedSeq(0, 0, 0, 0, 0, 1, 0)
+  }
+
+  "detectCycle" should "detect cycles" in {
+    detectCycle(g1) should be (false)
+    detectCycle(g2) should be (true)
+    detectCycle(g3) should be (false)
   }
 }

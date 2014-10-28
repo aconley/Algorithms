@@ -4,31 +4,39 @@ import org.scalatest._
 
 class BasicGraphTest extends FlatSpec with Matchers {
 
+  val g1 = BasicGraph(List((0, 1), (3, 4), (3, 5)))
+  val g2 = BasicGraph(List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
+      (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
+      (5, 3)))
+          
   "A BasicGraph" should "have the right number of vertices and edges" in {
-    val edgeList = List((0, 1), (3, 4), (3, 5))
-    val g = BasicGraph(edgeList)
-    g.V should be (6)
-    g.E should be (3)
+    g1.V should be (6)
+    g1.E should be (3)
 
     // More complex example
-    val edgeList2 = List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
-      (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
-      (5, 3))
-    val g2 = BasicGraph(edgeList2)
     g2.V should be (13)
     g2.E should be (13)
   }
 
+  it should "support querying degree of vertices" in {
+    g1.degree(0) should be (1)
+    g1.degree(2) should be (0)
+    g1.degree(3) should be (2)
+    g2.degree(0) should be (4)
+    g2.degree(1) should be (1)
+    g2.degree(3) should be (2)
+    g2.degree(7) should be (1)
+    g2.degree(9) should be (2)
+    g2.degree(11) should be (2)
+  }
+  
   it should "support querying of edges" in {
-    val edgeList: List[(Int, Int)] = List((0, 1), (3, 4), (3, 5))
-    val g = BasicGraph(edgeList)
-    g.adj(0).contains(1) should be (true)
-    g.adj(0).contains(2) should be (false)
-    g.adj(1).contains(0) should be (true)
-    g.adj(1).contains(2) should be (false)
-    g.adj(2).isEmpty should be (true)
-    g.adj(3).contains(4) should be (true)
-
+    g1.adj(0).contains(1) should be (true)
+    g1.adj(0).contains(2) should be (false)
+    g1.adj(1).contains(0) should be (true)
+    g1.adj(1).contains(2) should be (false)
+    g1.adj(2).isEmpty should be (true)
+    g1.adj(3).contains(4) should be (true)
   }
 
   it should "ignore duplicate edges unless specified" in {

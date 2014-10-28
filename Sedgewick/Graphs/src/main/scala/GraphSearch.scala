@@ -17,6 +17,10 @@ object GraphSearch {
   import VertexSearchStatus._
   import collection.mutable.{Stack => MStack, Queue => MQueue}
 
+  // Note that DFS and BFS are actually for digraphs -- I need
+  // to create a version for undirected graphs and use the
+  // appropriate one since the rules for back edges are different
+
   // dfs visitor function from a given vertex
   // Relies on caller to set up visitor on initial call
   private def dfsInner(g: GraphLike, v: Int, visitor: VertexVisitor,
@@ -140,6 +144,7 @@ object GraphSearch {
   private class CycleDetector extends VertexVisitor {
     private[this] var cycle = false;
 
+    def reset() = cycle = false
     override def backEdge(v: Int, u: Int, g: GraphLike) = cycle = true
     def hasCycle: Boolean = cycle
   }
