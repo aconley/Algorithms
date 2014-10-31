@@ -2,10 +2,13 @@ package sedgewick.graphs
 
 import collection.mutable.ListBuffer
 
-// Very basic immutable undirected graph class
-// using a List for the adjacency list type
-// Self loops and duplicates handled by apply in object,
-//  but potentially supported
+/** Basic immutable undirected graph class
+  *
+  * @constructor Create a new [[Graph]]
+  * @param V Number of vertices
+  * @param E Number of edges
+  * @param adj_list Edge adjacency lists
+  */
 class Graph(val V: Int, val E: Int,
             private val adj_list: IndexedSeq[List[Int]])
   extends GraphLike with UndirectedGraph {
@@ -20,12 +23,18 @@ class Graph(val V: Int, val E: Int,
     adj_list(v)
   }
 
+  /** Basic string representation */
   override def toString: String = f"Undirected graph with $V%d vertices"
 }
 
 object Graph {
-  // Build new immutable Graph from a list of edges,
-  //  where the edges are specified as a list of tuple-s
+  /** Build new immutable Graph from a list of edges
+    *
+    * @param edgeList List of edges specified as tuples of ints
+    * @param allowDup Allow duplicate edges
+    * @param allowSelf Allow self loops
+    * @return A new [[Graph]]
+    */
   def apply(edgeList: List[(Int, Int)], allowDup: Boolean=false,
             allowSelf: Boolean=false): Graph = {
 

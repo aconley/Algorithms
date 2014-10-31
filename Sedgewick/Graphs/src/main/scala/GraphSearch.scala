@@ -1,24 +1,30 @@
 package sedgewick.graphs
 
-// This enumeration is used to keep track of what point
-// we are in a graph search.
-object VertexSearchStatus extends Enumeration {
+/** Used for keeping track of search progress */
+private object VertexSearchStatus extends Enumeration {
   type VertexSearchStatus = Value
   val Undiscovered = Value // Not discovered; initialize to this
   val Discovered = Value // Discovered, not all neighbors done
   val Finished = Value // Discovered, all neighbors searched
 }
 
+/**
+ * Routines related to graph searching
+ */
 object GraphSearch {
-  // Visit all vertices connected to v in the graph g
-  //  using a depth first search calling the visitor
-  // in pre-order
 
   import VertexSearchStatus._
   import collection.mutable.{Stack => MStack, Queue => MQueue}
 
-  // dfs visitor function from a given vertex for digraphs
-  // Relies on caller to set up visitor on initial call
+  /**
+   * Inner dfs visitor function for [[DirectedGraph]]
+   * @param g [[DirectedGraph]] being searched
+   * @param u Start vertex [0, g.V)
+   * @param visitor [[dfsVisitor]] implementing actions to take
+   * @param visited Keeps track of search progress
+   *
+   * Relies on caller to set up visitor and visited on initial call
+   */
   private def dfsInnerDi(g: DirectedGraph, u: Int, visitor: dfsVisitor,
                          visited: Array[VertexSearchStatus]): Unit = {
 
@@ -37,8 +43,16 @@ object GraphSearch {
     visited(u) = Finished
   }
 
-  // dfs visitor function from a given vertex for undirected graphs
-  // Relies on caller to set up visitor on initial call
+  /**
+   * Inner dfs visitor function for [[UndirectedGraph]]
+   * @param g [[UndirectedGraph]] being searched
+   * @param u Start vertex [0, g.V)
+   * @param w Vertex search came to u from
+   * @param visitor [[dfsVisitor]] implementing actions to take
+   * @param visited Keeps track of search progress
+   *
+   * Relies on caller to set up visitor and visited on initial call
+   */
   private def dfsInnerUn(g: UndirectedGraph, u: Int, w: Int,
                          visitor: dfsVisitor,
                          visited: Array[VertexSearchStatus]): Unit = {
@@ -56,7 +70,13 @@ object GraphSearch {
     visited(u) = Finished
   }
 
-  // Visit all vertices connected to a start vertex u using dfs
+  /**
+   * dfs visit all vertices connected to a start vertex with a visitor
+   *
+   * @param g [[GraphLike]] to search
+   * @param u Starting vertex [0, g.V)
+   * @param visitor [[dfsVisitor]] to use during search
+   */
   def dfsVisitVertex(g: GraphLike, u: Int, visitor: dfsVisitor): Unit = {
     require(g.V > 0, "Empty graph")
     require(u < g.V & u >= 0, s"Invalid start vertex $u")
@@ -69,7 +89,12 @@ object GraphSearch {
     }
   }
 
-  // Visit all vertices in a graph using dfs
+  /**
+   * dfs Visit all vertices in a [[GraphLike]] with a visitor
+   *
+   * @param g [[GraphLike]] to search
+   * @param visitor [[dfsVisitor]] to use during search
+   */
   def dfsVisitAll(g: GraphLike, visitor: dfsVisitor): Unit = {
     require(g.V > 0, "Empty graph")
     val visited = Array.fill(g.V)(Undiscovered)
@@ -83,8 +108,14 @@ object GraphSearch {
       }
   }
 
-  // bfs visitor function from a given vertex
-  // Relies on caller to set up visited on initial call
+  /**
+   * Breadth-first search inner function
+   *
+   * @param g [[GraphLike]] to search
+   * @param s Start vertex [0, g.V)
+   * @param visitor [[bfsVisitor]] to use during search
+   * @param visited Keeps track of search progress
+   */
   private def bfsInner(g: GraphLike, s: Int,
                        visitor: bfsVisitor,
                        visited: Array[VertexSearchStatus]): Unit = {
@@ -112,7 +143,13 @@ object GraphSearch {
     }
   }
 
-  // Visit all vertices connected to a start vertex v using bfs
+  /**
+   * Visit all vertices connected to a start vertex using bfs
+   *
+   * @param g [[GraphLike]] to search
+   * @param u start vertex [0, g.V)
+   * @param visitor [[bfsVisitor]] to use during search
+   */
   def bfsVisitVertex(g: GraphLike, u: Int, visitor: bfsVisitor): Unit = {
     require(g.V > 0, "Empty graph")
     require(u < g.V & u >= 0, s"Invalid start vertex $u")
@@ -122,7 +159,12 @@ object GraphSearch {
     bfsInner(g, u, visitor, visited)
   }
 
-  // Visit all vertices in a graph using bfs
+  /**
+   * Visit all vertices in a [[GraphLike]] using bfs
+   *
+   * @param g [[GraphLike]] to search
+   * @param visitor [[bfsVisitor]] to use during search
+   */
   def bfsVisitAll(g: GraphLike, visitor: bfsVisitor): Unit = {
     require(g.V > 0, "Empty graph")
     val visited = Array.fill(g.V)(Undiscovered)
@@ -133,7 +175,15 @@ object GraphSearch {
       }
   }
 
-  // Get list of vertices connected to specified one
+  /**
+   * Get list of vertices connected to a given vertex
+   *
+   * @param u Vertex to start from [0, g.V)
+   * @param g [[GraphLike]] to search
+   * @return List of vertices reachable from u
+   *
+   * Uses dfs internally
+   */
   def connectedToVertex(u: Int, g: GraphLike): List[Int] = {
     val vdet = new VertexVisited(g) with dfsVisitor
 
@@ -141,7 +191,12 @@ object GraphSearch {
     vdet.visitList
   }
 
-  // Mark connected components
+  /**
+   * Class for marking connected components
+   *
+   * @constructor Create marking visitor
+   * @param g [[GraphLike]] we will search
+   */
   private class ConnectedComponents(g: GraphLike) extends VertexVisitor {
     private[this] var idx: Int = -1;
     private[this] val comps = Array.fill[Int](g.V)(idx)
@@ -151,16 +206,23 @@ object GraphSearch {
     def components: IndexedSeq[Int] = comps.toIndexedSeq
   }
 
-  // Labels all connected components with increasing index
-  // Any two vertices with the same value are connected and
-  // in the same component
-  def findConnectedComponents(g: GraphLike): IndexedSeq[Int] = {
+  //
+  //
+  /** Labels all connected components with increasing index
+    *
+    * @param g [[UndirectedGraph]] to search
+    * @return Any two vertices with the same value are connected and
+    *         in the same component
+    *
+    * This implementation for undirected graphs only, which are easier
+    */
+  def findConnectedComponents(g: UndirectedGraph): IndexedSeq[Int] = {
     val vis = new ConnectedComponents(g) with dfsVisitor
     dfsVisitAll(g, vis)
     vis.components
   }
 
-  // Cycle visitor
+  /** Cycle detection visitor */
   private class CycleDetector extends dfsVisitor {
     private[this] var cycle = false;
 
@@ -169,24 +231,48 @@ object GraphSearch {
     def hasCycle: Boolean = cycle
   }
 
-  // Detects the presence of a cycle using a dfs
+  /**
+   * Determines whether a cycle is present
+   *
+   * @param g [[GraphLike]] to search
+   * @return True if a cycle is detected, false otherwise
+   */
   def detectCycle(g: GraphLike): Boolean = {
     val cdet = new CycleDetector
     dfsVisitAll(g, cdet)
     cdet.hasCycle
   }
 
-  // Visitor for finding paths from initial node
-  //  to all nodes reachable from that vertex.  Works for
-  //  BFS or DFS
+  /**
+   * Visitor for finding paths between vertices
+   *
+   * @constructor Make new path object
+   * @param g [[GraphLike]] to search
+   * @param initVertex Initial vertex [0, g.V)
+   *
+   * Works for bfs or dfs
+   */
   private class Path(g: GraphLike, initVertex: Int) extends VertexVisitor {
     val V = g.V
     val startVertex = initVertex
     val edgeTo = Array.fill[Int](V)(V)
     edgeTo(initVertex) = initVertex
 
-    override def treeEdge(v: Int, u: Int, g: GraphLike) = edgeTo(u) = v
+    override def treeEdge(u: Int, v: Int, g: GraphLike) = edgeTo(v) = u
+
+    /** Is there a path from the start vertex to the specified one?
+      *
+      * @param u Vertex to search for path to
+      * @return True if there is a path from initVertex to u
+      */
     def hasPathTo(u: Int): Boolean = edgeTo(u) < V
+
+    /**
+     * Get a path from start vertex to specified one
+     *
+     * @param u Vertex to search for path to
+     * @return The path, or an empty list if none is found
+     */
     def pathTo(u: Int): List[Int] = {
       if (u == startVertex) {
         List(u)
@@ -206,16 +292,28 @@ object GraphSearch {
     }
   }
 
-  // Find DFS path between u and v, returning an empty
-  //  list if there is none
+  /**
+   * Find a dfs path between two vertices if it exists
+   *
+   * @param u Start vertex [0, g.V)
+   * @param v End vertex [0, g.V)
+   * @param g [[GraphLike]] to search
+   * @return A dfs path from u to v in g if it exists, or an
+   *         empty list if there is none
+   */
   def findDFSPathBetween(u: Int, v: Int, g: GraphLike): List[Int] = {
     val vis = new Path(g, u) with dfsVisitor
     dfsVisitVertex(g, u, vis)
     vis.pathTo(v)
   }
 
-  // Find path between u and all reachable vertices as
-  // a map using dfs
+  /**
+   * Find dfs paths between vertex and all reachable vertices
+   *
+   * @param u Start vertex [0, g.V)
+   * @param g [[GraphLike]] to search
+   * @return Map indexed by reachable vertex v of dfs path from u to v
+   */
   def findDFSPathsFrom(u: Int, g: GraphLike): Map[Int, List[Int]] = {
     val vis = new Path(g, u) with dfsVisitor
     dfsVisitVertex(g, u, vis)
@@ -226,18 +324,34 @@ object GraphSearch {
     ret.toMap
   }
 
-  // Find BFS path between u and v, returning an empty
-  //  list if there is none.  This is the shortest
-  // path between the two vertices, although it may not
-  // be unique
+  /**
+   * Find a bfs path between two vertices if it exists
+   *
+   * @param u Start vertex [0, g.V)
+   * @param v End vertex [0, g.V)
+   * @param g [[GraphLike]] to search
+   * @return A bfs path from u to v in g if it exists, or an
+   *         empty list if there is none.
+   *
+   * This is the shortest path between vertices, but it may
+   * not be unique
+   */
   def findBFSPathBetween(u: Int, v: Int, g: GraphLike): List[Int] = {
     val vis = new Path(g, u) with bfsVisitor
     bfsVisitVertex(g, u, vis)
     vis.pathTo(v)
   }
 
-  // Find BFS path between u and all reachable vertices as
-  // a map
+  /**
+   * Find bfs paths between vertex and all reachable vertices
+   *
+   * @param u Start vertex [0, g.V)
+   * @param g [[GraphLike]] to search
+   * @return Map indexed by reachable vertex v of bfs path from u to v
+   *
+   * Each path is the shortest path between the two vertices, but may
+   * not be unique
+   */
   def findBFSPathsFrom(u: Int, g: GraphLike): Map[Int, List[Int]] = {
     val vis = new Path(g, u) with bfsVisitor
     bfsVisitVertex(g, u, vis)

@@ -1,18 +1,49 @@
 package sedgewick.graphs
 
-// Adjacency list representation
+/** Adjacency list representation of graphs */
 trait GraphLike {
-  def V: Int // Number of vertices
-  def E: Int // Number of Edges
-  def adj(v: Int): Seq[Int] // Adjacency list
+  /** Number of vertices */
+  def V: Int
+  /** Number of edges */
+  def E: Int
+
+  /** Get list of adjacent vertices
+    *
+    * @param u Vertex number [0, V)
+    * @return Sequence of adjacent vertices
+    */
+  def adj(u: Int): Seq[Int]
 }
 
+/** Undirected graph trait */
 trait UndirectedGraph extends GraphLike {
-  def degree(u: Int): Int // Degree of vertex
+  /** Degree of vertex
+    *
+    * @param u Vertex number [0, V)
+    * @return Degree of that vertex
+    */
+  def degree(u: Int): Int
 }
 
+/** Directed graph trait */
 trait DirectedGraph extends GraphLike {
-  def indegree(u: Int): Int // In Degree of vertex
-  def outdegree(u: Int): Int // Out Degree of vertex
-  def reverse: DirectedGraph // Provide reversed graph
+  /** In degree of vertex
+    *
+    * @param u Vertex number [0, V)
+    * @return In degree of that vertex
+    */
+  def indegree(u: Int): Int
+
+  /** Out degree of vertex
+    *
+    * @param u Vertex number [0, V)
+    * @return Out degree of that vertex
+    */
+  def outdegree(u: Int): Int
+
+  /** Get reverse graph
+    *
+    * @return Reversed [[DirectedGraph]]
+    */
+  def reverse: DirectedGraph
 }

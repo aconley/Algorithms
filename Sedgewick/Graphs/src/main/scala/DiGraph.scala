@@ -2,7 +2,14 @@ package sedgewick.graphs
 
 import collection.mutable.ListBuffer
 
-// Basic immutable directed graph class
+/** Basic immutable directed graph class
+  *
+  * @constructor Create a new [[Digraph]]
+  * @param V Number of vertices
+  * @param E Number of edges
+  * @param indeg Indegree of each edge
+  * @param adj_list Edge adjacency lists
+  */
 class Digraph(val V: Int, val E: Int,
               private val indeg: IndexedSeq[Int],
               private val adj_list: IndexedSeq[List[Int]])
@@ -31,10 +38,14 @@ class Digraph(val V: Int, val E: Int,
 }
 
 object Digraph {
-  // Build new immutable Graph from a list of edges,
-  //  where the edges are specified as a list of tuple-s
-  // Self loops are allowed by default, but not duplicate
-  // edges
+  /** Create [[Digraph]] from list of edges
+    *
+    * @param edgeList List of edges where tuples (u, v) represents
+    *                 an edge from u to v
+    * @param allowDup Allow duplicate edges
+    * @param allowSelf Allow self loops
+    * @return A new [[Digraph]]
+    */
   def apply(edgeList: List[(Int, Int)], allowDup: Boolean=false,
             allowSelf: Boolean=true): Digraph = {
 
