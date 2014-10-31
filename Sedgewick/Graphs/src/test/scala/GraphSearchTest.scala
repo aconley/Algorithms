@@ -12,16 +12,16 @@ class GraphSearchTest extends FlatSpec with Matchers {
   //  example in Sedgewick 4th Ed
   // 3) A small tree (no cycles)
   val edgeList1 = List((0, 1), (3, 4), (3, 5))
-  val g1 = BasicGraph(edgeList1)
+  val g1 = Graph(edgeList1)
   val edgeList2 = List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
     (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
     (5, 3))
-  val g2 = BasicGraph(edgeList2)
-  val g3 = BasicGraph(List((0, 1), (0, 2), (1, 3), (2, 4), (2, 6)))
+  val g2 = Graph(edgeList2)
+  val g3 = Graph(List((0, 1), (0, 2), (1, 3), (2, 4), (2, 6)))
 
   "dfsVisitVertex" should "visit the right number of vertices" in {
     // Simple graph
-    val v1 = new VisitCount
+    val v1 = new VisitCount with dfsVisitor
 
     // Visit 0
     dfsVisitVertex(g1, 0, v1)
@@ -65,7 +65,7 @@ class GraphSearchTest extends FlatSpec with Matchers {
   }
 
   it should "visit the right vertices" in {
-    val vis = new VertexVisited(g2)
+    val vis = new VertexVisited(g2) with dfsVisitor
     dfsVisitVertex(g2, 0, vis)
     vis.getNVisited should be (7)
     vis.allVisited should be (false)
@@ -92,7 +92,7 @@ class GraphSearchTest extends FlatSpec with Matchers {
 
   "bfsVisitVertex" should "visit the right number of vertices" in {
     // Simple graph
-    val v1 = new VisitCount
+    val v1 = new VisitCount with bfsVisitor
 
     bfsVisitVertex(g1, 0, v1)
     v1.getNVisited should be(2)
@@ -129,7 +129,7 @@ class GraphSearchTest extends FlatSpec with Matchers {
   }
 
   it should "visit the right vertices" in {
-    val vis = new VertexVisited(g2)
+    val vis = new VertexVisited(g2) with bfsVisitor
     bfsVisitVertex(g2, 0, vis)
     vis.getNVisited should be (7)
     vis.allVisited should be (false)

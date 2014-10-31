@@ -4,11 +4,19 @@ package sedgewick.graphs
 //  it visits a vertex during a search.  These get
 //  passed to dfsVisit or bfsVisit.
 trait VertexVisitor {
-  def startVertex(v: Int, g: GraphLike) = {} // Called once on start vertex
-  def discoverVertex(v: Int, g: GraphLike) = {} // On visiting v
-  def treeEdge(v: Int, u: Int, g: GraphLike) = {} // Going from v to unvisited u
-  def backEdge(v: Int, u: Int, g: GraphLike) = {} // Encounter back edge from v -> u
-  def crossEdge(v: Int, u: Int, g: GraphLike) = {} // Encounter cross edge v -> u
+  def startVertex(u: Int, g: GraphLike) = {} // Called once on start vertex u
+  def discoverVertex(u: Int, g: GraphLike) = {} // On visiting u
+  def treeEdge(u: Int, v: Int, g: GraphLike) = {} // Going from u to unvisited v
+  def finalizeVertex(u: Int, g: GraphLike) = {} // Done with vertex u
+}
+
+trait dfsVisitor extends VertexVisitor {
+  def backEdge(u: Int, v: Int, g: GraphLike) = {} // Encounter back edge from u -> v
+  def crossEdge(u: Int, v: Int, g: GraphLike) = {} // Encounter cross edge u -> v
+}
+
+trait bfsVisitor extends VertexVisitor {
+  def nonTreeEdge(u: Int, v: Int, g: GraphLike) = {}
 }
 
 // A few simple examples -- more useful ones
@@ -16,7 +24,7 @@ trait VertexVisitor {
 class VisitCount extends VertexVisitor {
   private[this] var n = 0
 
-  override def discoverVertex(v: Int, g: GraphLike) = n += 1
+  override def discoverVertex(u: Int, g: GraphLike) = n += 1
   def resetNVisited() = n = 0
   def getNVisited = n
 }
@@ -26,7 +34,7 @@ class VisitCount extends VertexVisitor {
 class VisitList extends VertexVisitor {
   private[this] val visited = collection.mutable.MutableList[Int]()
 
-  override def discoverVertex(v: Int, g: GraphLike) = visited += v
+  override def discoverVertex(u: Int, g: GraphLike) = visited += u
   def order = visited.toList
 }
 
@@ -34,12 +42,12 @@ class VisitList extends VertexVisitor {
 class VertexVisited(val g: GraphLike) extends VertexVisitor {
   private[this] var marked = Array.fill(g.V)(false)
 
-  override def discoverVertex(v: Int, g: GraphLike) = {
-    assert(v < marked.length, "Vertex index %d out of range".format(v))
-    marked(v) = true
+  override def discoverVertex(u: Int, g: GraphLike) = {
+    assert(u < marked.length, "Vertex index %d out of range".format(u))
+    marked(u) = true
   }
   def reset(): Unit = marked = Array.fill(g.V)(false)
-  def didVisit(v: Int): Boolean = marked(v)
+  def didVisit(u: Int): Boolean = marked(u)
   def getNVisited: Int = marked.count(_ == true)
   def visitList: List[Int] =
     marked.zipWithIndex.filter(_._1 == true).map(_._2).toList

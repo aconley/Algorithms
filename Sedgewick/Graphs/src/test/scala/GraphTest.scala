@@ -2,14 +2,14 @@ package sedgewick.graphs
 
 import org.scalatest._
 
-class BasicGraphTest extends FlatSpec with Matchers {
+class GraphTest extends FlatSpec with Matchers {
 
-  val g1 = BasicGraph(List((0, 1), (3, 4), (3, 5)))
-  val g2 = BasicGraph(List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
+  val g1 = Graph(List((0, 1), (3, 4), (3, 5)))
+  val g2 = Graph(List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
       (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
       (5, 3)))
           
-  "A BasicGraph" should "have the right number of vertices and edges" in {
+  "A Graph" should "have the right number of vertices and edges" in {
     g1.V should be (6)
     g1.E should be (3)
 
@@ -26,7 +26,7 @@ class BasicGraphTest extends FlatSpec with Matchers {
     g2.degree(1) should be (1)
     g2.degree(3) should be (2)
     g2.degree(7) should be (1)
-    g2.degree(9) should be (2)
+    g2.degree(9) should be (3)
     g2.degree(11) should be (2)
   }
   
@@ -41,21 +41,21 @@ class BasicGraphTest extends FlatSpec with Matchers {
 
   it should "ignore duplicate edges unless specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (4, 3))
-    val g = BasicGraph(edgeList)
+    val g = Graph(edgeList)
     g.V should be (6)
     g.E should be (3)
   }
 
   it should "ignore self loops unless specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (1, 1))
-    val g = BasicGraph(edgeList)
+    val g = Graph(edgeList)
     g.V should be (6)
     g.E should be (3)
   }
 
   it should "allow duplicate edges if specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (4, 3))
-    val g = BasicGraph(edgeList, allowDup=true)
+    val g = Graph(edgeList, allowDup=true)
     g.V should be (6)
     g.E should be (4)
     g.adj(3).count(_ == 4) should be (2)
@@ -63,7 +63,7 @@ class BasicGraphTest extends FlatSpec with Matchers {
 
   it should "allow self loops if specified" in {
     val edgeList = List((0, 1), (3, 4), (3, 5), (2, 2))
-    val g = BasicGraph(edgeList, allowSelf=true)
+    val g = Graph(edgeList, allowSelf=true)
     g.V should be (6)
     g.E should be (4)
     g.adj(2).contains(2) should be (true)
