@@ -2,12 +2,12 @@ package sedgewick.graphs
 
 import collection.mutable.ListBuffer
 
-// Very basic immutable graph class
+// Very basic immutable undirected graph class
 // using a List for the adjacency list type
 // Self loops and duplicates handled by apply in object,
 //  but potentially supported
 class Graph(val V: Int, val E: Int,
-                 private val adj_list: IndexedSeq[List[Int]])
+            private val adj_list: IndexedSeq[List[Int]])
   extends GraphLike with UndirectedGraph {
 
   def degree(v: Int): Int = {
@@ -20,7 +20,7 @@ class Graph(val V: Int, val E: Int,
     adj_list(v)
   }
 
-  override def toString: String = f"graph with $V%d vertices"
+  override def toString: String = f"Undirected graph with $V%d vertices"
 }
 
 object Graph {
@@ -30,12 +30,13 @@ object Graph {
             allowSelf: Boolean=false): Graph = {
 
     // Count number of vertices
-	  val V = edgeList.map(t => t._1 max t._2).max + 1
+    val V = edgeList.map(t => t._1 max t._2).max + 1
 
     // Build up adjacency list, removing duplicates
     //  and self loops if needed
     val adj_init = Array.fill(V)(ListBuffer.empty[Int])
     if (allowDup) {
+      var nedge = edgeList.length
       if (allowSelf) {
         // Simple case -- just insert
         edgeList foreach {
@@ -51,10 +52,10 @@ object Graph {
             if (t._1 != t._2) {
               adj_init(t._1) += t._2
               adj_init(t._2) += t._1
-            }
+            } else nedge -= 1
         }
       }
-      new Graph(V, edgeList.length, adj_init.map(_.toList).toIndexedSeq)
+      new Graph(V, nedge, adj_init.map(_.toList).toIndexedSeq)
     } else {
       // Remove duplicates; sort edges so that 0,1 and 1,0 count as a dup
       val edgeSet =

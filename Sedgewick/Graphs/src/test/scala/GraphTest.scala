@@ -6,9 +6,9 @@ class GraphTest extends FlatSpec with Matchers {
 
   val g1 = Graph(List((0, 1), (3, 4), (3, 5)))
   val g2 = Graph(List((0, 5), (4, 3), (0, 1), (9, 12), (6, 4),
-      (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
-      (5, 3)))
-          
+    (5, 4), (0, 2), (11, 12), (9, 10), (0, 6), (7, 8), (9, 11),
+    (5, 3)))
+
   "A Graph" should "have the right number of vertices and edges" in {
     g1.V should be (6)
     g1.E should be (3)
@@ -29,7 +29,7 @@ class GraphTest extends FlatSpec with Matchers {
     g2.degree(9) should be (3)
     g2.degree(11) should be (2)
   }
-  
+
   it should "support querying of edges" in {
     g1.adj(0).contains(1) should be (true)
     g1.adj(0).contains(2) should be (false)
