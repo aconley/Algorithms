@@ -11,7 +11,7 @@ class DigraphTest extends FlatSpec with Matchers {
     (11, 4), (4, 3), (3, 5), (7, 8), (8, 7), (5, 4), (0, 5),
     (6, 4), (6, 9), (7, 6)))
 
-  "A Graph" should "have the right number of vertices and edges" in {
+  "A Digraph" should "have the right number of vertices and edges" in {
     g1.V should be (6)
     g1.E should be (3)
 
@@ -32,7 +32,7 @@ class DigraphTest extends FlatSpec with Matchers {
     g2.outdegree(11) should be (2)
   }
 
-  it should "support querying intdegree of vertices" in {
+  it should "support querying indegree of vertices" in {
     g1.indegree(0) should be (0)
     g1.indegree(1) should be (1)
     g1.indegree(2) should be (0)
@@ -87,5 +87,23 @@ class DigraphTest extends FlatSpec with Matchers {
     g.V should be (6)
     g.E should be (4)
     g.adj(2).contains(2) should be (true)
+  }
+
+  it should "support the reversal" in {
+    val g1r = g1.reverse
+    g1r.V should be (6)
+    g1r.E should be (3)
+    g1r.outdegree(0) should be (0)
+    g1r.outdegree(1) should be (1)
+    g1r.outdegree(2) should be (0)
+    g1r.outdegree(3) should be (0)
+    g1r.indegree(0) should be (1)
+    g1r.indegree(1) should be (0)
+    g1r.indegree(2) should be (0)
+    g1r.indegree(3) should be (2)
+    g1r.adj(0).isEmpty should be (true)
+    g1r.adj(1).contains(0) should be (true)
+    g1r.adj(3).contains(4) should be (false)
+    g1r.adj(5).contains(3) should be (true)
   }
 }
