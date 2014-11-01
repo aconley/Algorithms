@@ -162,9 +162,9 @@ class DigraphSearchTest extends FlatSpec with Matchers {
   }
 
   "findDFSPathBetween" should "find the path between vertices" in {
-    findDFSPathBetween(0, 4, g2) shouldEqual List(0, 5, 4)
-    findDFSPathBetween(0, 0, g2) shouldEqual List(0)
-    findDFSPathBetween(0, 9, g2) shouldEqual List()
+    findDFSPathBetween(0, 4, g2) shouldEqual Some(List(0, 5, 4))
+    findDFSPathBetween(0, 0, g2) shouldEqual Some(List(0))
+    findDFSPathBetween(0, 9, g2) shouldEqual None
   }
 
   "findDFSPathsFrom" should "find the paths between vertices" in {
@@ -176,9 +176,9 @@ class DigraphSearchTest extends FlatSpec with Matchers {
   }
 
   "findBFSPathBetween" should "find the path between vertices" in {
-    findBFSPathBetween(0, 3, g2) shouldEqual List(0, 5, 4, 3)
-    findBFSPathBetween(0, 0, g2) shouldEqual List(0)
-    findBFSPathBetween(0, 9, g2) shouldEqual List()
+    findBFSPathBetween(0, 3, g2) shouldEqual Some(List(0, 5, 4, 3))
+    findBFSPathBetween(0, 0, g2) shouldEqual Some(List(0))
+    findBFSPathBetween(0, 9, g2) shouldEqual None
   }
 
   "findBFSPathsFrom" should "find the paths between vertices" in {
@@ -192,5 +192,15 @@ class DigraphSearchTest extends FlatSpec with Matchers {
     detectCycle(g1) should be (false)
     detectCycle(g2) should be (true)
     detectCycle(g3) should be (false)
+  }
+
+  "topologicalSort" should "perform a toplogical sort" in {
+    // Example from Sedgewick 4.2; simplified version of g2,
+    // but without a cycle
+    val gt = Digraph(List((0, 1),(0, 5),(0, 6), (2, 0), (2, 3),
+      (3, 5), (5, 4), (6, 4), (6, 9), (7, 6), (8, 7),
+      (9, 10), (9, 11), (9, 12), (11, 12)))
+    topologicalSort(gt) shouldEqual
+      Some(List(8, 7, 2, 3, 0, 6, 9, 11, 12, 10, 1, 5, 4))
   }
 }

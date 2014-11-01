@@ -162,9 +162,9 @@ class GraphSearchTest extends FlatSpec with Matchers {
   }
 
   "findDFSPathBetween" should "find the path between vertices" in {
-    findDFSPathBetween(0, 4, g2) shouldEqual List(0, 5, 3, 4)
-    findDFSPathBetween(0, 0, g2) shouldEqual List(0)
-    findDFSPathBetween(0, 9, g2) shouldEqual List()
+    findDFSPathBetween(0, 4, g2) shouldEqual Some(List(0, 5, 3, 4))
+    findDFSPathBetween(0, 0, g2) shouldEqual Some(List(0))
+    findDFSPathBetween(0, 9, g2) shouldEqual None
   }
 
   "findDFSPathsFrom" should "find the paths between vertices" in {
@@ -177,9 +177,9 @@ class GraphSearchTest extends FlatSpec with Matchers {
   }
 
   "findBFSPathBetween" should "find the path between vertices" in {
-    findBFSPathBetween(0, 3, g2) shouldEqual List(0, 5, 3)
-    findBFSPathBetween(0, 0, g2) shouldEqual List(0)
-    findBFSPathBetween(0, 9, g2) shouldEqual List()
+    findBFSPathBetween(0, 3, g2) shouldEqual Some(List(0, 5, 3))
+    findBFSPathBetween(0, 0, g2) shouldEqual Some(List(0))
+    findBFSPathBetween(0, 9, g2) shouldEqual None
   }
 
   "findBFSPathsFrom" should "find the paths between vertices" in {

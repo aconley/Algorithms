@@ -224,7 +224,7 @@ object GraphSearch {
 
   /** Cycle detection visitor */
   private class CycleDetector extends dfsVisitor {
-    private[this] var cycle = false;
+    private[this] var cycle = false
 
     def reset() = cycle = false
     override def backEdge(u: Int, v: Int, g: GraphLike) = cycle = true
@@ -271,13 +271,13 @@ object GraphSearch {
      * Get a path from start vertex to specified one
      *
      * @param u Vertex to search for path to
-     * @return The path, or an empty list if none is found
+     * @return The path, or None if one is not found
      */
-    def pathTo(u: Int): List[Int] = {
+    def pathTo(u: Int): Option[List[Int]] = {
       if (u == startVertex) {
-        List(u)
+        Some(List(u))
       } else if (!hasPathTo(u)) {
-        List()
+        None
       } else {
         // Use stack to back it out
         val s = new MStack[Int]
@@ -287,7 +287,7 @@ object GraphSearch {
           currVertex = edgeTo(currVertex)
         }
         s.push(startVertex)  // Path ends on start vertex
-        s.toList
+        Some(s.toList)
       }
     }
   }
@@ -298,10 +298,10 @@ object GraphSearch {
    * @param u Start vertex [0, g.V)
    * @param v End vertex [0, g.V)
    * @param g [[GraphLike]] to search
-   * @return A dfs path from u to v in g if it exists, or an
-   *         empty list if there is none
+   * @return A dfs path from u to v in g if it exists, or
+   *         None if one is not found
    */
-  def findDFSPathBetween(u: Int, v: Int, g: GraphLike): List[Int] = {
+  def findDFSPathBetween(u: Int, v: Int, g: GraphLike): Option[List[Int]] = {
     val vis = new Path(g, u) with dfsVisitor
     dfsVisitVertex(g, u, vis)
     vis.pathTo(v)
@@ -320,7 +320,10 @@ object GraphSearch {
 
     val ret = collection.mutable.Map.empty[Int, List[Int]]
     for (v <- 0 until g.V)
-      if (vis.hasPathTo(v)) ret += (v -> vis.pathTo(v))
+      vis.pathTo(v) match {
+        case Some(pth) => ret += (v -> pth)
+        case None =>
+      }
     ret.toMap
   }
 
@@ -330,13 +333,13 @@ object GraphSearch {
    * @param u Start vertex [0, g.V)
    * @param v End vertex [0, g.V)
    * @param g [[GraphLike]] to search
-   * @return A bfs path from u to v in g if it exists, or an
-   *         empty list if there is none.
+   * @return A bfs path from u to v in g if it exists, or
+   *         None if one is not found
    *
    * This is the shortest path between vertices, but it may
    * not be unique
    */
-  def findBFSPathBetween(u: Int, v: Int, g: GraphLike): List[Int] = {
+  def findBFSPathBetween(u: Int, v: Int, g: GraphLike): Option[List[Int]] = {
     val vis = new Path(g, u) with bfsVisitor
     bfsVisitVertex(g, u, vis)
     vis.pathTo(v)
@@ -358,7 +361,43 @@ object GraphSearch {
 
     val ret = collection.mutable.Map.empty[Int, List[Int]]
     for (v <- 0 until g.V)
-      if (vis.hasPathTo(v)) ret += (v -> vis.pathTo(v))
+      vis.pathTo(v) match {
+        case Some(pth) => ret += (v -> pth)
+        case None =>
+      }
     ret.toMap
+  }
+
+  /** Topological sort (forward) */
+  private class TopologicalSortVisitor extends dfsVisitor {
+    private[this] var cycle = false // Can't do it if there is a cycle
+    private[this] val topo = new MStack[Int] // Holds sort
+
+    def reset() = {
+      cycle = false
+      topo.clear()
+    }
+    override def backEdge(u: Int, v: Int, g: GraphLike) = cycle = true
+
+    override def finalizeVertex(u: Int, g: GraphLike) =
+      if (!cycle) topo.push(u)
+
+    def hasCycle: Boolean = cycle
+
+    def topologicalSort: Option[List[Int]] =
+      if (cycle) None else Some(topo.toList)
+  }
+
+  /** Topologically sort a directed acyclic graph
+    *
+    * @param g The DAG to search
+    * @return A forward topological ordering of the vertices,
+    *         or None if this is not possible because
+    *         the graph has a cycle
+    */
+  def topologicalSort(g: DirectedGraph): Option[List[Int]] = {
+    val vis = new TopologicalSortVisitor
+    dfsVisitAll(g, vis)
+    vis.topologicalSort
   }
 }
