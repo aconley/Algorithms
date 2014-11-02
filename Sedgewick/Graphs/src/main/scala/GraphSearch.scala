@@ -1,5 +1,7 @@
 package sedgewick.graphs
 
+import scala.collection.mutable
+
 /** Used for keeping track of search progress */
 private object VertexSearchStatus extends Enumeration {
   type VertexSearchStatus = Value
@@ -406,15 +408,16 @@ object GraphSearch {
     override def finalizeVertex(u: Int, g: GraphLike) = revpost.push(u)
     def reversePost: List[Int] = revpost.toList
   }
+
   /**
    * Kosaru algorithm for finding connected components in a digraph
-      *
+   *
    * @param g [[DirectedGraph]] to search
-   * @return A list giving the component each vertex belongs to; any
+   * @return A sequence giving the component each vertex belongs to; any
    *         two vertices with the same value are connected and
    *         in the same component
    */
-  def kosaruConnection(g: DirectedGraph): IndexedSeq[Int] = {
+  def kosaruComponents(g: DirectedGraph): IndexedSeq[Int] = {
     require(g.V > 0, "Empty graph")
 
     val vis = new ReversePostVisitor
@@ -433,6 +436,57 @@ object GraphSearch {
     visC.components
   }
 
+  /** Tarajan's strong components algorithm
+    *
+    * @param g [[DirectedGraph]] to find strong components of
+    * @return A sequence giving the component each vertex belongs to; any
+    *         two vertices with the same value are connected and
+    *         in the same component
+    */
+  // This can be implemented as a visitor (see the Boost implementation),
+  // but it's a bit easier to use a more specialized recursive search
+  def tarajanComponents(g: DirectedGraph): IndexedSeq[Int] = {
+    require(g.V > 0, "Empty graph")
+
+    val preorder = Array.fill(g.V)(-1)
+    val low = Array.fill(g.V)(g.V)
+    val cc = Array.fill(g.V)(g.V)
+    var cnt0 = 0
+    var cnt1 = 0
+    val stck = new MStack[Int]
+
+    def tarajanInner(u: Int): Unit = {
+      preorder(u) = cnt0
+      low(u) = cnt0
+      var minVal = cnt0
+      cnt0 += 1
+      stck.push(u)
+      for (v <- g.adj(u)) {
+        if (preorder(v) == -1) tarajanInner(v)
+        if (low(v) < minVal) minVal = low(v)
+      }
+      if (minVal < low(u)) {
+        low(u) = minVal
+      } else {
+        // Fill in connected component
+        // by pulling vertices from the stack until we reach
+        // u and setting their component number
+        var v = g.V
+        do {
+          v = stck.pop()
+          cc(v) = cnt1
+          low(v) = g.V
+        } while (v != u)
+        cnt1 += 1
+      }
+    }
+
+    for (u <- 0 until g.V)
+      if (preorder(u) == -1) tarajanInner(u)
+
+    cc.toIndexedSeq
+  }
+
   /** Labels all connected components of a directed Graph with
     * increasing index
     *
@@ -445,7 +499,7 @@ object GraphSearch {
     * algorithm
     */
   def findConnectedComponents(g: DirectedGraph): IndexedSeq[Int] = {
-    kosaruConnection(g)
+    tarajanComponents(g)
   }
 
 }

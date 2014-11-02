@@ -204,9 +204,15 @@ class DigraphSearchTest extends FlatSpec with Matchers {
       Some(List(8, 7, 2, 3, 0, 6, 9, 11, 12, 10, 1, 5, 4))
   }
 
-  "findConnectedComponents" should
+  "kosaruComponents" should
     "find the connected components of a digraph" in {
-    findConnectedComponents(g2) shouldEqual
+    kosaruComponents(g2) shouldEqual
+      IndexedSeq(1, 0, 1, 1, 1, 1, 3, 4, 4, 2, 2, 2, 2)
+  }
+
+  "tarajanComponents" should
+    "find the connected components of a digraph" in {
+    tarajanComponents(g2) shouldEqual
       IndexedSeq(1, 0, 1, 1, 1, 1, 3, 4, 4, 2, 2, 2, 2)
   }
 }
