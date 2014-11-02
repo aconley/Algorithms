@@ -206,12 +206,11 @@ object GraphSearch {
     def components: IndexedSeq[Int] = comps.toIndexedSeq
   }
 
-  //
-  //
   /** Labels all connected components with increasing index
     *
     * @param g [[UndirectedGraph]] to search
-    * @return Any two vertices with the same value are connected and
+    * @return A list giving the component each vertex belongs to; any
+    *         two vertices with the same value are connected and
     *         in the same component
     *
     * This implementation for undirected graphs only, which are easier
@@ -391,13 +390,62 @@ object GraphSearch {
   /** Topologically sort a directed acyclic graph
     *
     * @param g The DAG to search
-    * @return A forward topological ordering of the vertices,
-    *         or None if this is not possible because
-    *         the graph has a cycle
+    * @return A forward topological ordering of the vertices, or None
+    *         if this is not possible because the graph has a cycle
     */
   def topologicalSort(g: DirectedGraph): Option[List[Int]] = {
     val vis = new TopologicalSortVisitor
     dfsVisitAll(g, vis)
     vis.topologicalSort
   }
+
+
+  /** Reverse post visitor for Kosaru */
+  private class ReversePostVisitor extends dfsVisitor {
+    private[this] val revpost = new MStack[Int] // Holds sort
+    override def finalizeVertex(u: Int, g: GraphLike) = revpost.push(u)
+    def reversePost: List[Int] = revpost.toList
+  }
+  /**
+   * Kosaru algorithm for finding connected components in a digraph
+      *
+   * @param g [[DirectedGraph]] to search
+   * @return A list giving the component each vertex belongs to; any
+   *         two vertices with the same value are connected and
+   *         in the same component
+   */
+  def kosaruConnection(g: DirectedGraph): IndexedSeq[Int] = {
+    require(g.V > 0, "Empty graph")
+
+    val vis = new ReversePostVisitor
+    dfsVisitAll(g.reverse, vis)
+    val order = vis.reversePost
+
+    // Now a custom dfs search all using order to mark
+    //  the connected components
+    val visC = new ConnectedComponents(g) with dfsVisitor
+    val visited = Array.fill(g.V)(Undiscovered)
+    for (u <- order)
+      if (visited(u) == Undiscovered) {
+        visC.startVertex(u, g)
+        dfsInnerDi(g, u, visC, visited)
+      }
+    visC.components
+  }
+
+  /** Labels all connected components of a directed Graph with
+    * increasing index
+    *
+    * @param g [[DirectedGraph]] to search
+    * @return A list giving the component each vertex belongs to; any
+    *         two vertices with the same value are connected and
+    *         in the same component
+    *
+    * This implementation for directed graphs using the Kosaru
+    * algorithm
+    */
+  def findConnectedComponents(g: DirectedGraph): IndexedSeq[Int] = {
+    kosaruConnection(g)
+  }
+
 }

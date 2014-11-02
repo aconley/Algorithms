@@ -190,7 +190,8 @@ class GraphSearchTest extends FlatSpec with Matchers {
     paths get 5 shouldEqual Some(List(0, 5))
   }
 
-  "findConnectedComponents" should "find the connected components" in {
+  "findConnectedComponents" should
+    "find the connected components of an undirected graph" in {
     findConnectedComponents(g2) shouldEqual
       IndexedSeq(0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2)
     findConnectedComponents(g3) shouldEqual

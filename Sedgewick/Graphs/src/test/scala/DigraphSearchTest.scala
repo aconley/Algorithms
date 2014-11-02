@@ -12,7 +12,7 @@ class DigraphSearchTest extends FlatSpec with Matchers {
   //  example in Sedgewick 4th Ed
   // 3) A small tree (no cycles)
   val g1 = Digraph(List((0, 1), (3, 4), (3, 5))) // Simple example
-  // More complex example from Sedgewick
+  // More complex example from Sedgewick (tinyDG)
   val g2 = Digraph(List((4, 2), (2, 3), (3, 2), (6, 0), (0, 1),
       (2, 0), (11, 12), (12, 9), (9, 10), (9, 11), (8, 9), (10, 12),
       (11, 4), (4, 3), (3, 5), (7, 8), (8, 7), (5, 4), (0, 5),
@@ -194,7 +194,7 @@ class DigraphSearchTest extends FlatSpec with Matchers {
     detectCycle(g3) should be (false)
   }
 
-  "topologicalSort" should "perform a toplogical sort" in {
+  "topologicalSort" should "perform a toplogical sort of a DAG" in {
     // Example from Sedgewick 4.2; simplified version of g2,
     // but without a cycle
     val gt = Digraph(List((0, 1),(0, 5),(0, 6), (2, 0), (2, 3),
@@ -202,5 +202,11 @@ class DigraphSearchTest extends FlatSpec with Matchers {
       (9, 10), (9, 11), (9, 12), (11, 12)))
     topologicalSort(gt) shouldEqual
       Some(List(8, 7, 2, 3, 0, 6, 9, 11, 12, 10, 1, 5, 4))
+  }
+
+  "findConnectedComponents" should
+    "find the connected components of a digraph" in {
+    findConnectedComponents(g2) shouldEqual
+      IndexedSeq(1, 0, 1, 1, 1, 1, 3, 4, 4, 2, 2, 2, 2)
   }
 }
