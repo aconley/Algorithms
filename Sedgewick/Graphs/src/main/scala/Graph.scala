@@ -24,7 +24,8 @@ class Graph(val V: Int, val E: Int,
   }
 
   /** Basic string representation */
-  override def toString: String = f"Undirected graph with $V%d vertices"
+  override def toString: String =
+    f"Undirected graph with $V%d vertices and $E%d edges"
 }
 
 object Graph {

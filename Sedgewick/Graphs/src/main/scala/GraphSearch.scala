@@ -200,7 +200,7 @@ object GraphSearch {
    * @param g [[GraphLike]] we will search
    */
   private class ConnectedComponents(g: GraphLike) extends VertexVisitor {
-    private[this] var idx: Int = -1;
+    private[this] var idx: Int = -1
     private[this] val comps = Array.fill[Int](g.V)(idx)
 
     override def startVertex(u: Int, g: GraphLike) = idx += 1
