@@ -27,9 +27,9 @@ object GraphSearch {
    *
    * Relies on caller to set up visitor and visited on initial call
    */
-  private def dfsInnerDi[A <: DirectedEdgeLike](g: DirectedGraph[A],
-                                                u: Int, visitor: dfsVisitor[A],
-                                                visited: Array[VertexSearchStatus]): Unit = {
+  private def dfsInnerDi[A <: EdgeLike](g: DirectedGraph[A],
+                                        u: Int, visitor: dfsVisitor[A],
+                                        visited: Array[VertexSearchStatus]): Unit = {
 
     visited(u) = Discovered
     visitor.discoverVertex(u, g) // Pre-order
@@ -56,9 +56,9 @@ object GraphSearch {
    *
    * Relies on caller to set up visitor and visited on initial call
    */
-  private def dfsInnerUn[A <: UndirectedEdgeLike](g: UndirectedGraph[A], u: Int, w: Int,
-                                                  visitor: dfsVisitor[A],
-                                                  visited: Array[VertexSearchStatus]): Unit = {
+  private def dfsInnerUn[A <: EdgeLike](g: UndirectedGraph[A], u: Int, w: Int,
+                                        visitor: dfsVisitor[A],
+                                        visited: Array[VertexSearchStatus]): Unit = {
     visited(u) = Discovered
     visitor.discoverVertex(u, g) // Pre-order
     for (e <- g.adj(u)) {
@@ -79,64 +79,35 @@ object GraphSearch {
    * @param u Starting vertex [0, g.V)
    * @param visitor [[dfsVisitor]] to use during search
    */
-  def dfsVisitVertex[A <: UndirectedEdgeLike](g: UndirectedGraph[A], u: Int,
-                                              visitor: dfsVisitor[A]): Unit = {
+  def dfsVisitVertex[A <: EdgeLike](g: GraphLike[A], u: Int,
+                                    visitor: dfsVisitor[A]): Unit = {
     require(g.V > 0, "Empty graph")
     require(u < g.V & u >= 0, s"Invalid start vertex $u")
 
     val visited = Array.fill(g.V)(Undiscovered)
     visitor.startVertex(u, g)
-    dfsInnerUn(g, u, u, visitor, visited)
-  }
-
-  /**
-   * dfs visit all vertices connected to a start vertex with a visitor
-   *
-   * @param g [[GraphLike]] to search
-   * @param u Starting vertex [0, g.V)
-   * @param visitor [[dfsVisitor]] to use during search
-   */
-  def dfsVisitVertex[A <: DirectedEdgeLike](g: DirectedGraph[A], u: Int,
-                                            visitor: dfsVisitor[A]): Unit = {
-    require(g.V > 0, "Empty graph")
-    require(u < g.V & u >= 0, s"Invalid start vertex $u")
-
-    val visited = Array.fill(g.V)(Undiscovered)
-    visitor.startVertex(u, g)
-    dfsInnerDi(g, u, visitor, visited)
+    g match {
+      case undig: UndirectedGraph[A] => dfsInnerUn (undig, u, u, visitor, visited)
+      case dig: DirectedGraph[A] => dfsInnerDi (dig, u, visitor, visited)
+    }
   }
 
   /**
    * dfs Visit all vertices in a [[UndiredGraph]] with a visitor
    *
-   * @param g [[UndirectedGraph]] to search
-   * @param visitor [[dfsVisitor]] to use during search
-   */
-  def dfsVisitAll[A <: UndirectedEdgeLike](g: UndirectedGraph[A],
-                                           visitor: dfsVisitor[A]): Unit = {
-    require(g.V > 0, "Empty graph")
-    val visited = Array.fill(g.V)(Undiscovered)
-    for (u <- 0 until g.V)
-      if (visited(u) == Undiscovered) {
-        visitor.startVertex(u, g)
-        dfsInnerUn(g, u, u, visitor, visited)
-      }
-  }
-
-  /**
-   * dfs Visit all vertices in a [[DirectedGraph]] with a visitor
-   *
    * @param g [[GraphLike]] to search
    * @param visitor [[dfsVisitor]] to use during search
    */
-  def dfsVisitAll[A <: DirectedEdgeLike](g: DirectedGraph[A],
-                                         visitor: dfsVisitor[A]): Unit = {
+  def dfsVisitAll[A <: EdgeLike](g: GraphLike[A], visitor: dfsVisitor[A]): Unit = {
     require(g.V > 0, "Empty graph")
     val visited = Array.fill(g.V)(Undiscovered)
     for (u <- 0 until g.V)
       if (visited(u) == Undiscovered) {
         visitor.startVertex(u, g)
-        dfsInnerDi(g, u, visitor, visited)
+        g match {
+          case undig: UndirectedGraph[A] => dfsInnerUn(undig, u, u, visitor, visited)
+          case dig: DirectedGraph[A] => dfsInnerDi(dig, u, visitor, visited)
+        }
       }
   }
 

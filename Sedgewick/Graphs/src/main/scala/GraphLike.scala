@@ -35,7 +35,7 @@ trait GraphMutable[A <: EdgeLike] extends Mutable with Cloneable {
 }
 
 /** Undirected graph trait */
-trait UndirectedGraph[A <: UndirectedEdgeLike] extends GraphLike[A] {
+trait UndirectedGraph[A <: EdgeLike] extends GraphLike[A] {
   /** Degree of vertex
     *
     * @param u Vertex number [0, V)
@@ -45,7 +45,7 @@ trait UndirectedGraph[A <: UndirectedEdgeLike] extends GraphLike[A] {
 }
 
 /** Directed graph trait */
-trait DirectedGraph[A <: DirectedEdgeLike] extends GraphLike[A] {
+trait DirectedGraph[A <: EdgeLike] extends GraphLike[A] {
   /** In degree of vertex
     *
     * @param u Vertex number [0, V)

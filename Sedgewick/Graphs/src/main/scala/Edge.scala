@@ -5,15 +5,10 @@ trait EdgeLike {
   def u: Int
   def v: Int
   def isSelf: Boolean = u == v
+  def reverse: EdgeLike
 }
 
-trait UndirectedEdgeLike extends EdgeLike
-
-trait DirectedEdgeLike extends EdgeLike {
-  def reverse: DirectedEdgeLike
-}
-
-class UndirectedEdge(val u: Int, val v: Int) extends UndirectedEdgeLike {
+class UndirectedEdge(val u: Int, val v: Int) extends EdgeLike {
 
   // See chap 30 of programming in Scala
   // equality independent of order
@@ -29,6 +24,7 @@ class UndirectedEdge(val u: Int, val v: Int) extends UndirectedEdgeLike {
     41 * (minV + 41) + maxV
   }
 
+  def reverse: UndirectedEdge = new UndirectedEdge(v, u)
   override def toString = s"$u <-> $v"
 }
 
@@ -37,7 +33,7 @@ object UndirectedEdge {
   def apply(f: Int, t: Int) = new UndirectedEdge(f, t)
 }
 
-class DirectedEdge(val u: Int, val v: Int) extends DirectedEdgeLike {
+class DirectedEdge(val u: Int, val v: Int) extends EdgeLike {
 
   // This time equality does depend on order
   override def equals(other: Any) = other match {
@@ -72,9 +68,9 @@ trait WeightedEdgeLike extends EdgeLike {
   * this class disallows self edges
   */
 class WeightedEdge(val u: Int, val v: Int, val weight: Float)
-  extends WeightedEdgeLike with UndirectedEdgeLike {
+  extends WeightedEdgeLike with EdgeLike {
 
-  // Weight not used in equ ality
+  // Weight not used in equality
   override def equals(other: Any) = other match {
     case that: WeightedEdge => ((u == that.u) && (v == that.v)) ||
       ((u == that.v) && (v == that.u))
@@ -87,6 +83,7 @@ class WeightedEdge(val u: Int, val v: Int, val weight: Float)
     41 * (minV + 41) + maxV
   }
 
+  def reverse: WeightedEdge = new WeightedEdge(v, u, weight)
   override def toString = s"$u <-> $v (wt: $weight)"
 }
 
