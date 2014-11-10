@@ -9,93 +9,89 @@ package sedgewick.graphs
  * Outputs in [[GraphSearch]] are constructed by passing
  * versions of this to dfsSearch or bfsSearch
  */
-trait VertexVisitor {
+trait VertexVisitor[A <: EdgeLike] {
   /** Called once on start vertex of search for each connected component
     *
     * @param u Vertex number [0, V)
     * @param g [[GraphLike]] being visited
     */
-  def startVertex(u: Int, g: GraphLike) = {}
+  def startVertex(u: Int, g: GraphLike[A]) = {}
 
   /** Called when vertex is first discovered in search
     *
     * @param u Vertex number [0, V)
     * @param g [[GraphLike]] being visited
     */
-  def discoverVertex(u: Int, g: GraphLike) = {}
+  def discoverVertex(u: Int, g: GraphLike[A]) = {}
 
   /** Called on encountering tree edge u -> v in graph search
     *
-    * @param u Start vertex of edge
-    * @param v End vertex of edge
+    * @param e Edge
     * @param g [[GraphLike]] being searched
     */
-  def treeEdge(u: Int, v: Int, g: GraphLike) = {}
+  def treeEdge(e: A, g: GraphLike[A]) = {}
 
   /** Called when a vertex and all it's neighbors have been searched
     *
     * @param u Vertex number [0, V)
     * @param g [[GraphLike]] being searched
     */
-  def finalizeVertex(u: Int, g: GraphLike) = {}
+  def finalizeVertex(u: Int, g: GraphLike[A]) = {}
 }
 
 /** Additional visitor methods relevant to depth-first search */
-trait dfsVisitor extends VertexVisitor {
+trait dfsVisitor[A <: EdgeLike] extends VertexVisitor[A] {
   /** Called when a back edge from u -> v is encountered
     *
-    * @param u Start vertex of edge
-    * @param v End vertex of edge
+    * @param e Edge
     * @param g [[GraphLike]] being searched
     */
-  def backEdge(u: Int, v: Int, g: GraphLike) = {}
+  def backEdge(e: A, g: GraphLike[A]) = {}
 
   /** Called when a cross edge is encountered
     *
-    * @param u Start vertex of edge
-    * @param v End vertex of edge
+    * @param e Edge
     * @param g [[GraphLike]] being searched
     *
     * Can only happen in [[DirectedGraph]]
     */
-  def crossEdge(u: Int, v: Int, g: GraphLike) = {}
+  def crossEdge(e: A, g: GraphLike[A]) = {}
 }
 
 /** Additional visitor methods relevant to breadth-first search */
-trait bfsVisitor extends VertexVisitor {
+trait bfsVisitor[A <: EdgeLike] extends VertexVisitor[A] {
   /** Called when a non-tree edge is encountered
     *
-    * @param u Start vertex of edge
-    * @param v End vertex of edge
+    * @param e Edge
     * @param g [[GraphLike]] being searched
     */
-  def nonTreeEdge(u: Int, v: Int, g: GraphLike) = {}
+  def nonTreeEdge(e: A, g: GraphLike[A]) = {}
 }
 
 // A few simple examples -- more useful ones
 // are found in the Search interface
-class VisitCount extends VertexVisitor {
+class VisitCount[A <: EdgeLike] extends VertexVisitor[A] {
   private[this] var n = 0
 
-  override def discoverVertex(u: Int, g: GraphLike) = n += 1
+  override def discoverVertex(u: Int, g: GraphLike[A]) = n += 1
   def resetNVisited() = n = 0
   def getNVisited = n
 }
 
 // This simple one simply keeps a list of every
 //  vertex it visits in reverse order
-class VisitList extends VertexVisitor {
+class VisitList[A <: EdgeLike] extends VertexVisitor[A] {
   private[this] val visited = collection.mutable.MutableList[Int]()
 
-  override def discoverVertex(u: Int, g: GraphLike) = visited += u
+  override def discoverVertex(u: Int, g: GraphLike[A]) = visited += u
   def order = visited.toList
 }
 
 // Marks which vertices were visited
-class VertexVisited(val g: GraphLike) extends VertexVisitor {
+class VertexVisited[A <: EdgeLike](val g: GraphLike[A]) extends VertexVisitor[A] {
   private[this] var marked = Array.fill(g.V)(false)
 
-  override def discoverVertex(u: Int, g: GraphLike) = {
+  override def discoverVertex(u: Int, g: GraphLike[A]) = {
     assert(u < marked.length, "Vertex index %d out of range".format(u))
     marked(u) = true
   }

@@ -31,12 +31,16 @@ class GraphTest extends FlatSpec with Matchers {
   }
 
   it should "support querying of edges" in {
-    g1.adj(0).contains(1) should be (true)
-    g1.adj(0).contains(2) should be (false)
-    g1.adj(1).contains(0) should be (true)
-    g1.adj(1).contains(2) should be (false)
+    g1.adj(0).contains(UndirectedEdge(0, 1)) should be (true)
+    g1.adj(0).contains(UndirectedEdge(0, 2)) should be (false)
+    g1.adj(1).contains(UndirectedEdge(1, 0)) should be (true)
+    g1.adj(1).contains(UndirectedEdge(1, 2)) should be (false)
     g1.adj(2).isEmpty should be (true)
-    g1.adj(3).contains(4) should be (true)
+    g1.adj(3).contains(UndirectedEdge(3, 4)) should be (true)
+
+    // Undirected edges don't care about order
+    g1.adj(0).contains(UndirectedEdge(1, 0)) should be (true)
+    g1.adj(3).contains(UndirectedEdge(4, 3)) should be (true)
   }
 
   it should "ignore duplicate edges unless specified" in {
@@ -58,7 +62,7 @@ class GraphTest extends FlatSpec with Matchers {
     val g = Graph(edgeList, allowDup=true)
     g.V should be (6)
     g.E should be (4)
-    g.adj(3).count(_ == 4) should be (2)
+    g.adj(3).count(_.v == 4) should be (2)
   }
 
   it should "allow self loops if specified" in {
@@ -66,6 +70,6 @@ class GraphTest extends FlatSpec with Matchers {
     val g = Graph(edgeList, allowSelf=true)
     g.V should be (6)
     g.E should be (4)
-    g.adj(2).contains(2) should be (true)
+    g.adj(2).contains(UndirectedEdge(2,2)) should be (true)
   }
 }

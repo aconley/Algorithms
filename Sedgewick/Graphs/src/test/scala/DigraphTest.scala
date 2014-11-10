@@ -45,18 +45,21 @@ class DigraphTest extends FlatSpec with Matchers {
   }
 
   it should "support querying of edges" in {
-    g1.adj(0).contains(1) should be (true)
-    g1.adj(0).contains(2) should be (false)
-    g1.adj(1).contains(0) should be (false)
-    g1.adj(1).contains(2) should be (false)
+    g1.adj(0).contains(DirectedEdge(0, 1)) should be (true)
+    g1.adj(0).contains(DirectedEdge(0, 2)) should be (false)
+    g1.adj(1).contains(DirectedEdge(1, 0)) should be (false)
+    g1.adj(1).contains(DirectedEdge(1, 2)) should be (false)
     g1.adj(2).isEmpty should be (true)
-    g1.adj(3).contains(4) should be (true)
+    g1.adj(3).contains(DirectedEdge(3, 4)) should be (true)
 
-    g2.adj(4).contains(3) should be (true)
-    g2.adj(4).contains(5) should be (false)
-    g2.adj(9).contains(6) should be (false)
-    g2.adj(9).contains(7) should be (false)
-    g2.adj(9).contains(10) should be (true)
+    g2.adj(4).contains(DirectedEdge(4, 3)) should be (true)
+    g2.adj(4).contains(DirectedEdge(4, 5)) should be (false)
+    g2.adj(9).contains(DirectedEdge(9, 6)) should be (false)
+    g2.adj(9).contains(DirectedEdge(9, 7)) should be (false)
+    g2.adj(9).contains(DirectedEdge(9, 10)) should be (true)
+
+    // Directed edges -do- care about order in equality
+    g2.adj(9).contains(DirectedEdge(10, 9)) should be (false)
   }
 
   it should "ignore duplicate edges unless specified" in {
@@ -78,7 +81,7 @@ class DigraphTest extends FlatSpec with Matchers {
     val g = Digraph(edgeList, allowDup=true)
     g.V should be (6)
     g.E should be (4)
-    g.adj(3).count(_ == 4) should be (2)
+    g.adj(3).count(_.v == 4) should be (2)
   }
 
   it should "allow self loops if specified" in {
@@ -86,7 +89,7 @@ class DigraphTest extends FlatSpec with Matchers {
     val g = Digraph(edgeList, allowSelf=true)
     g.V should be (6)
     g.E should be (4)
-    g.adj(2).contains(2) should be (true)
+    g.adj(2).contains(DirectedEdge(2, 2)) should be (true)
   }
 
   it should "support the reversal" in {
@@ -102,8 +105,8 @@ class DigraphTest extends FlatSpec with Matchers {
     g1r.indegree(2) should be (0)
     g1r.indegree(3) should be (2)
     g1r.adj(0).isEmpty should be (true)
-    g1r.adj(1).contains(0) should be (true)
-    g1r.adj(3).contains(4) should be (false)
-    g1r.adj(5).contains(3) should be (true)
+    g1r.adj(1).contains(DirectedEdge(1, 0)) should be (true)
+    g1r.adj(3).contains(DirectedEdge(3, 4)) should be (false)
+    g1r.adj(5).contains(DirectedEdge(5, 3)) should be (true)
   }
 }

@@ -12,20 +12,20 @@ import collection.mutable.ListBuffer
   * Repeated edges are not allowed
   */
 class MutableGraph(val V: Int, private var _E: Int,
-                   private val adj_list: IndexedSeq[ListBuffer[Int]])
-  extends GraphLike with UndirectedGraph with GraphMutable {
+                   private val adj_list: IndexedSeq[ListBuffer[UndirectedEdge]])
+  extends UndirectedGraph[UndirectedEdge] with GraphMutable[UndirectedEdge] {
 
   // Don't allow setting of E directly, only through add/remove
   def E: Int = _E
   def E_=(v: Int) = {}
 
   def degree(v: Int): Int = {
-    require(v >= 0 & v < V, s"Specified vertex $v out of range")
+    require(v >= 0 & v < V, s"Specified vertex $v out of range [0, $V)")
     adj_list(v).length
   }
 
   def adj(v: Int) = {
-    require(v >= 0 & v < V, s"Specified vertex $v out of range")
+    require(v >= 0 & v < V, s"Specified vertex $v out of range [0, $V)")
     adj_list(v)
   }
 
@@ -33,18 +33,18 @@ class MutableGraph(val V: Int, private var _E: Int,
   override def toString: String =
     f"Undirected mutable graph with $V%d vertices and $E%d edges"
 
-  def addEdge(edge: (Int, Int)):Unit = {
+  def addEdge(e: UndirectedEdge):Unit = {
     // We don't allow repeated edges, so...
-    if (adj_list(edge._1) contains edge._2) return
-    adj_list(edge._1) += edge._2
-    if (edge._1 != edge._2) adj_list(edge._2) += edge._1
+    if (adj_list(e.u) contains e) return
+    adj_list(e.u) += e
+    if (!e.isSelf) adj_list(e.v) += UndirectedEdge(e.v, e.u)
     _E += 1
   }
 
-  def removeEdge(edge: (Int, Int)): Unit = {
-    if (adj_list(edge._1) contains edge._2) {
-      adj_list(edge._1) -= edge._2
-      if (edge._1 != edge._2) adj_list(edge._2) -= edge._1
+  def removeEdge(e: UndirectedEdge): Unit = {
+    if (adj_list(e.u) contains e) {
+      adj_list(e.u) -= e
+      if (!e.isSelf) adj_list(e.v) -= e
       _E -= 1
     }
   }
@@ -69,7 +69,7 @@ object MutableGraph {
 
     // Build up adjacency list, removing duplicates
     //  and self loops if needed
-    val adj_init = Array.fill(V)(ListBuffer.empty[Int])
+    val adj_init = Array.fill(V)(ListBuffer.empty[UndirectedEdge])
 
     // Remove duplicates; sort edges so that 0,1 and 1,0 count as a dup
     val edgeSet = edgeList.map(t => (t._1 min t._2, t._1 max t._2)).toSet
@@ -77,8 +77,8 @@ object MutableGraph {
     // Add to adjacency list
     edgeSet foreach {
       t => {
-        adj_init(t._2) += t._1
-        if (t._1 != t._2) adj_init(t._1) += t._2
+        adj_init(t._1) += UndirectedEdge(t._1, t._2)
+        if (t._1 != t._2) adj_init(t._2) += UndirectedEdge(t._2, t._1)
       }
     }
     new MutableGraph(V, edgeSet.size, adj_init.toIndexedSeq)

@@ -2,6 +2,8 @@ package sedgewick.graphs
 
 import collection.mutable.ListBuffer
 
+import EdgeImplicits.intTupleToUndirectedEdge
+
 /** Basic immutable undirected graph class
   *
   * @constructor Create a new [[Graph]]
@@ -10,16 +12,16 @@ import collection.mutable.ListBuffer
   * @param adj_list Edge adjacency lists
   */
 class Graph(val V: Int, val E: Int,
-            private val adj_list: IndexedSeq[List[Int]])
-  extends GraphLike with UndirectedGraph {
+            private val adj_list: IndexedSeq[List[UndirectedEdge]])
+  extends UndirectedGraph[UndirectedEdge] {
 
   def degree(v: Int): Int = {
-    require(v >= 0 & v < V, s"Specified vertex $v out of range")
+    require(v >= 0 & v < V, s"Specified vertex $v out of range [0, $V)")
     adj_list(v).length
   }
 
   def adj(v: Int) = {
-    require(v >= 0 & v < V, s"Specified vertex $v out of range")
+    require(v >= 0 & v < V, s"Specified vertex $v out of range [0, $V)")
     adj_list(v)
   }
 
@@ -44,15 +46,15 @@ object Graph {
 
     // Build up adjacency list, removing duplicates
     //  and self loops if needed
-    val adj_init = Array.fill(V)(ListBuffer.empty[Int])
+    val adj_init = Array.fill(V)(ListBuffer.empty[UndirectedEdge])
     if (allowDup) {
       var nedge = edgeList.length
       if (allowSelf) {
         // Simple case -- just insert
         edgeList foreach {
           t => {
-            adj_init(t._1) += t._2
-            if (t._1 != t._2) adj_init(t._2) += t._1
+            adj_init(t._1) += UndirectedEdge(t._1, t._2)
+            if (t._1 != t._2) adj_init(t._2) += UndirectedEdge(t._2, t._1)
           }
         }
       } else {
@@ -60,8 +62,8 @@ object Graph {
         edgeList foreach {
           t =>
             if (t._1 != t._2) {
-              adj_init(t._1) += t._2
-              adj_init(t._2) += t._1
+              adj_init(t._1) += UndirectedEdge(t._1, t._2)
+              adj_init(t._2) += UndirectedEdge(t._2, t._1)
             } else nedge -= 1
         }
       }
@@ -80,8 +82,8 @@ object Graph {
 
       edgeSet foreach {
         t => {
-          adj_init(t._2) += t._1
-          if (t._1 != t._2) adj_init(t._1) += t._2
+          adj_init(t._1) += UndirectedEdge(t._1, t._2)
+          if (t._1 != t._2) adj_init(t._2) += UndirectedEdge(t._2, t._1)
         }
       }
       new Graph(V, edgeSet.size, adj_init.map(_.toList).toIndexedSeq)
