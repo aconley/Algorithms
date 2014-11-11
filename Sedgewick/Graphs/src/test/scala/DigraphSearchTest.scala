@@ -21,7 +21,7 @@ class DigraphSearchTest extends FlatSpec with Matchers {
 
   "dfsVisitVertex" should "visit the right number of vertices" in {
     // Simple graph
-    val v1 = new VisitCount with dfsVisitor
+    val v1 = new VisitCount[DirectedEdge] with dfsVisitor[DirectedEdge]
 
     // Visit 0
     dfsVisitVertex(g1, 0, v1)
@@ -64,7 +64,7 @@ class DigraphSearchTest extends FlatSpec with Matchers {
   }
 
   it should "visit the right vertices" in {
-    val vis = new VertexVisited(g2) with dfsVisitor
+    val vis = new VertexVisited(g2) with dfsVisitor[DirectedEdge]
     dfsVisitVertex(g2, 0, vis)
     vis.getNVisited should be (6)
     vis.allVisited should be (false)
@@ -88,7 +88,7 @@ class DigraphSearchTest extends FlatSpec with Matchers {
 
   "bfsVisitVertex" should "visit the right number of vertices" in {
     // Simple graph
-    val v1 = new VisitCount with bfsVisitor
+    val v1 = new VisitCount[DirectedEdge] with bfsVisitor[DirectedEdge]
 
     bfsVisitVertex(g1, 0, v1)
     v1.getNVisited should be(2)
@@ -127,7 +127,7 @@ class DigraphSearchTest extends FlatSpec with Matchers {
   }
 
   it should "visit the right vertices" in {
-    val vis = new VertexVisited(g2) with bfsVisitor
+    val vis = new VertexVisited(g2) with bfsVisitor[DirectedEdge]
     bfsVisitVertex(g2, 0, vis)
     vis.getNVisited should be (6)
     vis.allVisited should be (false)

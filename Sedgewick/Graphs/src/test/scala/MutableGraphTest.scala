@@ -1,6 +1,7 @@
 package sedgewick.graphs
 
 import org.scalatest._
+import EdgeImplicits._
 
 class MutableGraphTest extends FlatSpec with Matchers {
 
@@ -31,12 +32,12 @@ class MutableGraphTest extends FlatSpec with Matchers {
   }
 
   it should "support querying of edges" in {
-    g1.adj(0).contains(1) should be (true)
-    g1.adj(0).contains(2) should be (false)
-    g1.adj(1).contains(0) should be (true)
-    g1.adj(1).contains(2) should be (false)
+    g1.adj(0).contains(UndirectedEdge(0, 1)) should be (true)
+    g1.adj(0).contains(UndirectedEdge(0, 2)) should be (false)
+    g1.adj(1).contains(UndirectedEdge(1, 0)) should be (true)
+    g1.adj(1).contains(UndirectedEdge(1, 2)) should be (false)
     g1.adj(2).isEmpty should be (true)
-    g1.adj(3).contains(4) should be (true)
+    g1.adj(3).contains(UndirectedEdge(3, 4)) should be (true)
   }
 
   it should "ignore duplicate edges" in {
@@ -51,7 +52,7 @@ class MutableGraphTest extends FlatSpec with Matchers {
     val g = MutableGraph(edgeList, allowSelf=true)
     g.V should be (6)
     g.E should be (4)
-    g.adj(2).contains(2) should be (true)
+    g.adj(2).contains(UndirectedEdge(2, 2)) should be (true)
   }
 
   it should "allow cloning" in {
@@ -64,7 +65,7 @@ class MutableGraphTest extends FlatSpec with Matchers {
     g2c.degree(7) should be (1)
     g2c.degree(9) should be (3)
     g2c.degree(11) should be (2)
-    g2c.adj(0) contains 5 should be (true)
+    g2c.adj(0) contains UndirectedEdge(0, 5) should be (true)
   }
   it should "allow edges to be added" in {
     val g1c = g1.clone
@@ -73,15 +74,15 @@ class MutableGraphTest extends FlatSpec with Matchers {
     g1c.E should be (4)
     g1c.degree(1) should be (2)
     g1c.degree(2) should be (1)
-    g1c.adj(0) contains 2 should be (false)
-    g1c.adj(1) contains 2 should be (true)
-    g1c.adj(2) contains 1 should be (true)
+    g1c.adj(0) contains UndirectedEdge(0, 2) should be (false)
+    g1c.adj(1) contains UndirectedEdge(1, 2) should be (true)
+    g1c.adj(2) contains UndirectedEdge(2, 1) should be (true)
 
     g1c.addEdge((0, 0))  // Add a self loop
     g1c.V should be (6)
     g1c.E should be (5)
     g1c.degree(0) should be (2)
-    g1c.adj(0) contains 0 should be (true)
+    g1c.adj(0) contains UndirectedEdge(0, 0) should be (true)
   }
 
   it should "ignore edges already present when adding" in {
@@ -106,8 +107,8 @@ class MutableGraphTest extends FlatSpec with Matchers {
     g1c.degree(2) should be (0)
     g1c.degree(3) should be (1)
     g1c.degree(4) should be (0)
-    g1c.adj(3) contains 4 should be (false)
-    g1c.adj(4) contains 3 should be (false)
+    g1c.adj(3) contains UndirectedEdge(3, 4) should be (false)
+    g1c.adj(4) contains UndirectedEdge(4, 3) should be (false)
 
     // Removing again should have no effect
     g1c.removeEdge((3, 4))
@@ -121,8 +122,8 @@ class MutableGraphTest extends FlatSpec with Matchers {
     g1c.E should be (3)
     g1c.degree(3) should be (2)
     g1c.degree(4) should be (1)
-    g1c.adj(3) contains 4 should be (true)
-    g1c.adj(4) contains 3 should be (true)
-    g1c.adj(3) contains 5 should be (true)
+    g1c.adj(3) contains UndirectedEdge(3, 4) should be (true)
+    g1c.adj(4) contains UndirectedEdge(4, 3) should be (true)
+    g1c.adj(3) contains UndirectedEdge(3, 5) should be (true)
   }
 }
