@@ -55,7 +55,7 @@ object DirectedEdge {
 }
 
 trait WeightedEdgeLike extends EdgeLike {
-  def weight: Float
+  def weight: Double
 }
 
 /** Edge with weights (undirected)
@@ -67,7 +67,9 @@ trait WeightedEdgeLike extends EdgeLike {
   * Note that weight is not considered in equality checks, so using
   * this class disallows self edges
   */
-class WeightedEdge(val u: Int, val v: Int, val weight: Float)
+// A double as the weight seems excessive, but declaring float
+// literals takes work in scala, so it's easier to use Double
+class WeightedEdge(val u: Int, val v: Int, val weight: Double)
   extends WeightedEdgeLike with EdgeLike {
 
   // Weight not used in equality
@@ -88,12 +90,12 @@ class WeightedEdge(val u: Int, val v: Int, val weight: Float)
 }
 
 object WeightedEdge {
-  def apply(e: (Int, Int, Float)) = new WeightedEdge(e._1, e._2, e._3)
-  def apply(f: Int, t: Int, w: Float) = new WeightedEdge(f, t, w)
+  def apply(e: (Int, Int, Double)) = new WeightedEdge(e._1, e._2, e._3)
+  def apply(f: Int, t: Int, w: Double) = new WeightedEdge(f, t, w)
 }
 
 object EdgeImplicits {
   implicit def intTupleToUndirectedEdge(e: (Int, Int)) = UndirectedEdge(e)
   implicit def intTupleToDirectedEdge(e: (Int, Int)) = DirectedEdge(e)
-  implicit def intwtTupleToWeightedEdge(e: (Int, Int, Float)) = WeightedEdge(e)
+  implicit def intwtTupleToWeightedEdge(e: (Int, Int, Double)) = WeightedEdge(e)
 }
