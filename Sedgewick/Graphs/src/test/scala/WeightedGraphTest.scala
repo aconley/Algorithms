@@ -31,7 +31,6 @@ class WeightedGraphTest extends FlatSpec with Matchers {
   }
 
   it should "support querying of edges" in {
-    // Recall that equality doesn't include the weight
     g1.adj(0).contains(WeightedEdge(0, 1, 0.5)) should be(true)
     g1.adj(0).contains(WeightedEdge(0, 2, 0.1)) should be(false)
     g1.adj(1).contains(WeightedEdge(1, 0, 0.5)) should be(true)
