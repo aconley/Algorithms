@@ -17,20 +17,22 @@ object MST {
     * starting at vertex 0 will be returned
     */
 
-  def LazyPrimMST(G: WeightedGraph): WeightedGraph = {
+  def LazyPrimMST(G: WeightedGraph): (Double, WeightedGraph) = {
     require(G.V > 0, "G has no vertices")
 
-    // Function for priority queue
-    def minEdge(e: WeightedEdge) = e.weight
+    // Ordering for minimum weight edge
+    val ord = new Ordering[WeightedEdge] {
+      def compare(x: WeightedEdge, y: WeightedEdge): Int = y.weight compare x.weight
+    }
 
-    def visit(G: WeightedGraph, v: Int, m: Array[Boolean],
+    def visit(G: WeightedGraph, u: Int, m: Array[Boolean],
               pq: MPQueue[WeightedEdge]): Unit = {
-      m(v) = true
-      for (e <- G.adj(v))
+      m(u) = true
+      for (e <- G.adj(u))
         if (!m(e.v)) pq += e
     }
 
-    val edges = new MPQueue[WeightedEdge]()(Ordering.by(minEdge))
+    val edges = new MPQueue[WeightedEdge]()(ord)
     val marked = Array.fill[Boolean](G.V)(false)
     val mst = new ListBuffer[(Int, Int, Double)]()
 
@@ -44,7 +46,8 @@ object MST {
       }
     }
 
-    // Turn this into a graph
-    WeightedGraph(mst.toList)
+    // Build return values
+    val totwt = mst.foldLeft(0.0)(_ + _._3)
+    (totwt, WeightedGraph(mst.toList))
   }
 }
