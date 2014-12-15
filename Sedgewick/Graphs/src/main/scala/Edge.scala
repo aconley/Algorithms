@@ -1,5 +1,7 @@
 package sedgewick.graphs
 
+import scala.math.abs
+
 /** Edge type */
 trait EdgeLike {
   def u: Int
@@ -64,25 +66,23 @@ trait WeightedEdgeLike extends EdgeLike {
   * @param v To vertex
   * @param weight Weight of vertex
   *
-  * Note that weight is not considered in equality checks, so using
-  * this class disallows self edges
   */
 // A double as the weight seems excessive, but declaring float
 // literals takes work in scala, so it's easier to use Double
 class WeightedEdge(val u: Int, val v: Int, val weight: Double)
   extends WeightedEdgeLike with EdgeLike {
 
-  // Weight not used in equality
+  def canEqual(other: Any): Boolean = other.isInstanceOf[WeightedEdge]
+
   override def equals(other: Any) = other match {
-    case that: WeightedEdge => ((u == that.u) && (v == that.v)) ||
-      ((u == that.v) && (v == that.u))
+    case that: WeightedEdge =>
+      ((u == that.u) && (v == that.v)) || ((u == that.v) && (v == that.u)) &&
+        (abs(weight - that.weight) <= 0.0001)
     case _ => false
   }
   // Must make this give the same for any objects that match via equals
   override def hashCode = {
-    val minV = u min v
-    val maxV = u max v
-    41 * (minV + 41) + maxV
+    41 * (u.hashCode + v.hashCode) + weight.hashCode
   }
 
   def reverse: WeightedEdge = new WeightedEdge(v, u, weight)

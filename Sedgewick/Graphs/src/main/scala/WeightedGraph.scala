@@ -34,12 +34,13 @@ object WeightedGraph {
   /** Build new immutable Graph from a list of edges
     *
     * @param edgeList List of edges specified as tuples of ints and weights
+    * @param allowDup Allow duplicate edges
     * @return A new [[Graph]]
     *
-    * Duplicates and self edges not allowed.  Note that duplicates are
-    * judged ignoring the weight
+    * Self edges not allowed.
     */
-  def apply(edgeList: List[(Int, Int, Double)]): WeightedGraph = {
+  def apply(edgeList: List[(Int, Int, Double)],
+            allowDup: Boolean = false): WeightedGraph = {
 
     // Count number of vertices
     val V = edgeList.map(t => t._1 max t._2).max + 1
@@ -47,20 +48,31 @@ object WeightedGraph {
     // Build up adjacency list, removing duplicates
     //  and self loops if needed
     val adj_init = Array.fill(V)(ListBuffer.empty[WeightedEdge])
-      // Remove duplicates; sort edges so that 0,1 and 1,0 count as a dup
-      val edgeSet =
-          edgeList.filter {
-            t => t._1 != t._2
-          }.map {
-            t => (t._1 min t._2, t._1 max t._2, t._3)
-          }.toSet
-
-      edgeSet foreach {
-        t => {
-          adj_init(t._1) += WeightedEdge(t._1, t._2, t._3)
-          adj_init(t._2) += WeightedEdge(t._2, t._1, t._3)
+    var nedge = edgeList.length
+    if (allowDup) {
+      // Remove self edges
+      edgeList foreach {
+        t =>
+          if (t._1 != t._2) {
+            adj_init(t._1) += WeightedEdge(t._1, t._2, t._3)
+            adj_init(t._2) += WeightedEdge(t._2, t._1, t._3)
+          } else nedge -= 1
+      }
+    } else {
+      // Remove self edges and duplicate edges (ignoring weight in dup check)
+      val edgeSet = scala.collection.mutable.Set[(Int, Int)]()
+      for (edg <- edgeList) {
+        if (edg._1 != edg._2) {
+          val edgeTup = (edg._1 min edg._2, edg._1 max edg._2)
+          if (!edgeSet.contains(edgeTup)) {
+            edgeSet += edgeTup
+            adj_init(edg._1) += WeightedEdge(edg._1, edg._2, edg._3)
+            adj_init(edg._2) += WeightedEdge(edg._2, edg._1, edg._3)
+          }
         }
       }
-      new WeightedGraph(V, edgeSet.size, adj_init.map(_.toList).toIndexedSeq)
+      nedge = edgeSet.size
     }
+    new WeightedGraph(V, nedge, adj_init.map(_.toList).toIndexedSeq)
   }
+}
