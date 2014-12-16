@@ -25,6 +25,18 @@ class WeightedGraph(val V: Int, val E: Int,
     adj_list(v)
   }
 
+  /**
+   *
+   * @return Return a list of all edges
+   */
+  def edges: List[WeightedEdge] = {
+    val edgs = ListBuffer.empty[WeightedEdge]
+    for (v <- Range(0, V))
+      for (e <- adj(v))
+        if (e.v > v) edgs += e
+    edgs.toList
+  }
+
   /** Basic string representation */
   override def toString: String =
     f"Undirected weighted graph with $V%d vertices and $E%d edges"
