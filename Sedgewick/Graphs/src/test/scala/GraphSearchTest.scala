@@ -1,6 +1,5 @@
-package sedgewick.graphs
-
-import GraphSearch._
+import sedgewick.graphs._
+import sedgewick.graphs.GraphSearch._
 import org.scalatest._
 
 // Test of search algorithms on undirected graphs

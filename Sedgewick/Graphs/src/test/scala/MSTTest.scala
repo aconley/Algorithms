@@ -1,7 +1,5 @@
-package sedgewick.graphs
-
 import org.scalatest._
-import MST._
+import sedgewick.graphs._
 
 class MSTTest extends FlatSpec with Matchers {
 
@@ -16,7 +14,7 @@ class MSTTest extends FlatSpec with Matchers {
   }
 
   "LazyPrimMST" should "find the minimum spanning tree" in {
-    val (wt, lpmst) = LazyPrimMST(tinyEWG)
+    val (wt, lpmst) = MST.LazyPrimMST(tinyEWG)
 
     wt should equal (1.81 +- 0.01)
     lpmst.V should be (8)

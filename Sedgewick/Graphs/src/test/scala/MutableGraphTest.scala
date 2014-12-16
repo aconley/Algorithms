@@ -1,7 +1,6 @@
-package sedgewick.graphs
-
 import org.scalatest._
-import EdgeImplicits._
+import sedgewick.graphs._
+import sedgewick.graphs.EdgeImplicits._
 
 class MutableGraphTest extends FlatSpec with Matchers {
 

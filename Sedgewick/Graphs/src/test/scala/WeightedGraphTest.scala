@@ -1,6 +1,5 @@
-package sedgewick.graphs
-
 import org.scalatest._
+import sedgewick.graphs._
 
 class WeightedGraphTest extends FlatSpec with Matchers {
 

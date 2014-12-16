@@ -1,6 +1,5 @@
-package sedgewick.graphs
-
 import org.scalatest._
+import sedgewick.graphs.UnionFind
 
 class UnionFindTest extends FlatSpec with Matchers {
   val edg = List((4, 3), (3, 8), (6, 5), (9, 4), (2, 1),
