@@ -1,0 +1,437 @@
+\topglue 0.5in
+\centerline{\tt Knuth 1.1}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} $t \leftarrow a, a \leftarrow b, b \leftarrow c, c \leftarrow d, d \leftarrow t$
+
+\vskip 0.1in
+\noindent
+{\bf Problem 4} $m \leftarrow 2166$ and $n \leftarrow 6099$.  After the first division, $r$ is 
+2166, so we set $m \leftarrow 6099$, $n \leftarrow 2166$.  Next, $r$ is 1767, so 
+$m \leftarrow 2166$, $n \leftarrow 1767$.  Then $m \leftarrow 1767$, $n \leftarrow 399$,
+followed by $m \leftarrow 399$, $n \leftarrow 171$, and $m \leftarrow 171$, $n\leftarrow 57$.
+Finally, 57 divides evenly into 171, so the GCD is 57.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 6} For all but a vanishing fraction of $n$ values, $n > m$.  So the first step
+will simply swap $m$ and $n$, leaving us with the $T_m$ problem.  Therefore, $U_m = T_m+1$.
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.1}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 2} The $n=2$ step is skipped.  Trying to apply the formula to that case
+ requires the assumption that $a^{-1} = 1$, which is not true in general.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 4}  Start with $n=1$ and $n=2$.  We have $F_1 = 1 > \phi^{-1}$, 
+ and $F_2 = 1 = \phi^0$.  Now, since for arbitrary $n$ we know that $P\left(n-1\right)$
+ and $P\left(n-2\right)$ are true, then $F_n = F_{n-1}+F_{n-2} \ge \phi^{n-4} + \phi^{n-3}
+ = \phi^{n-4} \left(1 + \phi\right)$.  Since $\left(1 + \phi\right) = \phi^2$
+ we have $F_n \ge \phi^{n-2}$, as claimed.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 10} Here we start with $n=10$, and indeed $2^{10} = 1024 > 10^3 = 1000$.
+ So now, for arbitrary $n$, we know $2^{n-1} > \left(n-1\right)^3$.  If we multiply
+ both sides by 2, we have $2^n > 2 \left(n-1\right)$.  So if $2 \left(n-1\right)^3 > n^3$
+ for $n > 10$, then we have proved the relation.  Expanding shows that this requires
+ that the expression $n^3 - 6 n^2 + 6n - 1$ is positive for $n > 10$ -- and in fact
+ it is positive for all $n > {1 \over 2} \left( 5 + \sqrt{21} \right) \approx 4.7$.
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.2}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 4} $0.125^{-2/3} = \left(1/8\right)^{-2/3} = \left(2^{-3}\right)^{-2/3} = 2^{2} = 4$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 13} (a) This can be recast as proving that 
+  $\left(1+x\right) \le \left(1 + x/n\right)^n$.
+  Or, relabeling, $\left(1+n x \right) \le \left(1+x\right)^n$, where x is positive.  This
+  is true for $n=1$.  Using induction, if $P\left(n\right)$ is true, then $\left(1+n x \right) \le
+  \left(1+x\right)^n$.  Multiply both sides by the positive number $1+x$ to get
+  $ \left( 1 + \left(n+1\right) x \right) < 1 + \left(n+1\right) x + n x^2 = 
+  \left(1+n x\right) \left(1 + x\right) \le \left(1+x\right)^{n+1}$.  The outer parts are
+  $P\left(n+1\right)$.
+  
+\vskip 0.1in
+\noindent
+{\bf Problem 15} Move $\log_b y$ across to the other side to give $\log_b x/y + \log_b y = \log_b x$.
+ Now use the product rule (11): $\log_b xy = \log_b x + \log_b y$, and $x/y \times y = x$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 19} We know that $\log_{10} n < 14$.  That means that $\log_2 n = \log_{10} n /
+  \log_{10} 2 < \log_{10} n / 0.302 = 46.4$.  So it will fit in 47 binary digits.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 20} $\log_2 10 = 1 / \log_{10} 2$
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.3}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 3} Because $0 \le n^2 \le 5$ is not a permutation.  For example, both $n=2$ and $n=-2$
+ satisfy the relation.
+ 
+\vskip 0.1in
+\noindent
+{\bf Problem 13} $\sum_{j=m}^{n} j = \sum_{j=0}^{n} - \sum_{j=0}^{m-1} = 1/2 \left( n \left(n+1\right) -
+   m \left(m-1\right) \right)$.
+   
+\vskip 0.1in
+\noindent
+{\bf Problem 16} First, factor $x$ out: $\sum_{0 \le j \le n} j x^j = x \sum_{1 \le j \le n} j x^{j-1} =
+ x \sum_{0 \le j \le n-1} \left(j + 1 \right) x^j$. But this can be written 
+ $x \sum_{0 \le j \le n-1} j x^j + x \sum_{0 \le j \le n-1} x^j$ = $x \sum_{0 \le j \le n-1} j x^j - x n x^j
+ + x \sum_{0 \le j \le n-1} x^j$.  Taking advantage of (14) from the text, $ \sum_{0 \le j \le n-1} =
+  \left( { 1 - x^n } \over 1 - x \right)$, so we have 
+  $$ \sum_{0 \le j \le n} j x^j = x \sum_{0 \le j \le n} j x^j - n x^{n+1} + x \left( { 1 - x^n} \over 1-x \right).$$
+ This can be solved and rearranged to give
+ $$ 
+   \sum_{0 \le j \le n} j x^j = {n x^{n+2} - \left( n + 1 \right) x^{n+1} + x \over \left( 1 - x \right)^2}.
+ $$
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.4}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 2} The floor, $\lfloor x \rfloor$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 5} $\lfloor x + {1 \over 2} \rfloor$.  This works the same way for negative
+ values of $x$ {\it unless} $x$ is half integral (i.e., $x - \lfloor x \rfloor = 1/2$).
+
+\vskip 0.1in
+\noindent
+{\bf Problem 14} The number 8 satisfies both equations, and we can see that adding
+ any multiplier of 15 to both continues to satisfy them.  Therefore, the answer is 8.
+ 
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.5}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 4} 2568 digits in base 10.  The leading digit is 4, since $\log_{10} 4 = 0.60206$.
+ The last digit must be zero, since it has to be multiplied by 1000.  In fact,
+ it should end in a large number of 0s, which could be computed from equation (8)
+ for the prime factors $p=2$ and $p=5$.  In fact, since the multiplicity of 2 must be
+ greater than that of 5, all we have to compute is the multiplicity of 5, which is 249,
+ so $1000!$ must end in 249 zeros.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 6} $20! = 2^{18}\, 3^8\, 5^4\, 7^2\, 11\, 13\, 17\, 19$.  This one ends in
+ 4 zeros, and in fact is 2,432,902,008,176,640,000.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 9} We have $n! = n \Gamma\left(n\right)$, so $\sqrt{\pi}/2 = 1/2! = 1/2 \Gamma\left( 1/2 \right)$
+ and $\Gamma\left(1/2\right) = \sqrt{\pi}$; this assumes exercise (10).  For the other part, we also have
+ $n! = \Gamma\left(n+1\right)$, which implies $\Gamma\left(-1/2\right) = 1/2! = \sqrt{\pi}/2$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 23} Start by computing $z \left(-z\right)! \, \Gamma \left( z \right)$.  The leading $z$ just cancels
+ off the $1/z$ in (15), so this is just 
+ $$
+   z \left(-z\right)! \, \Gamma \left( z \right) =
+      \left[ \lim_{m \to \infty} {m^{-z} m! \over \left(1-z\right)\left(2-z\right)
+      \ldots\left(m-z\right)} \right] \left[ \lim_{m \to \infty} {m^{z} m! \over \left(1+z\right)\left(2-z\right)
+      \ldots\left(m+z\right)} \right] .
+ $$
+ We can use the distributive law of products to combine these
+ $$
+    z \left(-z\right)! \, \Gamma \left( z \right) = \lim_{m \to \infty} m^0 m!\, m!\, \prod_{n=1}^{m}
+       {1 \over \left( n-z \right)} {1 \over \left( n+z \right) } = \lim_{m \to \infty} m!\, m!\, \prod_{n=1}^{m}
+        n^{-2} \left( 1 - z/n \right)^{-1} \left( 1 + z/n \right)^{-1}.
+ $$
+ We can again use the distributive law to break out the product 
+ $$z \left(-z\right)! \, \Gamma \left( z \right)
+  = \lim_{m \to \infty} m!\, m!\, \prod_{n=1}^{m} n^{-2} \prod_{n=1}^{m} \left(1 - z^2/n^2 \right)^{-1}.
+ $$
+ But $\prod_{n=1}^{m} n^{-1} = 1 / m!$, so the leading bits cancel to leave
+ $z \left(-z\right)! \, \Gamma \left( z \right) = \prod_{n=1}^{\infty} \left(1 - z^2/n^2 \right)^{-1}$.
+ Now we take advantage of $1 / \prod a_i = \prod 1 / a_i$ and the problem information that
+  $\prod_{n=1}^{\infty} \left( 1 - z^2 / n^2 \right) = \sin \pi z / \pi z$ to finally reach
+ $\left(-z\right)! \, \Gamma \left( z \right) = \pi / \sin \pi z$, as claimed.
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.6}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} $n$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 3} $52 \choose 13$, which is ${52! / 13! \, 39!} = 635,013,559,600.$
+
+\vskip 0.1in
+\noindent
+{\bf Problem 7} Since the factorial is a much stronger function than the square,
+ to minimize $k! \, \left(n-k\right)!$, $k = \lfloor n/2 \rfloor$, or
+ $k = \lceil n/2 \rceil$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 13} This is trivially shown by applying (9) repeatedly to the rightmost
+ term of $r + n + 1 \choose n$ as follows:
+ $$
+   {r + n + 1 \choose n} = {r + n \choose n} + {r + n \choose n - 1} =
+      {r + n \choose n} + {r + n - 1 \choose n - 1} + {r + n - 1 \choose n - 2} = \ldots.
+ $$
+ The final expanded sum is just $\sum_{k=0}^n {r+k \choose k}$.
+    
+\vskip 0.1in
+\noindent
+{\bf Problem 14} The program is to use the Stirling numbers to rewrite $k^4$ as binomials.
+   Using table 2,
+   $$k^4 = 24 {k \choose 4} + 36 {k \choose 3} + 22 {k \choose 2} + {k \choose 1}.$$
+   We can now apply equation (11) to find $$\sum k^4 = 24 {n + 1 \choose 5} +
+     36 { n + 1 \choose 4 } + 22 { n + 1 \choose 3 } + { n+1 \choose 2}.$$
+   This in turn can be laboriously expanded by hand to give
+   $\sum_{k=0}^n k^4 = n^5/5 + n^4/2 + n^3/3 - n/30.$
+   
+\vskip 0.1in
+\noindent
+{\bf Problem 18} Use (6) to rewrite ${r \choose m + k} = {r \choose r - m - k}$.  Then use
+ (22) to rewrite
+ $$ \sum_k {r \choose r - m - k} {s \choose n + k} = {r + s \choose r - m + k}. $$
+   
+\vskip 0.1in
+\noindent
+{\bf Problem 36} We can use the binomial theorem $\left(x+y\right)^n = \sum_{k} {n \choose k} x^k y^{n-k}$
+ with $x = y = 1$ to see that $\sum_k {n \choose k} = 2^n$.  For the alternating sum, set $x=-1$ and $y=1$
+ to find $\sum_k \left(-1\right)^{k} {n \choose k} = \delta_{n0}$.
+ 
+\vskip 0.1in
+\noindent
+{\bf Problem 46} ${x + y \choose y} = {\left(x + y\right)! \over x! \, y!}$, and for large $n$, 
+ $n! \simeq \sqrt{2 \pi n}\, n^n\, e^{-n}$.  Straightforward substitution gives 
+ $${ x + y \choose y } \simeq \sqrt{ x + y \over 2 \pi \, x y } \left(x+y\right)^{x+y} x^{-x} y^{-y}.$$
+ Now rewrite the last term as $\left(x+y\right)^{x} x^{-x} \left(x+y\right)^y y^{-y}$ and note that
+ $\left(x+y\right)^x = x^x \left(1 + y/x\right)^x$ to finally get
+ $$
+   { x + y \choose y } \simeq \sqrt{ x + y \over 2 \pi \, x y } \left(1+y/x\right)^x \left(1+x/y\right)^y 
+ $$
+ and therefore ${2 n \choose n} \simeq 2^{2n} / \sqrt{\pi n} = 4^n / \sqrt{\pi n}$
+   
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.7}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 2} $$ H_{2^{m+1}} = H_{2^m} + {1 \over 2^m+1 } + {1 \over 2^m + 2 } + \ldots + {1 \over 2^{m+1}}
+ \le H_{2^m} + {1 \over 2^m} + {1 \over 2^m} + \ldots + {1\over 2^m} = H_{2^m} + 1. $$
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.8}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 2} $F_{1000} = {1 \over \sqrt{5}} \left( \phi^{1000} - \left(1-\phi \right)^{1000} \right) 
+ \simeq {1 \over \sqrt{5}} \phi^{1000}$.  Using the logarithm to express this as $10$ to some power, 
+  $F_{1000} \simeq 10^{1000 \log_{10} \phi - 1/2 \log_{10} 5} \simeq 10^{208.64}$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 4} 0, 1, and 5.  For larger numbers, $F_n$ increases much faster than linearly, so these are
+ all of them.
+ 
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.9}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} First, it's the sum of the generating sequences for $2^n$ and $3^n$ by rule {\bf A}.  Next,
+  use (5) and rule {\bf D} to note that the sequence for $c^n$ is just $1 / \left( 1-c z \right)$.  Therefore, the generating
+  function for $2^n + 3^n$ is just $1 / \left( 1 - 2 z \right) + 1 / \left(1 - 3 z\right)$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 6} We can use the product rule {\bf C} to see that the generating function for this sequence
+ is just the product of the generating functions for $1/k$ and $1/k$.  But this is just (17), $ \log \left(1-z\right)^{-1}$.
+ Therefore, the generating function for this sequence is just 
+ $$
+    G\left(z\right) = \left( \log {1 \over 1 - z} \right)^2.
+ $$
+ The derivative is just 
+ $$
+   G^{\prime} \left(z\right) = {2 \over 1-z} \log {1 \over 1-z}.
+ $$
+ But this is twice the generating function for the harmonic numbers of (18), or
+ $G^{\prime} = 2 \sum H_k z^k$.
+
+\vskip 0.5in
+\centerline{\tt Knuth 1.2.10}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} 
+  $$ 
+     p_{n0} = {1 \over n} p_{\left(n-1\right)\left(k-1\right)} + {n-1 \over n} p_{\left(n-1\right) k}
+            = {n - 1 \over n} p_{\left(n-1\right) 0}
+  $$
+  because $p_{nk} = 0$ for $k < 0$.  Since $p_{10} = 1$, this is $p_{n0} = \prod {n - 1 \over n} = 
+    {\left(n-1\right)! \over n!} = {1 \over n}$.  Thus, $G\left(0\right) = 1/n$, and so the probability
+  that $X\left[n\right]$ is the maximum is just $1/n$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 2} $G^{\prime\prime} \left(z\right)= \sum_k k \left(k - 1\right) p_k z^{k-2}$ so
+ $G^{\prime\prime} \left(1\right) = \sum_k k^2 p_k - \sum_k k p_k.$  The last term is just 
+ $G^{\prime} \left(1\right)$, so $\sum_k k^2 p_k = G^{\prime\prime} \left(1\right) + G^{\prime}
+  \left(1\right).$  Now using (10), we immediately recover the desired equation.
+  
+\vskip 0.1in
+\noindent
+{\bf Problem 8} There are $M$ ways to chose the first, $M-1$ the second, etc.  Together, there are
+ $M^{\underline n}$ ways to do this.  Since there are $M^n$ total possibilities, the probability
+ that a random one satisfies the requirement is $M^{\underline n} / M^n$.
+ 
+\vskip 0.5in
+\centerline{\tt Knuth 1.3.1$^{\prime}$}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} $\left(1\ 1\ 1\ 1\ 1\ 0\ 1\ 1\ 0\ 0\ 1\right)_2$ = $\left(7\ d\ 9 \right)_{16}$ = 
+ $\left(3\ 7\ 3\ 1\right)_8$ = $\left(2\ 0\ 0\ 9\right)_{10}$.
+ 
+ \vskip 0.1in
+ \noindent
+ {\bf Problem 2} As hexidecimal digits, the odd ones are B, D, F (and b, d, f).
+  As ASCII, A, C, E, a, c, e.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 5} Prove that $x \neq s\left(\alpha\right)  \Rightarrow x \not\equiv u\left(\alpha\right)$.
+Note that $-2^{n-1} \le s\left(\alpha\right) \ge 2^{n-1}-1$.  Therefore, if
+if $-2^{n-1} \le x < 2^{n-1}$ then we must have $-2^n < x - s\left(\alpha\right) < 2^n$.
+This means that if $x \neq s\left(\alpha\right)$, then we must have
+$x \not\equiv s\left(\alpha\right)$ (mod $2^n$).  Next we need to relate 
+$s\left(\alpha\right)$ and $u\left( \alpha \right)$.  The relation is
+$s\left(\alpha\right) = u\left(\alpha\right)$ if $s_{63} \neq 1$ ($s_{63}$ is the first
+bit), and $s\left(\alpha\right) = u\left(\alpha\right)-2^n$ if $s_{63} = 1$.
+In the first case, clearly $s\left(\alpha\right) \equiv u\left(\alpha\right)$ and
+in the second $s \left( \alpha \right) = u\left(\alpha\right) - 2^n \equiv u \left(\alpha\right)$.
+So $s\left( \alpha \right) \equiv u\left(\alpha\right)$, and by the transitivity of
+the modulo equivalence, $x \not\equiv u\left(\alpha\right)$.  On the other hand,
+if $x = s \left(\alpha\right)$, then clearly $x \equiv s \left( \alpha \right) \equiv u \left( \alpha \right)$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 6} Negating a $n$ bit number is $u\left( \overline \alpha \right) = 2^n - 1 - 
+u \left( \alpha \right)$.  Therefore $u \left( \overline \alpha \right) + 1 \equiv - u \left( \alpha \right)$
+(mod $2^n$).  From Problem 5, this then implies that $s \left( \overline \alpha \right) + 1 =
+- s \left( \alpha \right)$.  This fails if $s \left( \overline \alpha \right) + 1 = 2^n$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 7} Yes -- since these are the high halves of the slots, there is no
+concern about extending the sign bit which could make this not work.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 10} The maximum positive integer is $2^n-1$, the maximum negative
+is $2^n$, so if we set $\$Y = -2^n$, $\$Z=-1$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 11} From {\bf Problem 5}, $s\left(\$Y\right) \equiv u\left(\$Y\right)$
+ and $s\left(\$Z\right) \equiv u\left(\$Z\right)$ (both mod $2^{64}$).  This implies
+ that $s\left(\$Y\right) s\left(\$Z\right) \equiv u\left(\$Y\right) u\left(\$Z\right)$.
+ As long as there is no overlow, then, this is true.  With overflow it isn't clear, 
+ since the spec for {\bf MULU} doesn't specify what happens on overflow.
+ 
+\vskip 0.1in
+ \noindent
+ {\bf Problem 12} The critical point is that if their {\it is} carry, then 
+ \$X will be less than \$Y after the {\bf ADDU}.  Therefore, if we want
+ the carry bit to end up in \$A, {\bf ADDU \$X, \$Y, \$Z, CMPU \$A, \$X, \$Y}.
+ Then \$A will be positive if there is carry, negative or 0 if not.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 13} Overflow occurs if \$Y and \$Z have the same sign
+but their sum has the opposite sign.  So we need to find a way to
+effectively store the sign before and after addition.  Start with
+{\bf NXOR \$0, \$Y, \$Z}.  \$0 will have a 1 as the first bit if they
+have the same sign.  Then  {\bf ADDU \$X, \$Y, \$Z, XOR \$1, \$X, \$Y}.
+Now \$1 will have a 0 as the first digit if the sum has the same sign 
+as the inputs, 1 if different.  We can finally test for overflow by doing 
+{\bf AND \$1, \$0, \$0}.  This will have a 1 as the first bit if overflow
+has occured, so it will be negative as a signed quantity.  So finally
+{\bf CSN carry, \$1, 0}.
+ 
+\vskip 0.1in
+ \noindent
+{\bf Problem 20} {\bf 4ADDU \$Y, \$X, \$X, 4ADDU \$X, \$Y, \$Y}.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 22} The code works unless there is overflow.  To avoid
+this problem, {\bf CMP \$0, \$1, \$2, BN \$0, case1}.  
+
+\vskip 0.1in
+\noindent
+{\bf Problem 23} Replace {\bf BN} with {\bf BNP}.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 25} {\bf XOR \$Z, \$X, \$Y} gives us a 1 at every
+position where the two vectors are different.  Following this 
+by {\bf SADD \$1, \$Z, 0} puts the Hamming distance in \$1.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 26} The saturating subtraction operator \.{-} on 
+individual bits must satisfy 0 \.{-} 0 = 0, 0 \.{-} 1 = 0, 1 \.{-} 0 = 1,
+1 \.{-} 1 = 0.  Since only one is non-zero, the logical place
+to start is with some variance of the and operator.  Examining
+(8) in 1.3.1, it can be done with the and operator if we not
+the second argument -- therefore, what we want is {\bf ANDN}.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 27} {\bf BDIF \$W, \$Y, \$Z}.  If $y > z$, then this is
+$y-z$, if $y < z$ this is zero.  So we add $z$ back in to get
+either $y$ or $z$, whichever is larger. {\bf ADDU \$X, \$W, \$Z}
+will store the maximum in \$X.  We don't have to worry about overflow
+here.  To get the minimum we simply replace addition with subtraction:
+{\bf SUBU \$W, \$Y \$W} -- so, if $y>z$ this is $y-\left(y-z\right)=z$, otherwise
+it's $y-0=y$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 30} Counting the number of bits that agree is an issue
+because we will get false positives of any bye that begins with \#2.
+So the approach is to count the number of bits that differ, then use
+one of the bytewise operators to convert this to the number of bytes
+that agree, and then add those.  So, the first step is 
+ {\bf XOR \$1, \$0, [2020202020202020]}.  This puts a one
+everywhere that they don't match and a zero where they do.  
+Now we use byte wise arithmetic {\bf BDIF \$1, [0101010101010101],\$1}.
+This puts a 1 in every byte that differs in zero places, and a 0 in every
+byte that differs in one or more place.  Now, finally, {\bf SADD \$1,\$1, 0}
+does the counting.
+
+\vskip 0.5in
+\centerline{ \tt Knuth 1.3.2$^{\prime}$ }
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} a) it refers to line 24, the previous 4H. b)  No.  Lines 23 and 31 would now do the wrong thing.
+
+\end

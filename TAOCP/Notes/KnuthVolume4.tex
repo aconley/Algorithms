@@ -1,0 +1,125 @@
+\topglue 0.5in
+\centerline{Notes on Knuth Chapter 7.1}
+\vskip 0.5in
+
+\noindent
+{\bf Section 7.1.1 Basic Identities} Eq (9) states $\left( x \oplus y \right)
+\oplus x = y$.  Why?  Well, $\oplus$ is not distributive, even with itself,
+but it is commutative and associative. The above is therefore
+equivalent to $y \oplus \left( x \oplus x \right) = y \oplus 0 = y$.
+The same argument shows that $\left( x \oplus y \right) \oplus y = x$.
+
+\vskip 0.06in
+Why are Eq (13)-(15) true?  I don't
+see how to derive (13), or (14) besides just writing out the truth table, but (15) is:
+$x \oplus y = \left(x \vee y\right) \wedge \overline x \wedge y$, which
+is true by inspection (either x or y has to be true, but not both).
+These can be expanded using (12) and (1) to give
+$x \oplus y = \left(x \vee y\right) \wedge \left(\overline{x} \vee \overline{y}
+\right) = \left(x \wedge \left(\overline{x} \vee \overline{y}\right)\right)
+\vee \left(y \wedge \left(\overline{x} \vee \overline{y}\right)\right)$.
+Applying (1) to each of these terms again gives things like
+$\left(\overline{x} \wedge x\right) \vee \left(\overline{y} \vee x\right) =
+\overline{y} \vee x$, which, when applied to both terms gives
+$x \oplus y = \left(x \wedge \overline{y}\right) \vee \left(\overline{x}
+\wedge y\right)$, which is the claimed identity.
+
+\vskip 0.1in
+\noindent
+{\bf Section 7.1.1 Functions of n variables} Why does the functional decomposition
+of eq (16) and (17) work?  First, note that $h$ is 0 if
+$f\left(x_1,\ldots,x_{n-1},0\right) = f\left( x_1,\ldots,x_{n-1},1\right)$, so
+in this case we have (on the right hand side of (16)),
+ $g\left(x_1,\ldots,x_{n-1}\right) \oplus 0 = f\left(x_1,\ldots,x_{n-1},0\right)$.
+ Since we already said that $f\left(x_1,\ldots,x_{n-1},0\right) = f\left( x_1,\ldots,x_{n-1},1\right)$, this must be true.  
+ 
+If $f\left(x_1,\ldots,x_{n-1},0\right) \neq f\left( x_1,\ldots,x_{n-1},1\right)$,
+then $h\left(x_1,\ldots,x_{n-1}\right)=1$, so we have $1\, \wedge\, x_n
+= x_n$.  Thus, the rhs of (16) becomes $f\left(x_1,\ldots,x_{n-1},0\right) 
+\, \oplus \, x_n$.  Now note that if $x_n = 1$ this is
+$f\left(x_1,\ldots,x_{n-1},0\right) \, \oplus 1 = 
+\overline{f\left(x_1,\ldots,x_{n-1},0\right)}$.  But we already said that
+$f\left(x_1,\ldots,x_{n-1},0\right) \neq f\left( x_1,\ldots,x_{n-1},1\right)$,
+so this is just $f\left(x_1,\ldots,x_{n-1},1\right)$, which is what we want.
+Similarly, for $x_n = 0$, we just get
+$f\left(x_1,\ldots,x_{n-1},0\right) \oplus 0 = f\left(x_1,\ldots,x_{n-1},0\right)$.
+
+\vskip 0.06in
+That demonstrates why (16) works -- why does (18), the ``law of development'', work?
+First, let's say that $x_n = 0$.  Then only the first term applies, giving
+$f\left(x_1,\ldots,x_{n-1},0\right) \wedge 1 = f\left(x_1,\ldots,x_{n-1},0\right)$,
+which is indeed the value of $f\left( x_1,\ldots,x_n \right)$ when $x_n = 0$.
+It works the same way for $x_n = 1$.
+
+\vskip 0.1in
+\noindent
+{\bf Section 7.1.1 Theorem Q} A prime implicant corresponds to a 1 in the
+truth table of the function.  Since the function is monotone, the implicant
+can't become false (0) when any of it's values go from 0 to 1.  If one
+of the terms in the prime implicant were, say, $\overline{x_i}$, then
+when that changed from 0 to 1, the implicant would become false.  This
+is not allowed.
+
+\vskip 0.1in
+\noindent
+{\bf Section 7.1.1 Theorem H} The first step in the formula is to use the 
+distributive law (2): $\left(x \wedge y\right) \vee z = \left(x \vee z\right) 
+\wedge \left(y \vee z\right)$.
+The second step makes use of the fact that $\vee$ is commutative to move all the $y$s 
+rightward in the left term.  We then have $\left(x_1 \vee \overline{x}_2
+\vee \ldots \vee \overline{x}_k\right) \vee \overline{y}_1 \vee \ldots \vee 
+\overline{y}_k
+\geq \left(x_1 \vee \overline{x}_2 \vee \ldots \vee \overline{x}_k\right)$,
+which is clearly true since the extra terms can either leave the truth value 
+unchanged or increase it from 0 to 1.  The same logic applies to the second term.
+
+\vskip 0.06in
+In the example of Horn clauses following theorem H, where do the propositions come
+from?  Well, take the first one: $\bf xE \Rightarrow xT$ states
+that it is allowable for an expression to start with {\bf x} if and only if
+it is allowable for a term to start with {\bf x}; this is clear from the first
+line of the specification.  
+
+How do these convert into Horn clauses?  Well, recall that $x \Rightarrow y$
+is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
+just all of those $\wedge$ed together.
+
+\break
+\topglue 0.5in
+\centerline{Notes on Knuth Chapter 7.2}
+\vskip 0.5in
+
+\noindent
+{\bf Section 7.2.1.2 Algorithm L} It's useful to create an example of this
+in action.  Consider the sequence $246$ -- so $a_1 = 2$, $a_2 = 4$,
+$a_3 = 6$, and the convenience value $a_0$ is, say $a_0 = 0$.
+So, step by step:\hfil\break
+{\bf L1} Output 246.\hfil\break
+{\bf L2} Let $j \leftarrow 2$, which does satisfy $a_2 < a_3$.\hfil\break
+{\bf L3} Set $l \leftarrow 3$.  We have $a_j < a_l$.  Interchange
+  $a_2$ and $a_3$, which gives us $264$.\hfil\break
+{\bf L4} is a null step, since $j + 1 = 3$ is the last element.\hfil\break
+{\bf L1} Output 264.\hfil\break
+{\bf L2} Let $j \leftarrow 2$, but now $a_2 > a_3$, so decrease
+  $j$ until $j = 1$ (since $a_1 < a_2$).\hfil\break
+{\bf L3} Set $l \leftarrow 3$.  $a_1 < a_2$, so swap to form
+ $462$.\hfil\break
+{\bf L4} Reverse $a_2$ and $a_3$ to get 426.\hfil\break
+{\bf L1} Output 426.\hfil\break
+{\bf L2} $j \leftarrow 2$, since $a_2 < a_3$ ($2 < 6$).\hfil\break
+{\bf L3} $n \leftarrow 3$, swap to get 462.\hfil\break
+{\bf L4} Swapping is null.\hfil\break
+{\bf L1} Output 462.\hfil\break
+{\bf L2} $j \leftarrow 1$.\hfil\break
+{\bf L3} $n \leftarrow 2$, swap to get $642$.\hfil\break
+{\bf L4} reverse from 2 to get $624$.\hfil\break
+{\bf L1} output 624.\hfil\break
+{\bf L2} $j \leftarrow 2$.\hfil\break
+{\bf L3} $l \leftarrow 3$.  Swap to get $642$.\hfil\break
+{\bf L4} Reversing is null.\hfil\break
+{\bf L1} Output 642.\hfil\break
+{\bf L2} $j$ is 0, so terminate.\hfil\break
+The output is ${246, 264, 426, 462, 624, 642}$, which is in lexicographic
+order.
+
+\end
