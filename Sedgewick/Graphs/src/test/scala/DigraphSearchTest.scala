@@ -1,7 +1,7 @@
-package sedgewick.graphs
-
-import GraphSearch._
 import org.scalatest._
+
+import sedgewick.graphs._
+import sedgewick.graphs.GraphSearch._
 
 // Test of search algorithms on directed graphs
 class DigraphSearchTest extends FlatSpec with Matchers {

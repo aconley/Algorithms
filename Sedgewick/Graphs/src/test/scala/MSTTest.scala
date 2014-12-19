@@ -1,7 +1,5 @@
-package sedgewick.graphs
-
 import org.scalatest._
-import MST._
+import sedgewick.graphs._
 
 class MSTTest extends FlatSpec with Matchers {
 
@@ -16,7 +14,7 @@ class MSTTest extends FlatSpec with Matchers {
   }
 
   "LazyPrimMST" should "find the minimum spanning tree" in {
-    val (wt, lpmst) = LazyPrimMST(tinyEWG)
+    val (wt, lpmst) = MST.LazyPrimMST(tinyEWG)
 
     wt should equal (1.81 +- 0.01)
     lpmst.V should be (8)
@@ -40,5 +38,32 @@ class MSTTest extends FlatSpec with Matchers {
     lpmst.degree(5) should be (2)
     lpmst.degree(6) should be (1)
     lpmst.degree(7) should be (3)
+  }
+
+  "KruskalMST" should "find the minimum spanning tree" in {
+    val (wt, kmst) = MST.KruskalMST(tinyEWG)
+
+    wt should equal (1.81 +- 0.01)
+    kmst.V should be (8)
+    kmst.E should be (7)
+
+    kmst.degree(0) should be (2)
+    kmst.adj(0).contains(WeightedEdge(0, 7, 0.16)) should be (true)
+    kmst.adj(0).contains(WeightedEdge(0, 2, 0.26)) should be (true)
+    kmst.adj(0).contains(WeightedEdge(0, 4, 0.38)) should be (false)
+
+    kmst.degree(1) should be (1)
+    kmst.adj(1).contains(WeightedEdge(1, 7, 0.19)) should be (true)
+
+    kmst.degree(2) should be (3)
+    kmst.adj(2).contains(WeightedEdge(0, 2, 0.26)) should be (true)
+    kmst.adj(2).contains(WeightedEdge(2, 3, 0.17)) should be (true)
+    kmst.adj(2).contains(WeightedEdge(2, 6, 0.42)) should be (true)
+
+    kmst.degree(3) should be (1)
+    kmst.degree(4) should be (1)
+    kmst.degree(5) should be (2)
+    kmst.degree(6) should be (1)
+    kmst.degree(7) should be (3)
   }
 }

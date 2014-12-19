@@ -1,3 +1,5 @@
+package sedgewick.graphs
+
 /**
  * Union find structure for finding out if vertices are connected
  *
@@ -85,5 +87,14 @@ class UnionFind(val V: Int, val compress: Boolean = false) {
     require(u >= 0 & u < V, s"Specified vertex $u out of range [0, $V)")
     require(v >= 0 & v < V, s"Specified vertex $v out of range [0, $V)")
     component(u) == component(v)
+  }
+}
+
+object UnionFind {
+  def apply(vertices: List[(Int, Int)], compress: Boolean=false): UnionFind = {
+    val V = vertices.map(x => x._1 max x._2).max + 1
+    val ret = new UnionFind(V, compress)
+    for (v <- vertices) ret.addEdge(v._1, v._2)
+    ret
   }
 }
