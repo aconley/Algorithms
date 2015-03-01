@@ -1,0 +1,9 @@
+.idea/
+target/
+*.swp
+.cache
+.classpath
+.project
+.history
+project/project
+project/target

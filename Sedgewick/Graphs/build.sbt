@@ -1,9 +1,7 @@
-name := "graph"
+name := "SedgewickGraphs"
 
 version := "0.1"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1"
-
-instrumentSettings
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4"
