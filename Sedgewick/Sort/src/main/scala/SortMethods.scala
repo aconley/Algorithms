@@ -70,16 +70,29 @@ object SortMethods {
 
   /**
    * Quicksort, O(n log n) average, O(n^2) worst
+   *
    * @param vals Array to return a sorted copy of
    * @param ord Defines ordering of elements
    * @tparam A Element type
    * @return A sorted copy of vals
+   *
+   * Median of three partition selection with small size cutoff switch
+   * to insertion sort
    */
   def quickSort[A](vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
     def exch(a: Buffer[A], i: Int, j: Int): Unit = {
       val v = a(i)
       a(i) = a(j)
       a(j) = v
+    }
+
+    // Exchange if a(j) < a(i)
+    def compexch(a: Buffer[A], i: Int, j: Int): Unit = {
+      if (ord.lt(a(j), a(i))) {
+        val v = a(i)
+        a(i) = a(j)
+        a(j) = v
+      }
     }
 
     // Find the index of the first element larger than a(r)
@@ -110,16 +123,40 @@ object SortMethods {
       i
     }
 
-    def qInner(a: Buffer[A], l: Int, r: Int): Unit = {
-      if (r <= l) return
-      val i = partition(a, l, r)
-      qInner(a, l, i - 1)
-      qInner(a, i + 1, r)
+    // Median of 3 with small size cutoff
+    def qInner(a: Buffer[A], l: Int, r: Int, m: Int): Unit = {
+      if (r - l < m) return  // Stop and switch to insertion sort
+
+      // Median of 3 bit
+      exch(a, (l+r)/2, r-1)
+      compexch(a, l, r-1)
+      compexch(a, l, r)
+      compexch(a, r-1, r)
+
+      // Sort bit
+      val i = partition(a, l+1, r-1)
+      qInner(a, l, i - 1, m)
+      qInner(a, i + 1, r, m)
     }
 
     if (vals.length == 0) return vals
     val vals_copy = vals.toBuffer
-    qInner(vals_copy, 0, vals_copy.length - 1)
+
+    // Partial Quicksort
+    val M = 10   // Hardwired switch point to insertion sort
+    qInner(vals_copy, 0, vals_copy.length - 1, M)
+
+    // Hardwired insertion sort
+    for (i <- 1 until vals_copy.length) {
+      val current_value = vals_copy(i)
+      var j = i
+      while (j > 0 && ord.lt(current_value, vals_copy(j-1))) {
+        vals_copy(j) = vals_copy(j-1)
+        j = j - 1
+      }
+      vals_copy(j) = current_value
+    }
+
     vals_copy.toIndexedSeq
   }
 }
