@@ -33,7 +33,18 @@ object SelectionSortSpecification extends Properties("selectionSort") {
   property("produces a sorted array") = forAll{(a1: Array[Double]) => isSortedAscending(selectionSort(a1))}
 }
 
-object QuckSortSpecification extends Properties("quickSort") {
+object ShellSortSpecification extends Properties("shellSort") {
+  import SortConvenience.isSortedAscending
+  val shell1 = shellSort[Int](simpleH) _
+  property("preserves length") = forAll{ (a1: Array[Int]) => shell1(a1).length == a1.length }
+  property("multiple sorts are idempotent") =
+    forAll{ (a1: Array[Int]) => shell1(a1) == shell1(shell1(a1))}
+  property("head should be minimum") = forAll{ (a1: Array[Int]) =>
+    (a1.length > 0) ==> (a1.min == shell1(a1).head) }
+  property("produces a sorted array") = forAll{(a1: Array[Int]) => isSortedAscending(shell1(a1))}
+}
+
+object QuickSortSpecification extends Properties("quickSort") {
   import SortConvenience.isSortedAscending
   property("preserves length") = forAll{ (a1: Array[Int]) => quickSort(a1).length == a1.length }
   property("multiple sorts are idempotent") =

@@ -24,7 +24,7 @@ object SortMethods {
    * @return A sorted copy of vals
    */
   def insertionSort[A](vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
-    if (vals.length == 0) return vals // Quick return
+    if (vals.length < 2) return vals // Quick return
     // Get a mutable copy to play with
     val vals_copy = vals.toBuffer
     for (i <- 1 until vals_copy.length) {
@@ -47,7 +47,7 @@ object SortMethods {
    * @return A sorted copy of vals
    */
   def selectionSort[A](vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
-    if (vals.length == 0) return vals
+    if (vals.length < 2) return vals
     val vals_copy = vals.toBuffer
     for (i <- 0 until (vals_copy.length-1)) {
       // Find the index of the minimum from [i, vals.length)
@@ -63,6 +63,59 @@ object SortMethods {
         val tmp = vals_copy(i)
         vals_copy(i) = vals_copy(midx)
         vals_copy(midx) = tmp
+      }
+    }
+    vals_copy.toIndexedSeq
+  }
+
+  // Knuth's simple h <- 3 * h + 1 sequence
+  def simpleH(i: Int): Int = {
+    var h = 1
+    for (j <- 2 until i) h = 3 * h + 1
+    h
+  }
+
+  /**
+   * Shellsort, O(complicated)
+   *
+   * @param hgen Function to generate shell sort sequence
+   * @param vals Array to return a sorted copy of
+   * @param ord Defines ordering of elements
+   * @tparam A Element type
+   * @return A sorted copy of vals
+   *
+   */
+  def shellSort[A](hgen: Int => Int)(vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
+
+    val n = vals.length
+    if (n < 2) return vals
+
+    // Set up h value
+    def getInitHi(maxval: Int): Int = {
+      var hi = 1
+      var hv = hgen(hi)
+      while (hv < maxval) {
+        hi += 1
+        hv = hgen(hi)
+      }
+      hi
+    }
+
+    val vals_copy = vals.toBuffer
+
+    // Set up max h
+    var hidx = getInitHi(n)
+    for (hi <- hidx to 1 by -1) {
+      val h = hgen(hi)
+      // h-insertion sort
+      for (i <- h until n) {
+        var j = i
+        val curr_val = vals_copy(i)
+        while (j >= h && ord.lt(curr_val, vals_copy(j - h))) {
+          vals_copy(j) = vals_copy(j - h)
+          j -= h
+          vals_copy(j) = curr_val
+        }
       }
     }
     vals_copy.toIndexedSeq
@@ -139,7 +192,7 @@ object SortMethods {
       qInner(a, i + 1, r, m)
     }
 
-    if (vals.length == 0) return vals
+    if (vals.length < 2) return vals
     val vals_copy = vals.toBuffer
 
     // Partial Quicksort
