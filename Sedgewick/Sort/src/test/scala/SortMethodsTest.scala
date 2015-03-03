@@ -56,6 +56,16 @@ object ShellSortSpecification extends Properties("shellSort") {
 
 }
 
+object MergeSortSpecification extends Properties("mergeSort") {
+  import SortConvenience.isSortedAscending
+  property("preserves length") = forAll{ (a1: Array[Int]) => mergeSort(a1).length == a1.length }
+  property("multiple sorts are idempotent") =
+    forAll{ (a1: Array[Int]) => mergeSort(a1) == mergeSort(mergeSort(a1))}
+  property("head should be minimum") = forAll{ (a1: Array[Int]) =>
+    (a1.length > 0) ==> (a1.min == mergeSort(a1).head) }
+  property("produces a sorted array") = forAll{(a1: Array[Double]) => isSortedAscending(mergeSort(a1))}
+}
+
 object QuickSortSpecification extends Properties("quickSort") {
   import SortConvenience.isSortedAscending
   property("preserves length") = forAll{ (a1: Array[Int]) => quickSort(a1).length == a1.length }
