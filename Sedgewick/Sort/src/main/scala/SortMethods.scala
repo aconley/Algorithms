@@ -1,6 +1,6 @@
 package sedgewick.sort
 
-import scala.collection.mutable.Buffer
+import scala.collection.mutable.{Buffer, ArrayBuffer}
 
 // The first question is -- do this with a trait and a bunch of implementations
 // of that trait, or use functions?  Sorts seem to be more naturally functions
@@ -118,6 +118,57 @@ object SortMethods {
         }
       }
     }
+    vals_copy.toIndexedSeq
+  }
+
+  /**
+   * Top down out-of-place merge sort
+   *
+   * @param vals Array to return a sorted copy of
+   * @param ord Defines ordering of elements
+   * @tparam A Element type
+   * @return A sorted copy of vals
+   */
+  def mergeSort[A](vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
+    // Merge operation of [lo, mid], [mid+1, hi] with auxilliary array for storage
+    def merge(a: Buffer[A], aux: Buffer[A], lo: Int,
+              mid: Int, hi: Int): Unit = {
+      var i = lo // index into left part
+      var j = mid + 1 // index into right part
+      for (k <- lo to hi) aux(k) = a(k)
+      for (k <- lo to hi)
+        if (i > mid) {
+          // Left is exhausted
+          a(k) = aux(j)
+          j += 1
+        } else if (j > hi) {
+          // Right is exhausted
+          a(k) = aux(i)
+          i += 1
+        } else if (ord.lt(aux(j), aux(i))) {  //Using this order makes it stable
+          a(k) = aux(j)
+          j += 1
+        } else {
+          a(k) = aux(i)
+          i += 1
+        }
+    }
+
+    def mergeSortInner(a: Buffer[A], aux: Buffer[A],
+                       lo: Int, hi: Int): Unit = {
+      if (hi <= lo) return
+      val mid = lo + (hi - lo) / 2
+      mergeSortInner(a, aux, lo, mid)
+      mergeSortInner(a, aux, mid+1, hi)
+      merge(a, aux, lo, mid, hi)
+    }
+
+    val n = vals.length
+    if (n < 2) return vals
+    var aux = vals.toBuffer // Allocate once
+
+    val vals_copy = vals.toBuffer
+    mergeSortInner(vals_copy, aux, 0, n-1)
     vals_copy.toIndexedSeq
   }
 
