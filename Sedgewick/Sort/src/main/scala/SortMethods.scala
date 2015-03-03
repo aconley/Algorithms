@@ -68,11 +68,40 @@ object SortMethods {
     vals_copy.toIndexedSeq
   }
 
+  // Scala, quite annoyingly, does not provide an integer exponentiation function
+  //  So add one.  BigInt does have one
+  private def pow(b: Int, n: Int): Int = {
+    require(n >= 0, "n can't be negative")
+    if (b == 0) {
+      0
+    } else {
+      n match {
+        case 0 => 1
+        case x if x % 2 == 0 =>
+          val pv = pow(b, n / 2)
+          pv * pv
+        case _ => b * pow(b, n - 1)
+      }
+    }
+  }
+
   // Knuth's simple h <- 3 * h + 1 sequence
+  //  starting at h[0]
   def simpleH(i: Int): Int = {
+    require(i >= 0, "i must be non-negative")
     var h = 1
-    for (j <- 2 until i) h = 3 * h + 1
+    for (j <- 1 until i) h = 3 * h + 1
     h
+  }
+
+  // Sedgewicks interleaved sequence
+  def sedgewickH(i: Int): Int = {
+    require(i >= 0, "i must be non-negative")
+    if (i % 2 == 0) {
+      9 * pow(4, i/2) - 9 * pow(2, i/2) + 1
+    } else {
+      pow(4, (i+3)/2) - 3 * pow(2, (i+3)/2) + 1
+    }
   }
 
   /**
@@ -84,15 +113,17 @@ object SortMethods {
    * @tparam A Element type
    * @return A sorted copy of vals
    *
+   * There are various strong assumptions about hgen detailed in Algorithms books --
+   *  for example it must be ascending, should start with 1, etc.
    */
   def shellSort[A](hgen: Int => Int)(vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
 
     val n = vals.length
     if (n < 2) return vals
 
-    // Set up h value
+    // Figure out how far along the H sequence we have to go
     def getInitHi(maxval: Int): Int = {
-      var hi = 1
+      var hi = 0
       var hv = hgen(hi)
       while (hv < maxval) {
         hi += 1
@@ -105,7 +136,7 @@ object SortMethods {
 
     // Set up max h
     var hidx = getInitHi(n)
-    for (hi <- hidx to 1 by -1) {
+    for (hi <- hidx to 0 by -1) {
       val h = hgen(hi)
       // h-insertion sort
       for (i <- h until n) {
