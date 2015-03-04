@@ -1,6 +1,6 @@
 package sedgewick.sort
 
-import scala.collection.mutable.{Buffer, ArrayBuffer}
+import scala.collection.mutable.Buffer
 
 // The first question is -- do this with a trait and a bunch of implementations
 // of that trait, or use functions?  Sorts seem to be more naturally functions
@@ -294,4 +294,55 @@ object SortMethods {
 
     vals_copy.toIndexedSeq
   }
+
+  /**
+   * Heapsort, O(N log N) in place
+   *
+   * @param vals Array to return a sorted copy of
+   * @param ord Defines ordering of elements
+   * @tparam A Element type
+   * @return A sorted copy of vals
+   */
+  def heapSort[A](vals: IndexedSeq[A])(implicit ord: Ordering[A]): IndexedSeq[A] = {
+
+    // Exchange elements at positions i and j
+    def exchange(a: Buffer[A], i: Int, j: Int): Unit = {
+      val v = a(i)
+      a(i) = a(j)
+      a(j) = v
+    }
+
+    // Fixes the heap condition by exchanging an element
+    //  with it's largest child until it is larger than
+    //  either of it's children
+    def fixDown(a: Buffer[A], idx: Int, n: Int): Unit = {
+      var k = idx
+      var continue = (2 * k + 1) < n
+      while (continue) {
+        // First get the index of the child of k
+        var j = 2 * k + 1
+        // This selects the larger child
+        if (j < (n-1) && ord.lt(a(j), a(j + 1))) j += 1
+
+        // Do the exchange if needed with the larger child
+        if (ord.lt(a(k), a(j))) {
+          exchange(a, k, j)
+          k = j
+          continue = (2 * k + 1) < n
+        } else continue = false
+      }
+    }
+
+    val N = vals.length
+    if (N < 2) return vals
+    val vals_copy = vals.toBuffer
+    for (k <- (N/2 - 1) to 0 by -1)
+      fixDown(vals_copy, k, N)
+    for (ctr <- (N-1) until 0 by -1) {
+      exchange(vals_copy, 0, ctr)
+      fixDown(vals_copy, 0, ctr)
+    }
+    vals_copy.toIndexedSeq
+  }
+
 }

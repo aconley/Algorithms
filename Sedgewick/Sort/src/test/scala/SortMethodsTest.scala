@@ -75,3 +75,13 @@ object QuickSortSpecification extends Properties("quickSort") {
     (a1.length > 0) ==> (a1.min == quickSort(a1).head) }
   property("produces a sorted array") = forAll{(a1: Array[Double]) => isSortedAscending(quickSort(a1))}
 }
+
+object HeapSortSpecification extends Properties("heapSort") {
+  import SortConvenience.isSortedAscending
+  property("preserves length") = forAll{ (a1: Array[Int]) => heapSort(a1).length == a1.length }
+  property("multiple sorts are idempotent") =
+    forAll{ (a1: Array[Int]) => heapSort(a1) == heapSort(heapSort(a1))}
+  property("head should be minimum") = forAll{ (a1: Array[Int]) =>
+    (a1.length > 0) ==> (a1.min == heapSort(a1).head) }
+  property("produces a sorted array") = forAll{(a1: Array[Double]) => isSortedAscending(heapSort(a1))}
+}
