@@ -1,4 +1,4 @@
-name := "SedgewickGraphs"
+name := "Graphs"
 
 version := "0.1"
 
