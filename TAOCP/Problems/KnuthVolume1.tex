@@ -358,8 +358,12 @@ is $2^n$, so if we set $\$Y = -2^n$, $\$Z=-1$.
 \vskip 0.1in
  \noindent
  {\bf Problem 12} The critical point is that if their {\it is} carry, then 
- \$X will be less than \$Y after the {\bf ADDU}.  Therefore, if we want
- the carry bit to end up in \$A, {\bf ADDU \$X, \$Y, \$Z, CMPU \$A, \$X, \$Y}.
+ \$X will be less than \$Y after the {\bf ADDU}.  Why?  Well,
+ mathematically, if $0 \leq x < m$ and $0 \leq y < m$, then $x + y \bmod m < y$
+ if and only if $x + y > m$.  If $x + y < m$, certainly the equality won't
+ be obeyed.  But if $x + y > m$, then we must have $x = m - k$ for some $0 < k < m-1$,
+ and $x + y \bmod m = y - k < y$. Therefore, if we want
+ the carry bit to end up in \$A, {\bf ADDU \$X, \$Y, \$Z; CMPU \$A, \$X, \$Y}.
  Then \$A will be positive if there is carry, negative or 0 if not.
 
 \vskip 0.1in
@@ -367,26 +371,30 @@ is $2^n$, so if we set $\$Y = -2^n$, $\$Z=-1$.
 {\bf Problem 13} Overflow occurs if \$Y and \$Z have the same sign
 but their sum has the opposite sign.  So we need to find a way to
 effectively store the sign before and after addition.  Start with
-{\bf NXOR \$0, \$Y, \$Z}.  \$0 will have a 1 as the first bit if they
-have the same sign.  Then  {\bf ADDU \$X, \$Y, \$Z, XOR \$1, \$X, \$Y}.
-Now \$1 will have a 0 as the first digit if the sum has the same sign 
-as the inputs, 1 if different.  We can finally test for overflow by doing 
-{\bf AND \$1, \$0, \$0}.  This will have a 1 as the first bit if overflow
-has occured, so it will be negative as a signed quantity.  So finally
-{\bf CSN carry, \$1, 0}.
+{\bf NXOR \$0, \$Y, \$Z}.  After this, \$0 will have a 1 as the first bit if 
+\$Y and \$Z have the same sign, 0 otherwise. Then do the addition 
+{\bf ADDU \$X, \$Y, \$Z}, and check if the sum has the same sign as the first
+input: {\bf XOR \$1, \$X, \$Y}.  After this, \$1 will have a 1 as the first
+bit if \$X and \$Y have the opposite sign.  Therefore, if the leading bit of
+both \$0 and \$1 is 1, there was an overflow.  We can compute this with
+${\bf AND \$0, \$0, \$1; ZSN, overflow, \$0, 1}$.
  
 \vskip 0.1in
  \noindent
-{\bf Problem 20} {\bf 4ADDU \$Y, \$X, \$X, 4ADDU \$X, \$Y, \$Y}.
+{\bf Problem 20} {\bf 4ADDU \$Y, \$X, \$X; 4ADDU \$X, \$Y, \$Y}.
 
 \vskip 0.1in
 \noindent
 {\bf Problem 22} The code works unless there is overflow.  To avoid
-this problem, {\bf CMP \$0, \$1, \$2, BN \$0, case1}.  
+this problem, {\bf CMP \$0, \$1, \$2; BN \$0, case1}.  
 
 \vskip 0.1in
 \noindent
 {\bf Problem 23} Replace {\bf BN} with {\bf BNP}.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 24} {\bf ANDN}
 
 \vskip 0.1in
 \noindent
