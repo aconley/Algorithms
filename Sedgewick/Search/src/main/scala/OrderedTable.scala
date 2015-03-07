@@ -51,16 +51,11 @@ class OrderedTable[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
    * Add an element to the table; note that duplicates are not allowed
    * @param k Key to add
    * @param v Corresponding value
-   * @return True if the element is new, false if replaced
    */
-  def put(k: K, v: V): Boolean = {
+  def put(k: K, v: V): Unit = {
     binsearch(k, 0, elements.size) match {
-      case Left(i) =>
-        elements.insert(i, (k, v))
-        true
-      case Right(i) =>
-        elements(i) = (k, v)
-        false
+      case Left(i) => elements.insert(i, (k, v))
+      case Right(i) => elements(i) = (k, v)
     }
   }
 
@@ -69,11 +64,10 @@ class OrderedTable[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
    * @param k The key
    * @return True if the element was found and removed, false if not found
    */
-  def delete(k: K): Boolean = {
+  def delete(k: K): Unit = {
     binsearch(k, 0, elements.size) match {
-      case Left(_) => false
+      case Left(_) => ()
       case Right(i) => elements.remove(i)
-        true
     }
   }
 

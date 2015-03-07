@@ -21,23 +21,23 @@ class UnorderedTableTest extends FlatSpec with Matchers {
     tbl.contains('!') should be (false)
   }
   "it" should "support adding elements" in {
-    tbl.put('X', 11) should be (true)  // Non replacement
+    tbl.put('X', 11)
     tbl.contains('X') should be (true)
     tbl('X') should be (Some(11))
     tbl.size should be (example.size + 1)
   }
   "it" should "support replacing elements" in {
-    tbl.put('A', 5) should be (false)  // Replacement
+    tbl.put('A', 5)
     tbl.contains('A') should be (true)
     tbl('A') should be (Some(5))
     tbl.size should be (example.size + 1)
-    tbl.put('A', 0) should be (false)
+    tbl.put('A', 0)
     tbl.contains('A') should be (true)
     tbl('A') should be (Some(0))
     tbl.size should be (example.size + 1)
   }
   "it" should "support removing elements" in {
-    tbl.delete('X') should be (true)
+    tbl.delete('X')
     tbl.contains('X') should be (false)
     tbl('X') should be (None)
     tbl.size should be (example.size)

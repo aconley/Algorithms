@@ -29,28 +29,24 @@ class UnorderedTable[K, V](implicit eq: Equiv[K]) extends SymbolTable[K, V] {
    * Add an element to the table; note that duplicates are not allowed
    * @param k Key to add
    * @param v Corresponding value
-   * @return True if the element is new, false if replaced
    */
-  def put(k: K, v: V): Boolean = {
+  def put(k: K, v: V): Unit = {
     val idx = elements.indexWhere(x => eq.equiv(x._1, k))
     if (idx == -1) {
       // New element
       elements += ((k, v))
       N += 1
-      true
     } else {
       // Replace old element
       elements(idx) = (k, v)
-      false
     }
   }
 
   /**
    * Remove the element matching the specified key
    * @param k The key
-   * @return True if the element was found and removed, false if not found
    */
-  def delete(k: K): Boolean = {
+  def delete(k: K): Unit = {
     // This is a bit painful, since it sweeps the list twice.  That doesn't
     //  seem like it should be necessary.  But the DoubleLinkedList is deprecated
     //  in scala 2.11, and there doesn't seem to be a replacement that has fast
@@ -58,8 +54,7 @@ class UnorderedTable[K, V](implicit eq: Equiv[K]) extends SymbolTable[K, V] {
     if (contains(k)) {
       elements = elements.foldLeft(MutableList[(K, V)]())((b, a) => if (eq.equiv(a._1, k)) b else b += a)
       N -= 1
-      true
-    } else false
+    }
   }
 
   def foreach(f: ((K, V)) => Unit): Unit = elements.foreach(f(_))
