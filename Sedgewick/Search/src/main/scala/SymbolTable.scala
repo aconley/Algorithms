@@ -12,5 +12,4 @@ trait SymbolTable[K, V] {
   def foreach(f: ((K, V)) => Unit): Unit  // Iterate over table
   def isEmpty: Boolean = this.size == 0
   def size: Int
-
 }

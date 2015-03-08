@@ -58,6 +58,11 @@ class UnorderedTable[K, V](implicit eq: Equiv[K]) extends SymbolTable[K, V] {
   }
 
   def foreach(f: ((K, V)) => Unit): Unit = elements.foreach(f(_))
+
+  override def toString: String = {
+    val elmap = elements.map{case (k, v) => s"$k->$v"}.mkString(", ")
+    "UnorderedTable(" + elmap + ")"
+  }
 }
 
 object UnorderedTable {

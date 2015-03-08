@@ -54,7 +54,7 @@ class BST[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
       Branch(k, v, put(key, value, l), r)
     case Branch(k, v, l, r) => Branch(k, v, l, put(key, value, r))
   }
-  def put(key: K, value: V): Unit = put(key, value, tree)
+  def put(key: K, value: V): Unit = tree = put(key, value, tree)
 
   private def foreach(f: ((K, V)) => Unit, t: BTree[K, V]): Unit = t match {
     case Tip => ()
@@ -65,5 +65,35 @@ class BST[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
   }
   def foreach(f: ((K, V)) => Unit): Unit = foreach(f, tree)
 
-  def delete(k: K): Unit = sys.error("todo")
+  private def delete(key: K, t: BTree[K, V]): BTree[K, V] = t match {
+    case Tip => t  // Wasn't found
+    case Branch(k, _, Tip, r) if (ord.equiv(key, k)) => r // Found it, is min
+    case Branch(k, _, l, Tip) if (ord.equiv(key, k)) => l // Found it, easy to delete
+    case Branch(k, _, l, r) if (ord.equiv(key, k)) => // Found it; tricky case
+      val minVal = findMin(r).get  // Can't be None
+      Branch(minVal._1, minVal._2, l, deleteMin(r))  // Swap with min, delete min
+    case Branch(k, v, l, r) if (ord.lt(key, k)) => Branch(k, v, delete(key, l), r)
+    case Branch(k, v, l, r) => Branch(k, v, l, delete(key, r))
+  }
+  def delete(k: K): Unit = tree = delete(k, tree)
+
+  private def stringify(t: BTree[K, V]): String = t match {
+    case Tip => ""
+    case Branch(k, v, Tip, Tip) => s"$k -> $v"
+    case Branch(k, v, Tip, r) => s"$k -> $v, " + stringify(r)
+    case Branch(k, v, l, Tip) => stringify(l) + s", $k -> $v"
+    case Branch(k, v, l, r) => stringify(l) + s", $k -> $v, " + stringify(r)
+  }
+
+  override def toString: String = "BST(" + stringify(tree) + ")"
+}
+
+object BST {
+  def empty[K, V](implicit ord: Ordering[K]): BST[K, V] = new BST[K, V]
+  def apply[K, V](args: (K, V)*)(implicit ord: Ordering[K]): BST[K, V] = {
+    val e = new BST[K, V]
+    for ((k, v) <- args)
+      e.put(k, v)
+    e
+  }
 }
