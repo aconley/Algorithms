@@ -1,4 +1,4 @@
-// Binary search tree
+// Red Black Tree.  Based on the Okasaki functional implementation.
 package sedgewick.search
 
 class RedBlackTree[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
@@ -14,6 +14,7 @@ class RedBlackTree[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
     extends RBT[K,V]
 
   private var tree: RBT[K, V] = Tip
+
   override def isEmpty: Boolean = tree match {
     case Tip => true
     case _ => false
@@ -104,7 +105,7 @@ class RedBlackTree[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
     case Branch(c, l, k, v, r) => append(l, r)
   }
 
-  def delete(k: K): Unit = sys.error("todo")
+  def delete(k: K): Unit = tree = del(k, tree)
 
   private def foreach(f: ((K, V)) => Unit, t: RBT[K, V]): Unit = t match {
     case Tip => ()
