@@ -7,5 +7,25 @@
 logical and: $\wedge$ (c) $-x$ is negation or right complementation: $\overline{x}$
 (d) $x \cdot y$ is equivalence: $x \equiv y$.
 
+\vskip 0.1in
+\noindent
+{\bf Problem 55} Two different ways to write this: $n_1 \times n_2 +
+n_1 \times n_3 + \ldots + n_1 \times n_k + n_2 \times n_3 + \ldots + 
+n_{k-1} \times n_k$.  Or, alternatively, start with the complete graph
+and subtract all the edges between vertices in the same components:
+${N \choose 2} - {n_1 \choose 2} - {n_2 \choose 2} - \ldots - {n_k \choose 2}$
+(where $N = \sum_i n_i$).
 
+\vskip 0.1in
+\noindent
+{\bf Problem 56} True.  Simple means that there are not multiple arcs between
+the same vertices in the digraph.  That rules out self edges, since converting
+a multigraph to a digraph would add two arcs for each self loop in the multigraph.
+Therefore, the multigraph can't have any self loops, and is a graph.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 57} This would be true if the question asked about strongly
+connected components, but it doesn't.  So false.  A trivial example is to
+have two of three vertices point into the third vertex.
 \end
