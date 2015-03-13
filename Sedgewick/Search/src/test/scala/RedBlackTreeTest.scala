@@ -1,11 +1,11 @@
 import org.scalatest._
-import sedgewick.search.BST
+import sedgewick.search.RedBlackTree
 
-class BSTTest extends FlatSpec with Matchers {
+class RedBlackTreeTest extends FlatSpec with Matchers {
   val example = "ABCDEF".toList.zipWithIndex
-  val tbl = BST(example:_*)
+  val tbl = RedBlackTree(example:_*)
 
-  "A BST" should "have the right number of elements" in {
+  "A RedBlackTree" should "have the right number of elements" in {
     tbl.isEmpty should be (false)
     tbl.size should be (example.length)
   }
@@ -43,7 +43,7 @@ class BSTTest extends FlatSpec with Matchers {
     tbl.size should be (example.size)
   }
   "it" should "collapse duplicates on construction" in {
-    val tbl2 = BST("SEARCHSEARCHAC".toList.zipWithIndex:_*)
+    val tbl2 = RedBlackTree("SEARCHSEARCHAC".toList.zipWithIndex:_*)
     tbl2.size should be (6)
   }
 }

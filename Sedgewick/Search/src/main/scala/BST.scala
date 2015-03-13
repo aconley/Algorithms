@@ -6,7 +6,7 @@ class BST[K, V](implicit ord: Ordering[K]) extends SymbolTable[K, V] {
   private sealed trait BTree[K, V]
   private case object Tip extends BTree[K, V]
   private case class Branch[K, V](key: K, elem: V,
-    left: BTree[K, V], right: BTree[K, V]) extends BTree[K, V]
+                                  left: BTree[K, V], right: BTree[K, V]) extends BTree[K, V]
 
   private var tree: BTree[K, V] = Tip
   override def isEmpty: Boolean = tree match {
