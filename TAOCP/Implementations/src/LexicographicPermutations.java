@@ -7,15 +7,16 @@
 package knuth.permutations;
 
 import java.util.Iterator;
+import java.util.ArrayList;
 
-public class LexicographicPermutations<E> implements Iterable<E[]> {
-    private E[] arrayList;  // Holds elements of original list
+public class LexicographicPermutations<E> implements Iterable<ArrayList<E>> {
+    private E[] arr;  // Holds elements of original list
 
     public LexicographicPermutations(E[] orig) {
-        this.arrayList = orig;  // Should we copy?
+        this.arr = orig;  // Should we copy?
     }
 
-    private class LexIterator<E> implements Iterator<E[]> {
+    private class LexIterator implements Iterator<ArrayList<E>> {
 
         private int n; // Number of elements in arrayList
         private int[] a; // Holds current permutation indices
@@ -35,13 +36,13 @@ public class LexicographicPermutations<E> implements Iterable<E[]> {
         }
 
         @Override
-        public E[] next() {
-            E[] r; // Return array
-            r = new E[n];
+        public ArrayList<E> next() {
+            ArrayList<E> r; // Return array
+            r = new ArrayList<E>(n);
 
             // Knuth L1
-            for (int i = 0; i < n + 1; ++i) {
-                r[i] = arrayList[a[i]-1];
+            for (int i = 0; i < n; ++i) {
+                r.set(i, arr[a[i+1]-1]);
             }
 
             // Next iterate a forward; this is the complicated bit
@@ -78,7 +79,7 @@ public class LexicographicPermutations<E> implements Iterable<E[]> {
     }
 
     @Override
-    public Iterator<E[]> iterator() {
-        return new LexIterator<E>(arrayList.length);
+    public Iterator<ArrayList<E>> iterator() {
+        return new LexIterator(arr.length);
     }
 }
