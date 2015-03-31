@@ -84,6 +84,17 @@ How do these convert into Horn clauses?  Well, recall that $x \Rightarrow y$
 is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
 just all of those $\wedge$ed together.
 
+\vskip 0.1in
+\noindent
+{\bf Section 7.1.1 Theorem T} The proof works because the number
+of vectors where we must have $f\left(x^{\left(m\right)}\right) = 
+g\left(x^{\left(m\right)}\right) = 1$ is $N\left(f\right) - k = N\left(g\right) - k$.
+That means there must also be $k$ vectors where $f\left(y^{\left(k\right)}\right) = 1$
+and $g\left(y^{\left(k\right)}\right) = 0$.
+
+In the next step, note that $w \cdot x^{\left(j\right)} \geq t$ for each of the $k$
+such values.
+
 \break
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
