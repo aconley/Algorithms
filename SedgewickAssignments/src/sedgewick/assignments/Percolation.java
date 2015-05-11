@@ -1,19 +1,18 @@
 package sedgewick.assignments;
 
-import sedgewick.assignments.UnionFind;
 import java.lang.IndexOutOfBoundsException;
 
 // Model of a percolation system
 public class Percolation {
-    private int n; // Size along one dimension
+    private final int n; // Size along one dimension
     private boolean[][] sites; // Site status; true if open
 
     // We need two union find structures -- one to handle
     //  percolation, one to handle being full.  Why?
     // Because being connected to the bottom is important
     //  for percolation, but not fullness.  So if we care
-    //  about ansering the fullness question correctly,
-    //  we need a seperate data structre
+    //  about answering the fullness question correctly,
+    //  we need a separate data structure
     private UnionFind ufP; // Percolation
     private UnionFind ufF; // Fullness
 
@@ -35,11 +34,11 @@ public class Percolation {
     public int getN() { return n; }
 
     /**
-     * Gets internal ID into union find structure of locatin
+     * Gets internal ID into union find structure of location
      * @param i Row index [1, N]
      * @param j Col index [1, N]
      */
-    private int getUFID(int i, int j) {
+    private int getUnionFindID(int i, int j) {
         //return (i - 1) * n + (j - 1) + 1;  // 1 for top site
         return (i - 1) * n + j;
     }
@@ -56,7 +55,7 @@ public class Percolation {
      * Opens the specified site if it isn't already open
      * @param i Row index [1, N]
      * @param j Column index [1, N]
-     * @throw IndexOutOfBoundsException if invalid i, j
+     * @throws IndexOutOfBoundsException if invalid i, j
      */
     public void open(int i, int j) {
         if (i < 1 || i > n)
@@ -66,39 +65,39 @@ public class Percolation {
         if (sites[i][j]) return;  // Already open
 
         // We have to connect to neighbors if they are open
-        int cmpsite;
-        int id = getUFID(i, j);
+        int compID;
+        int id = getUnionFindID(i, j);
         // Connect above
         if (i == 1) { // First row is special -- connects to initial site
             ufP.union(id, 0);
             ufF.union(id, 0);
         } else if (sites[i - 1][j]) {
-            cmpsite = getUFID(i - 1, j);
-            ufP.union(id, cmpsite);
-            ufF.union(id, cmpsite);
+            compID = getUnionFindID(i - 1, j);
+            ufP.union(id, compID);
+            ufF.union(id, compID);
         }
 
         // Connect below -- now last one is special
         if (i == n)  // Note -- we don't connect Full!
             ufP.union(id, n * n + 1);
         else if (sites[i + 1][j]) {
-            cmpsite = getUFID(i + 1, j);
-            ufP.union(id, cmpsite);
-            ufF.union(id, cmpsite);
+            compID = getUnionFindID(i + 1, j);
+            ufP.union(id, compID);
+            ufF.union(id, compID);
         }
 
         // Connect to the left
         if ((j > 1) && sites[i][j - 1]) {
-            cmpsite = getUFID(i, j - 1);
-            ufP.union(id, cmpsite);
-            ufF.union(id, cmpsite);
+            compID = getUnionFindID(i, j - 1);
+            ufP.union(id, compID);
+            ufF.union(id, compID);
         }
 
         // Connect to right
         if ((j < n) && sites[i][j + 1]) {
-            cmpsite = getUFID(i, j + 1);
-            ufP.union(id, cmpsite);
-            ufF.union(id, cmpsite);
+            compID = getUnionFindID(i, j + 1);
+            ufP.union(id, compID);
+            ufF.union(id, compID);
         }
     }
 
@@ -114,7 +113,7 @@ public class Percolation {
             throw new IndexOutOfBoundsException("Row index out of bound");
         if (j < 1 || j > n)
             throw new IndexOutOfBoundsException("Column index out of bound");
-        return ufF.connected(0, getUFID(i, j));
+        return ufF.connected(0, getUnionFindID(i, j));
     }
 
     /**

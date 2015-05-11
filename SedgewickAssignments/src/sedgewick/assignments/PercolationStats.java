@@ -12,7 +12,7 @@ public class PercolationStats {
     /**
      * Perform NSIMS percolation experiments on a N x N grid
      * @param N Size of grid along one dimension
-     * @param NSIMS Number of simulatoins to do
+     * @param NSIMS Number of simulations to do
      * @throws java.lang.IllegalArgumentException On invalid N or NSIMS
      */
     public PercolationStats(int N, int NSIMS) {

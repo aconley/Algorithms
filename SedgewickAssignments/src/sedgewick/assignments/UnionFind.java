@@ -1,6 +1,6 @@
 package sedgewick.assignments;
 
-// Basic Union Find Algorithm from Sedgewick 4th edition
+// Basic Union Find Algorithm from Sedgewick et al. 4th edition
 
 // This is the unweighted version that does full compression
 //  on merge
