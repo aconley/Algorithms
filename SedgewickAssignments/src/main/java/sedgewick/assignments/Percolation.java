@@ -69,35 +69,35 @@ public class Percolation {
         int id = getUnionFindID(i, j);
         // Connect above
         if (i == 1) { // First row is special -- connects to initial site
-            ufP.union(id, 0);
-            ufF.union(id, 0);
+            ufP.connect(id, 0);
+            ufF.connect(id, 0);
         } else if (sites[i - 1][j]) {
             compID = getUnionFindID(i - 1, j);
-            ufP.union(id, compID);
-            ufF.union(id, compID);
+            ufP.connect(id, compID);
+            ufF.connect(id, compID);
         }
 
         // Connect below -- now last one is special
         if (i == n)  // Note -- we don't connect Full!
-            ufP.union(id, n * n + 1);
+            ufP.connect(id, n * n + 1);
         else if (sites[i + 1][j]) {
             compID = getUnionFindID(i + 1, j);
-            ufP.union(id, compID);
-            ufF.union(id, compID);
+            ufP.connect(id, compID);
+            ufF.connect(id, compID);
         }
 
         // Connect to the left
         if ((j > 1) && sites[i][j - 1]) {
             compID = getUnionFindID(i, j - 1);
-            ufP.union(id, compID);
-            ufF.union(id, compID);
+            ufP.connect(id, compID);
+            ufF.connect(id, compID);
         }
 
         // Connect to right
         if ((j < n) && sites[i][j + 1]) {
             compID = getUnionFindID(i, j + 1);
-            ufP.union(id, compID);
-            ufF.union(id, compID);
+            ufP.connect(id, compID);
+            ufF.connect(id, compID);
         }
     }
 
@@ -113,7 +113,7 @@ public class Percolation {
             throw new IndexOutOfBoundsException("Row index out of bound");
         if (j < 1 || j > n)
             throw new IndexOutOfBoundsException("Column index out of bound");
-        return ufF.connected(0, getUnionFindID(i, j));
+        return ufF.areConnected(0, getUnionFindID(i, j));
     }
 
     /**
@@ -121,7 +121,7 @@ public class Percolation {
      * @return True if the system percolates, false otherwise
      */
     public boolean percolates() {
-        return ufP.connected(0, n * n + 1);
+        return ufP.areConnected(0, n * n + 1);
     }
 
 }

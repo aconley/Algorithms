@@ -1,5 +1,6 @@
 package sedgewick.assignments;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -8,23 +9,39 @@ import static org.junit.Assert.*;
  */
 public class TestUnionFind {
 
+    private static UnionFind uf;
+
+    @BeforeClass
+    public static void setupUnion() {
+        uf = new UnionFind(10);
+        uf.connect(4, 3);
+        uf.connect(3, 8);
+        uf.connect(6, 5);
+        uf.connect(9, 4);
+        uf.connect(2, 1);
+        uf.connect(8, 9);
+        uf.connect(5, 0);
+        uf.connect(7, 2);
+        uf.connect(6, 1);
+        uf.connect(1, 0);
+        uf.connect(6, 7);
+    }
+
     @Test
     public void testNComponents() {
-        UnionFind uf = new UnionFind(10);
-        uf.union(4, 3);
-        uf.union(3, 8);
-        uf.union(6, 5);
-        uf.union(9, 4);
-        uf.union(2, 1);
-        uf.union(8, 9);
-        uf.union(5, 0);
-        uf.union(7, 2);
-        uf.union(6, 1);
-        uf.union(1, 0);
-        uf.union(6, 7);
+        assertEquals("Should be 2 components", uf.getNComponents(), 2);
+    }
 
-        assertEquals("Should be 2 components", uf.count(), 2);
-        assertTrue("0 and 6 should be connected", uf.connected(0, 6));
+    @Test
+    public void testConnected() {
+        assertTrue("0 and 6 should be connected", uf.areConnected(0, 6));
+        assertTrue("6 and 7 should be connected", uf.areConnected(6, 7));
+        assertTrue("1 and 7 should be connected", uf.areConnected(1, 7));
+        assertTrue("8 and 9 should be connected", uf.areConnected(8, 9));
+        assertTrue("3 and 9 should be connected", uf.areConnected(3, 9));
+        assertFalse("0 and 4 should not be connected", uf.areConnected(0, 4));
+        assertFalse("7 and 8 should not be connected", uf.areConnected(7, 8));
+
     }
 
 }

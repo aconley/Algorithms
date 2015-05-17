@@ -4,7 +4,7 @@ package sedgewick.assignments;
 
 // This is the unweighted version that does full compression
 //  on merge
-public class UnionFind {
+public class UnionFind implements Connected {
     private int[] id;    // id[i] = component identifier of i
     private int count;   // number of components
 
@@ -25,7 +25,7 @@ public class UnionFind {
      *
      * @return the number of components (between 1 and N)
      */
-    public int count() {
+    public int getNComponents() {
         return count;
     }
 
@@ -35,7 +35,7 @@ public class UnionFind {
      * @param p The element we are finding the component for
      * @return the component identifier
      */
-    public int find(int p) {
+    public int getComponent(int p) {
         return id[p];
     }
 
@@ -46,7 +46,7 @@ public class UnionFind {
      * @param q the second point
      * @return true if p and q are connected, false otherwise
      */
-    public boolean connected(int p, int q) {
+    public boolean areConnected(int p, int q) {
         return id[p] == id[q];
     }
 
@@ -56,8 +56,8 @@ public class UnionFind {
      * @param p the first point
      * @param q the second point
      */
-    public void union(int p, int q) {
-        if (connected(p, q)) return;
+    public void connect(int p, int q) {
+        if (areConnected(p, q)) return;
         int pid = id[p];
         for (int i = 0; i < id.length; i++)
             if (id[i] == pid) id[i] = id[q];
