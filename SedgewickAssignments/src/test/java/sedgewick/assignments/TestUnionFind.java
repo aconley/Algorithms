@@ -1,11 +1,15 @@
 package sedgewick.assignments;
 
+import org.junit.Test;
+import static org.junit.Assert.*;
+
 /**
  * Simple tests for Union Find
  */
 public class TestUnionFind {
 
-    public static void main(String[] args) {
+    @Test
+    public void testNComponents() {
         UnionFind uf = new UnionFind(10);
         uf.union(4, 3);
         uf.union(3, 8);
@@ -19,11 +23,8 @@ public class TestUnionFind {
         uf.union(1, 0);
         uf.union(6, 7);
 
-        System.out.format("Number of components %d%n", uf.count());
-        if (uf.connected(0, 6))
-          System.out.format("0 and 6 are connected%n");
-        else
-          System.out.format("0 and 6 are not connected%n");
+        assertEquals("Should be 2 components", uf.count(), 2);
+        assertTrue("0 and 6 should be connected", uf.connected(0, 6));
     }
 
 }
