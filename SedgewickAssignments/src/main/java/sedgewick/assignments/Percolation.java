@@ -31,6 +31,14 @@ public class Percolation {
         ufF = new UnionFind(n * n + 1); // Ignore bottom node
     }
 
+    public void clear() {
+        ufP.clear();
+        ufF.clear();
+        for (int i = 0; i < n+1; ++i)
+            for (int j = 0; j < n+1; ++j)
+                sites[i][j] = false;
+    }
+
     public int getN() { return n; }
 
     /**
@@ -63,6 +71,8 @@ public class Percolation {
         if (j < 1 || j > n)
             throw new IndexOutOfBoundsException("Column index out of bound");
         if (sites[i][j]) return;  // Already open
+
+        sites[i][j] = true;
 
         // We have to connect to neighbors if they are open
         int compID;
@@ -109,10 +119,8 @@ public class Percolation {
      * @throws IndexOutOfBoundsException if invalid i, j
      */
     public boolean isFull(int i, int j) {
-        if (i < 1 || i > n)
-            throw new IndexOutOfBoundsException("Row index out of bound");
-        if (j < 1 || j > n)
-            throw new IndexOutOfBoundsException("Column index out of bound");
+        // isOpen also does bounds checking for us
+        if (!isOpen(i, j)) return false;
         return ufF.areConnected(0, getUnionFindID(i, j));
     }
 
@@ -120,7 +128,7 @@ public class Percolation {
      * Does the system percolate?
      * @return True if the system percolates, false otherwise
      */
-    public boolean percolates() {
+    public boolean doesPercolate() {
         return ufP.areConnected(0, n * n + 1);
     }
 

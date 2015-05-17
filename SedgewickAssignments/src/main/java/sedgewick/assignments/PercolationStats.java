@@ -38,7 +38,7 @@ public class PercolationStats {
         int nopen; // Number of sites opened
         int i, j;
         nopen = 0;
-        while (!percolator.percolates()) {
+        while (!percolator.doesPercolate()) {
             // Loop to find open site; a little scary
             while (true) {
                 i = rand.nextInt(n - 1) + 1;  // [1, N]

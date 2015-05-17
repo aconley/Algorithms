@@ -41,7 +41,15 @@ public class TestUnionFind {
         assertTrue("3 and 9 should be connected", uf.areConnected(3, 9));
         assertFalse("0 and 4 should not be connected", uf.areConnected(0, 4));
         assertFalse("7 and 8 should not be connected", uf.areConnected(7, 8));
-
     }
 
+    @Test
+    public void testClear() {
+        UnionFind uf2 = new UnionFind(4);
+        assertEquals("Should have 4 sites", uf2.getNComponents(), 4);
+        uf2.connect(2, 3);
+        assertTrue("2 and 3 should be connected", uf2.areConnected(2, 3));
+        uf2.clear();
+        assertFalse("2 and 3 should no longer be connected", uf2.areConnected(2, 3));
+    }
 }

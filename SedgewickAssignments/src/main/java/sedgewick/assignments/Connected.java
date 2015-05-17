@@ -4,6 +4,12 @@ package sedgewick.assignments;
  * Created by aconley on 5/17/15.
  */
 public interface Connected {
+
+    /**
+     * Clear all connections
+     */
+    public void clear();
+
     /**
      * Get the number of connected components
      * @return The number of connected components
