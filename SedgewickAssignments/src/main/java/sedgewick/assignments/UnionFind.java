@@ -21,6 +21,14 @@ public class UnionFind implements Connected {
     }
 
     /**
+     * Reset all entries to unconnected
+     */
+    public void clear() {
+        for (int i = 0; i < count; i++)
+            id[i] = i;
+    }
+
+    /**
      * Returns the number of components.
      *
      * @return the number of components (between 1 and N)
