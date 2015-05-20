@@ -13,8 +13,8 @@ public class Percolation {
     //  for percolation, but not fullness.  So if we care
     //  about answering the fullness question correctly,
     //  we need a separate data structure
-    private UnionFind ufP; // Percolation
-    private UnionFind ufF; // Fullness
+    private Connected ufP; // Percolation
+    private Connected ufF; // Fullness
 
     /**
      * Constructor
@@ -27,8 +27,8 @@ public class Percolation {
         sites = new boolean[n+1][n+1];
         // Use two 'shadow' sites, one at the top,
         //  one at the bottom (indices 0 and n*n + 1)
-        ufP = new UnionFind(n * n + 2);
-        ufF = new UnionFind(n * n + 1); // Ignore bottom node
+        ufP = new QuickUnion(n * n + 2);
+        ufF = new QuickUnion(n * n + 1); // Ignore bottom node
     }
 
     public void clear() {

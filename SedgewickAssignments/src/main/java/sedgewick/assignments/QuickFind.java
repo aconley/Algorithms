@@ -1,10 +1,10 @@
 package sedgewick.assignments;
 
-// Basic Union Find Algorithm from Sedgewick et al. 4th edition
+// Basic Quick Find Algorithm from Sedgewick et al. 4th edition
 
-// This is the unweighted version that does full compression
-//  on merge
-public class UnionFind implements Connected {
+// This is the simple version.  It is quite slow
+//  at doing unions -- each is a O(N) operation
+public class QuickFind implements Connected {
     private int[] id;    // id[i] = component identifier of i
     private int count;   // number of components
 
@@ -13,20 +13,25 @@ public class UnionFind implements Connected {
      *
      * @param N the number of objects
      */
-    public UnionFind(int N) {
+    public QuickFind(int N) {
         count = N;
         id = new int[N];
-        for (int i = 0; i < N; i++)
-            id[i] = i;
+        for (int i = 0; i < N; i++) id[i] = i;
     }
 
     /**
      * Reset all entries to unconnected
      */
     public void clear() {
-        for (int i = 0; i < count; i++)
-            id[i] = i;
+        for (int i = 0; i < id.length; i++) id[i] = i;
+        count = id.length;
     }
+
+    /**
+     * Query number of sites
+     * @return Number of sites
+     */
+    public int getN() { return id.length; }
 
     /**
      * Returns the number of components.

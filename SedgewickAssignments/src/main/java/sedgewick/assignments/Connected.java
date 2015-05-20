@@ -1,14 +1,17 @@
 package sedgewick.assignments;
 
-/**
- * Created by aconley on 5/17/15.
- */
 public interface Connected {
 
     /**
      * Clear all connections
      */
     public void clear();
+
+    /**
+     * Query number of sites
+     * @return Number of sites
+     */
+    public int getN();
 
     /**
      * Get the number of connected components

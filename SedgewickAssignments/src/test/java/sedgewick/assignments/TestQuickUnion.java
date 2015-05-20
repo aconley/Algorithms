@@ -2,18 +2,19 @@ package sedgewick.assignments;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 /**
  * Simple tests for Union Find
  */
-public class TestUnionFind {
+public class TestQuickUnion {
 
-    private static UnionFind uf;
+    private static QuickUnion uf;
 
     @BeforeClass
     public static void setupUnion() {
-        uf = new UnionFind(10);
+        uf = new QuickUnion(10);
         uf.connect(4, 3);
         uf.connect(3, 8);
         uf.connect(6, 5);
@@ -26,6 +27,9 @@ public class TestUnionFind {
         uf.connect(1, 0);
         uf.connect(6, 7);
     }
+
+    @Test
+    public void testN() { assertEquals("Should have 10 sites", uf.getN(), 10); }
 
     @Test
     public void testNComponents() {
@@ -45,11 +49,13 @@ public class TestUnionFind {
 
     @Test
     public void testClear() {
-        UnionFind uf2 = new UnionFind(4);
+        QuickUnion uf2 = new QuickUnion(4);
         assertEquals("Should have 4 sites", uf2.getNComponents(), 4);
         uf2.connect(2, 3);
         assertTrue("2 and 3 should be connected", uf2.areConnected(2, 3));
+        assertEquals("Should have 3 components", uf2.getNComponents(), 3);
         uf2.clear();
         assertFalse("2 and 3 should no longer be connected", uf2.areConnected(2, 3));
+        assertEquals("Should now have 4 components", uf2.getNComponents(), 4);
     }
 }

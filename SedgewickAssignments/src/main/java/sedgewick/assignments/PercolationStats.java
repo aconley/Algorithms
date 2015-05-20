@@ -41,8 +41,8 @@ public class PercolationStats {
         while (!percolator.doesPercolate()) {
             // Loop to find open site; a little scary
             while (true) {
-                i = rand.nextInt(n - 1) + 1;  // [1, N]
-                j = rand.nextInt(n - 1) + 1;
+                i = rand.nextInt(n) + 1;  // [1, n]
+                j = rand.nextInt(n) + 1;
                 if (!percolator.isOpen(i, j)) {
                     percolator.open(i, j);
                     nopen += 1;
