@@ -108,6 +108,7 @@ public class LinkedDequeue<Item> implements Dequeue<Item> {
         public boolean hasNext() { return current != null; }
         public void remove() { throw new UnsupportedOperationException(); }
         public Item next() {
+            if (current.next == null) throw new NoSuchElementException();
             Item item = current.item;
             current = current.next;
             return item;
