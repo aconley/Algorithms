@@ -457,4 +457,46 @@ which is just $\left(a d c f e\right)$.
 \noindent {\bf Problem 5} 2 ways to write $\left( b d \right)$, 3 for
 $\left(a c f\right)$, and we can swap the two sets.  So $2 \times 3 \times 2 = 12$.
 
+\vskip 0.5in
+\centerline {\tt Knuth 2.2.4}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 5} The basic idea is that we need to have some sort of
+trailing pointer that keeps track of where we just came from so that 
+we can reverse the link.  We also need a fix up at the end.
+So, first, ${\tt CURR} \gets {\tt PTR}$, 
+${\tt NEXT} \gets {\tt LINK(CURR)}$.  Now advance through the list doing reverses:
+${\tt PREV} \gets {\tt CURR}$; ${\tt CURR} \gets {\tt NEXT}$; ${\tt NEXT} \gets 
+{\tt LINK(CURR)}$;
+${\tt LINK(CURR)} \gets {\tt PREV}$.  Stop when you get 
+back ${\tt CURR} = {\tt PTR}$ and have done the reversal.
+This is assuming a list with more than one element.
+
+\vskip 0.5in
+\centerline {\tt Knuth 2.2.5}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 1} To insert at the left, start with the usual $P \Leftarrow {\tt AVAIL},
+{\tt INFO(P)} \leftarrow {\tt Y}$.  Now, ${\tt LLINK(P)} \gets \Lambda$,
+${\tt RLINK(P)} \gets {\tt LEFT}$. That sets up the new Node, but now things
+diverge depending if the list is empty or not.  If ${\tt LEFT} = \Lambda$, then
+${\tt LEFT} \gets P$; ${\tt RIGHT} \gets {\tt P}$, while if ${\tt LEFT} \neq {\tt P}$
+then ${\tt LLINK(LEFT)} \gets {\tt P}$.
+
+To delete from the left: first, if ${\tt LEFT} = \Lambda$ then {\tt UNDERFLOW}.
+Otherwise, ${\tt P} \gets {\tt LEFT}$; ${\tt LEFT} \gets {\tt RLINK(P)}$.  After that,
+if ${\tt LEFT} = \Lambda$, then we have a newly empty list, so ${\tt RIGHT} \gets \Lambda$.
+If not -- so the list is not now empty -- then ${\tt LLINK(LEFT)} \gets \Lambda$.  Finally,
+extract the values as usual: $Y \gets {\tt INFO(P)}, {\tt AVAIL} \Leftarrow P$.
+
+\vskip 0.05in
+\noindent
+{\bf Problem 2} The issue is removing things from the right in a singly linked list.
+Even if you have a {\tt RIGHT} pointer, that's not enough to remove the last
+element because you need to fix up the link on the penultimate element.  So
+to remove from the end of a singly linked list you need to walk the list all the
+way in from the left to get a pointer to that penultimate element.
+
 \end
