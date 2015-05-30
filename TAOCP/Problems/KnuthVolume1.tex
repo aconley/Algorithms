@@ -547,4 +547,25 @@ with all of the $n$ nodes on the stack.
 \vskip 0.1in \noindent {\bf Problem 12} For preorder traversal, just
 move T5 to between T2 and T3.
 
+\vskip 0.1in \noindent {\bf Problem 14} This was solved in 9; the answer
+is $n + 1$.
+
+\vskip 0.1in \noindent {\bf Problem 17} As a reminder, {\tt P *} is the
+successor in preorder, and preorder is root, left, right.  So, if {\tt P}
+has a real left link, that's {\tt P*}.  If it doesn't, and it has a real right
+link, than that is {\tt P*}.  The tricky bit is if it has no real down links --
+like node D in the tree shown in (7).  In that case, we want the
+right link of the the node we got to {\tt P} from -- which RLINK points
+at (although we may have to follow multiple up links).
+
+\vskip 0.05in
+\noindent Thus: \hfil\break
+{\bf S1:} If {\tt LTAG(P) = 0}, then ${\tt Q} \gets {\tt LLINK(P)}$ and
+terminate (we found a real left link).  \hfil\break 
+{\bf S2:} Set ${\tt Q} \gets {\tt P}$.\hfil\break
+{\bf S3:} If {\tt RTAG(Q) = 0}, ${\tt Q} \gets {\tt RLINK(Q)}$ and terminate
+(we found a real right link - follow it once). \hfil\break 
+{\bf S4:} ${\tt Q} \gets {\tt RLINK(Q)}$ and go back to {\bf S3} (not a real right link, so follow
+the chain up the tree one more step).\hfil\break
+
 \end

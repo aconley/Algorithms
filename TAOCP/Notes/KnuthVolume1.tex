@@ -68,7 +68,7 @@ product to the right of the current point.
 \vfil\break
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 2}
-\vskip 0.5in
+\vskip 0.3in
 
 \noindent\centerline{{\bf Section 2.2.4: Circular Lists}}
 \vskip 0.2in
@@ -105,5 +105,50 @@ and have {\tt Q} point to the terminal node.  {\tt P} is also moved along, also
 to its terminal node.  Since {\tt P} and {\tt Q} are both at their terminal node,
 we end up at {\bf A3} with ${\tt ABC(P)} < 0$, and so we terminate.  
 The sum is $x^2 + x - y$.
+
+\vskip 0.3in
+\noindent\centerline{{\bf Section 2.3.1: Traversing Binary Trees}}
+\vskip 0.2in
+
+\noindent {\bf Algorithm S} ({\it Inorder successor in a threaded binary tree}).
+By definition, if {\tt RTAG(P) = 1} then {\tt RLINK(P)} points at {\tt \$P}.
+That explains {\bf S1}, but what if it wasn't?  Well, the inorder successor
+to {\tt P} is the leftmost child of {\tt RLINK(P)}.  So as long as we keep finding
+actual left children (so, {\tt LTAG = 0} on the current node), just keep
+following them.  As soon as we hit something without a real left link
+(so, {\tt LTAG = 1}), that's the leftmost child, so we can stop.
+
+\vskip 0.1in
+\noindent {\bf Algorithm I} ({\it Insertion into a threaded binary tree}).
+Lets see how this works on the threaded tree shown in (7), which
+is also shown in (10).  
+
+First, the simple case: imagine inserting a node K onto the already
+existing node H.  H doesn't have any real links, so this should be simple.
+So here {\tt P} is node H, {\tt Q} is the new node K.\hfil\break
+\noindent {\bf I1:} ${\tt RLINK(K)} \gets {\tt F}$, ${\tt RTAG(K)} \gets 1$,
+${\tt RLINK(H)} \gets {\tt K}$, ${\tt RTAG(H)} \gets {\tt 0}$, ${\tt LLINK(K)}
+\gets {\tt H}$, ${\tt LTAG(K)} \gets {\tt 1}$. \hfil\break
+\noindent {\bf I2:} {\tt RTAG(K)} is 1, so terminate.
+\noindent and this is exactly what we want.  H now has a real right node,
+and K has thread links with the left one pointing to it's predecessor (H),
+and it's right link pointing to it's successor (F), both inorder.
+
+Inserting in the middle is, of course, much more complicated.
+Let's try inserting a node K between C and F.  Now:
+\noindent {\bf I1:} ${\tt RLINK(K)} \gets {\tt F}$, ${\tt RTAG(K)} \gets 0$,
+${\tt RLINK(C)} \gets {\tt K}$, ${\tt RTAG(H)} \gets {\tt 0}$, ${\tt LLINK(K)}
+\gets {\tt C}$, ${\tt LTAG(K)} \gets {\tt 1}$. \hfil\break
+\noindent {\bf I2:} Now we have {\tt RTAG(K)} of 0, so we need to find {\tt K\$}.
+We do that by calling {\bf Algorithm S} with ${\tt P} \gets {\tt K}$.\hfil\nobreak
+\noindent {\bf S1:} ${\tt Q} \gets {\tt F}$.\hfil\nobreak
+\noindent {\bf S2:} ${\tt LTAG(F)} = 0$, so ${\tt Q} \gets {\tt H}$.\hfil\nobreak
+\noindent {\bf S2:} ${\tt LTAG(H)} = 1$, so terminate, returning {\tt H}.\hfil\nobreak
+So {\tt K\$} is {\tt H}, which is right -- the inorder search will go to the left subtree
+of {\tt K}s only real child next, which is {\tt H}.  So, finally,
+${\tt LLINK(H)} \gets {\tt L}$ -- that is, {\tt K} is {\tt H}s new successor.
+
+So, it works, although it is obviously rather complicated, Knuth calling it simple
+aside!
 
 \end
