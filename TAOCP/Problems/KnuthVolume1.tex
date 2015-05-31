@@ -550,7 +550,7 @@ move T5 to between T2 and T3.
 \vskip 0.1in \noindent {\bf Problem 14} This was solved in 9; the answer
 is $n + 1$.
 
-\vskip 0.1in \noindent {\bf Problem 17} As a reminder, {\tt P *} is the
+\vskip 0.1in \noindent {\bf Problem 17} As a reminder, {\tt P*} is the
 successor in preorder, and preorder is root, left, right.  So, if {\tt P}
 has a real left link, that's {\tt P*}.  If it doesn't, and it has a real right
 link, than that is {\tt P*}.  The tricky bit is if it has no real down links --
@@ -567,5 +567,15 @@ terminate (we found a real left link).  \hfil\break
 (we found a real right link - follow it once). \hfil\break 
 {\bf S4:} ${\tt Q} \gets {\tt RLINK(Q)}$ and go back to {\bf S3} (not a real right link, so follow
 the chain up the tree one more step).\hfil\break
+
+\vskip 0.5in
+\centerline {\tt Knuth 2.3.2}
+\vskip 0.3in
+
+\noindent {\bf Problem 1} Define $F\left(B\right)$:  Clearly, if $B$ is empty,
+then $F\left(B\right)$ is an empty forest.  If not, then ``peel off'' the first
+tree by creating a new tree whose root is ${\rm root}\left(B\right)$ and
+with subtrees $F\left({\rm left}\left(B\right)\right)$.  Then build the rest
+of the forest by doing $F\left({\rm right}\left(B\right)\right)$.
 
 \end
