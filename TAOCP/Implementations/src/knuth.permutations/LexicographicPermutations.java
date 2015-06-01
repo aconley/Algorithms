@@ -41,7 +41,7 @@ public class LexicographicPermutations<E> implements Iterable<ArrayList<E>> {
             r = new ArrayList<E>(n);
 
             // Knuth L1
-            for (int i = 0; i < n; ++i) {
+            for (int i; i < n; ++i) {
                 r.set(i, arr[a[i+1]-1]);
             }
 
