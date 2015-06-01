@@ -105,4 +105,17 @@ The toughest ones are $\oplus = \supset \bar \land \subset = 1011 \bar \land 110
 The latter two are just $\subset \bar \land T$ and $\supset \bar \land T$,
 and $\perp = T \bar \land T$.
 
+\vskip 0.1in \noindent {\bf Problem 12} ({\it multilinear representation}).\hfil\break
+a) Recall that (22) has the truth table $1100\,1001\,0000\,1111$, and
+the expansion using Boole's law is given by (23).  This can rather easily
+be turned into a polynomial by leaving any term $t$ as $t$, and
+$\bar t \mapsto t$.  Then $\land \mapsto \times$, but what about $\wedge$?
+Well, $x \wedge y = x + y - x y$.  Furthermore, since each variable is either
+0 or 1, $t^n = t$ for any $n$.  So this turns into a giant algebraic expansion,
+which can be fed to something like Mathematica to get $1 - y - x z + 2 x y z - w +
+wy + wx + wxz - 2 w x y z$.\hfil\break
+
+\vskip 0.1in \noindent {\bf Problem 13} This is just the multilinear representation
+from the previous problem, since the expectation value of any product
+of $x_1 \cdot x_2 \cdot \ldots \cdot x_n$ is just $p_1 \cdot p_2 \cdot \ldots \cdot p_n$.
 \end
