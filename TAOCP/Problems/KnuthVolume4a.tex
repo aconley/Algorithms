@@ -1,0 +1,108 @@
+\topglue 0.5in
+\centerline{\tt Knuth 7}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 2} We can start with any solution to the normal problem (where we count
+from 1 to $n$ instead of 0 to $n-1$ and simply
+append 00 on the front.  Therefore, we must have $n-1 = 4m - 1$ or $n-1 = 4m$ --
+that is, $n \bmod 4$ is 0 or 1.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 5} There are $2 n \choose 2$ pairs of positions (since we don't care about 
+the ordering of each pair.  Of those, $2 n - k - 1$ satisfy the condition (the first member of the 
+pair can be in position 1 up to $2 n - k - 1$ before the second one runs off the end).
+A guess as to the number would be to falsely assume the probabilities are independent --
+which is clearly nonsense.  The total number of arrangements is $2 n \choose 2, \ldots, 2$,
+so the product  ${2 n \choose 2, \ldots, 2} \prod_{j=1}^n \left(2 n - k - 1\right) / {2 n \choose n}$
+is an estimate.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 7} The number of uncompleted pairs $u_i$ must start at 0 at the left of
+the sequence (before processing the first number) and end at 0 when we finish.
+After each number it can either increase by one or decrease by one.  The longest
+sequence we can imagine where we never exceed, 6 is
+$\{0, 1, ldots, 5, 6, 5, 6, \ldots, 2, 1, 0\}$.
+
+How can we make use of this information?  Well, one thing we know about Langford
+pairs is that each term $k$ contributes a count of 1 to $u$ for $k$ spaces -- that
+is, after we process, say, 4, we know that $u$ will be increased by 1 for 4 more spaces
+until we close out the pair -- that is, it increases the sum over $u$ by $k+1$.
+Thus, $\sum_{i=1}^{2 n} u_i = \sum_{i=1}^{k} k + 1 = {n+1 \choose 2} + n$.  The
+other sum, from the above sequence, is, for $u_i$ never exceeding 6,
+$11 n - 30$.  So we need $11  n - 30 \ge {n + 1 \choose 2} + n$, or $n \le 15$,
+and it doesn't work.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 39} $G \setminus e$ is always spanning (includes all the vertices of $G$),
+but not induced (contains all the edges).
+
+\vskip 0.1in
+\noindent
+{\bf Problem 40} (a) A spanning subgraph has all $n$ vertices.  So the only
+question is which subset of the $e$ edges are present.  There are $2^e$ 
+possibilities. (b) Now the question is only which subset of the vertices
+are included; there are $2^n$ possibilities (assuming we allow the empty
+subgraph).
+
+\vskip 0.1in
+\noindent
+{\bf Problem 41} (a) 1 and 2. (b) 0 and 3.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 55} Two different ways to write this: $n_1 \times n_2 +
+n_1 \times n_3 + \ldots + n_1 \times n_k + n_2 \times n_3 + \ldots + 
+n_{k-1} \times n_k$.  Or, alternatively, start with the complete graph
+and subtract all the edges between vertices in the same components:
+${N \choose 2} - {n_1 \choose 2} - {n_2 \choose 2} - \ldots - {n_k \choose 2}$
+(where $N = \sum_i n_i$).
+
+\vskip 0.1in
+\noindent
+{\bf Problem 56} True.  Simple means that there are not multiple arcs between
+the same vertices in the digraph.  That rules out self edges, since converting
+a multigraph to a digraph would add two arcs for each self loop in the multigraph.
+Therefore, the multigraph can't have any self loops, and is a graph.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 57} This would be true if the question asked about strongly
+connected components, but it doesn't.  So false.  A trivial example is to
+have two of three vertices point into the third vertex.
+
+\topglue 0.5in
+\centerline{\tt Knuth 7.1.1}
+\vskip 0.5in
+
+\noindent
+{\bf Problem 3} (a) max corresponds to logical or: $\vee$ (b) min corresponds to 
+logical and: $\wedge$ (c) $-x$ is negation or right complementation: $\overline{x}$
+(d) $x \cdot y$ is equivalence: $x \equiv y$.
+
+\vskip 0.1in
+\noindent
+{\bf Problem 4} (a) This is straightforward but extremely tedious -- that is,
+it would be a good thing to write a program to do.  In any case, the idea
+is to start with the truth tables of the left and right projection operators
+$x$ and $y$ (0011 and 0101, respectively), and NAND $\bar \land$ (1110)
+and try successively combining them.  For example, $\bar L = L \bar \land L = x \bar
+\land x$, $\bar R = R \bar \land R = y \bar \land y$.  Then try combinations:
+$L \bar \land \bar L = 0011 \bar \land 1100 = 1111 = T = x \bar \land x \bar \land x$.
+Continuing, $\wedge = \bar L \bar \land \bar R = 1100 \bar \land 1010 = 0111 =
+\left(x \bar \land x\right) \bar \land \left(y \bar \land y\right)$,
+$\land = \bar \land \bar \land \bar \land = 1110 \bar \land 1110 = 0001 = 
+\left(x \bar \land y \right) \bar \land \left( x \bar \land y \right)$,
+$\supset = x \bar \land \bar \land = 0011 \bar \land 1110 = 1101 = 
+x \bar \land \left(x \bar \land y\right)$, $\subset = \bar \land \bar \land =
+y \bar \land \left(x \bar \land y\right)$.
+The toughest ones are $\oplus = \supset \bar \land \subset = 1011 \bar \land 1101 =
+0110 = y \bar \land \left(x \bar \land x\right) \bar \land \left(x \bar \land
+\left(x \bar \land y \right)\right)$, $\perp$, and $\bar \subset, \bar \supset$.
+The latter two are just $\subset \bar \land T$ and $\supset \bar \land T$,
+and $\perp = T \bar \land T$.
+
+\end
