@@ -60,6 +60,41 @@ of the terms in the prime implicant were, say, $\overline{x_i}$, then
 when that changed from 0 to 1, the implicant would become false.  This
 is not allowed.
 
+\vskip 0.1in \noindent {\bf Section 7.1.1 3SAT}  The text uses problem 39
+to explore a fairly general form where the operators between variables
+in the function can be any of the 16 boolean 2-ary functions, but it's
+interesting enough to explore the more restrictive reduction from SAT --
+which is how to turn a general problem in conjunctive normal form
+into one with only three literals per clause.  After all, we know that
+any boolean function can be written that way.
+
+Clearly it's enough to figure out how to turn any clause $t_1 \vee \ldots
+\vee t_n$ into a conjunction of 3-literal clauses.  To do this, one introduces
+``nuisance'' variables $x_i$ for $2 \leq i \leq n - 2$ and uses them to sandwich
+each literal.
+$$
+t_1 \vee \ldots \vee t_n = \left(t_1 \vee t_2 \vee x_2\right)
+\land \left(\bar x_2 \vee t_3 \vee x_3\right)
+\land \left(\bar x_3 \vee t_4 \vee x_4\right)
+\land \ldots \land \left(\bar x_{n-2} \vee t_{n-1} \vee t_n\right) .
+$$
+Actually, they aren't {\it identical}, they are {\it equisatisfiable}.
+
+So, why does this work?  Well, imagine this clause is satisfiable.
+Then at least one of the $t_i$ must be 1. 
+The point is that we can force all of the other 3-literal clauses
+to be true by a judicious choice of the $x_i$.   Say that the
+literal is $t_j$.  We then set $x_k$ for $k \le j$ to 1,
+and $x_k$ for $k \geq j$ to 0 and the clause is satisfiable.
+
+Conversely, say that the clause is not satisfiable, so all the $t$
+are zero.  Then to satisfy the new form we need $x_2 = 1$ for
+the first clause, but then that forces $x_3 = 1$ in the second,
+etc., until we get to the last clause where we need $x_{n-2} = 0$
+but it has been forced to be 1 by the previous clause.  So therefore
+if the original clause is satisfiable we can satisfy the new one, and
+if it isn't then we can't.
+
 \vskip 0.1in
 \noindent
 {\bf Section 7.1.1 Theorem H} The first step in the formula is to use the 
@@ -95,7 +130,7 @@ and $g\left(y^{\left(k\right)}\right) = 0$.
 In the next step, note that $w \cdot x^{\left(j\right)} \geq t$ for each of the $k$
 such values.
 
-\break
+\vfil\break
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
 \vskip 0.5in
