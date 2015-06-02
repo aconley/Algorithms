@@ -197,6 +197,18 @@ over the distinct $m$ pigeons and $k$ the $n$ holes.  Actually, that's slightly 
 we can cut out about half the clauses by having $1 \leq i \le j \leq m$ and
 $1 \leq k \leq n$ for these terms.
 
+\vskip 0.1in \noindent {\bf Problem 48} The problem is really asking if we
+can convert indefinite Horn clauses into definite ones -- which means can
+we convert a clause with no unbarred literals (indefinite) into one or more with
+exactly one (definite), since clearly we don't need to do anything to the
+ones that already are definite.  So, we have a clause like $\bar x_1 \vee
+\ldots \vee \bar x_n$.  As seems to be the standard approach here, make
+some new variable $y$.  Now or it into each clause: $\bar x_1 \vee \ldots
+\bar x_n \vee y$.  Now solve that problem using, e.g., {\bf Algorithm C},
+noting that our augmented function must be satisfiable since it is definite.
+Now, if $y$ shows up in the core, then the original formula was unsatisfiable.
+In practice, we would stop as soon as {\bf C5} was about to set $y$ to true.
+
 \vskip 0.1in \noindent {\bf Problem 56} The formula is satisfied by 010, 011, 111.
 So therefore $\exists \exists \exists, \exists \exists \forall, \forall \exists \exists$
 are satisfied.
