@@ -92,7 +92,7 @@ $x$ and $y$ (0011 and 0101, respectively), and NAND $\bar \land$ (1110)
 and try successively combining them.  For example, $\bar L = L \bar \land L = x \bar
 \land x$, $\bar R = R \bar \land R = y \bar \land y$.  Then try combinations:
 $L \bar \land \bar L = 0011 \bar \land 1100 = 1111 = T = x \bar \land x \bar \land x$.
-Continuing, $\wedge = \bar L \bar \land \bar R = 1100 \bar \land 1010 = 0111 =
+Continuing, $\vee = \bar L \bar \land \bar R = 1100 \bar \land 1010 = 0111 =
 \left(x \bar \land x\right) \bar \land \left(y \bar \land y\right)$,
 $\land = \bar \land \bar \land \bar \land = 1110 \bar \land 1110 = 0001 = 
 \left(x \bar \land y \right) \bar \land \left( x \bar \land y \right)$,
@@ -109,8 +109,8 @@ and $\perp = T \bar \land T$.
 a) Recall that (22) has the truth table $1100\,1001\,0000\,1111$, and
 the expansion using Boole's law is given by (23).  This can rather easily
 be turned into a polynomial by leaving any term $t$ as $t$, and
-$\bar t \mapsto t$.  Then $\land \mapsto \times$, but what about $\wedge$?
-Well, $x \wedge y = x + y - x y$.  Furthermore, since each variable is either
+$\bar t \mapsto t$.  Then $\land \mapsto \times$, but what about $\vee$?
+Well, $x \vee y = x + y - x y$.  Furthermore, since each variable is either
 0 or 1, $t^n = t$ for any $n$.  So this turns into a giant algebraic expansion,
 which can be fed to something like Mathematica to get $1 - y - x z + 2 x y z - w +
 wy + wx + wxz - 2 w x y z$.\hfil\break
@@ -118,13 +118,13 @@ wy + wx + wxz - 2 w x y z$.\hfil\break
 \noindent b) Use the Boolean decomposition directly.  A boolean function of $n$ 
 variables can be written 
 $$f\left(x_1, \ldots, x_n\right) = \left(f_1 \left(x_1, \ldots, x_{n-1}\right)
-\land {\bar x_n}\right) \wedge \left(f_2 \left(x_1, \ldots, x_{n-1}\right)
+\land {\bar x_n}\right) \vee \left(f_2 \left(x_1, \ldots, x_{n-1}\right)
 \land x_n\right)
 $$ 
 where $f_1\left(x_1, \ldots, x_{n-1}\right) =
 f\left(x_1, \ldots, x_{n-1}, 0\right)$ and $f_2\left(x_1, \ldots, x_{n-1}\right) =
 f\left(x_1, \ldots, x_{n-1}, 1\right)$.  Converting to the integral form,
-this can be expanded to form $f = \left(f_1 \left(1 - x_n\right)\right) \wedge
+this can be expanded to form $f = \left(f_1 \left(1 - x_n\right)\right) \vee
 \left(f_2 x_n\right) = f_1 + \left(f_2 - f_1\right) x_n$.  Now,
 $f_1$ and $f_2$ are both drawn from the space of functions of $n-1$ variables.
 If the maximum possible (in an absolute value sense) coefficient 
@@ -145,7 +145,7 @@ a term containing $m$ of the $x_i$ is $2^{m-1}$.
 that each function is comprised of a product of $x_j$ and $1 - x_k$s --
 e.g., $\left(1 - x_3\right) x_4 \left(1 - x_8\right)$.  Therefore, if each $x_i$
 is between 0 and 1, then each term is between 0 and 1.  When we or
-them together, the result is $a \wedge b = a + b - a b$, which, for
+them together, the result is $a \vee b = a + b - a b$, which, for
 $a, b$ between 0 and 1, has a minimum at $a = b = 0$ of 0 and a maximum
 when $a = b = 1$ of 1.  So therefore we must have $0 \leq f \leq 1$.
 
@@ -166,4 +166,39 @@ real arguments.
 \vskip 0.1in \noindent {\bf Problem 13} This is just the multilinear representation
 from the previous problem, since the expectation value of any product
 of $x_1 \cdot x_2 \cdot \ldots \cdot x_n$ is just $p_1 \cdot p_2 \cdot \ldots \cdot p_n$.
+
+\vskip 0.1in \noindent {\bf Problem 18} Try setting $u_i = 1$ for all $i$ and
+$v_j = 0$ for all $j$.  Then $f$ would be true in the DNF, but $f$ would
+be false from the CNF.
+
+\vskip 0.1in \noindent {\bf Problem 19} For the CNF we are looking for 
+the points where (22) is {\it false}, not true, since each clause represents
+such a string.  The strings $wxyz$ where (22) is false are
+0010, 0011, 0101, 0110, 1000, 1001, 1010, 1011.  The maximal
+subcubes are therefore 10**, 0*10, *01*, and 0101.  Each one is a barred
+literal, each 0 an unbarred one (since we are looking for falsehood, so this
+corresponds to $\left(\bar w \vee x\right) \land \left(w \vee \bar y \vee z\right)
+\land \left(x \vee \bar y\right) \land \left(w \vee \bar x \vee y \vee \bar z\right)$.
+
+\vskip 0.1in \noindent {\bf Problem 38} No, it's easy to test satisfiability
+for a function in disjunctive normal form.  In some sense it's the opposite
+of SAT -- if there are any implicants at all, one can just read off the values
+that make it true, and the function is satisfiable.  The hard part, by symmetry,
+is figuring out if the function is ever {\it false}.
+
+\vskip 0.1in \noindent {\bf Problem 41} State the pigeonhole principle in
+conjunctive normal form.  Well, the first task is to make clauses saying
+that each of the $m$ pigeons is in at least one hole.  If we let the
+variable $x_{jk}$ mean that pigeon $j$ is in hole $k$, then for each
+$1 \leq j \leq m$ we must have $\left(x_{j1} \vee \cdots \vee x_{jn}\right)$.
+Next we have to add clauses saying two pigeons can't be in the {\it same}
+hole -- to wit $\left(\bar x_{ik} \vee \bar x_{jk}\right)$ for $i$ and $j$ ranging
+over the distinct $m$ pigeons and $k$ the $n$ holes.  Actually, that's slightly redundant;
+we can cut out about half the clauses by having $1 \leq i \le j \leq m$ and
+$1 \leq k \leq n$ for these terms.
+
+\vskip 0.1in \noindent {\bf Problem 56} The formula is satisfied by 010, 011, 111.
+So therefore $\exists \exists \exists, \exists \exists \forall, \forall \exists \exists$
+are satisfied.
+
 \end
