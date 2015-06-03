@@ -4,15 +4,15 @@
  * Generates all permutations of an input array Lexicographically
  */
 
-package knuth.permutations;
+package taocp.permutations;
 
 import java.util.Iterator;
 import java.util.ArrayList;
 
-public class LexicographicPermutations<E> implements Iterable<ArrayList<E>> {
+public class Lexicographic<E> implements Iterable<ArrayList<E>> {
     private E[] arr;  // Holds elements of original list
 
-    public LexicographicPermutations(E[] orig) {
+    public Lexicographic(E[] orig) {
         this.arr = orig;  // Should we copy?
     }
 
@@ -41,7 +41,7 @@ public class LexicographicPermutations<E> implements Iterable<ArrayList<E>> {
             r = new ArrayList<E>(n);
 
             // Knuth L1
-            for (int i; i < n; ++i) {
+            for (int i = 0; i < n; ++i) {
                 r.set(i, arr[a[i+1]-1]);
             }
 
