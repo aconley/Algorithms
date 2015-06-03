@@ -3,15 +3,18 @@
 \vskip 0.5in
 
 \noindent
-{\bf Section 7.1.1 Basic Identities} Eq (9) states $\left( x \oplus y \right)
-\oplus x = y$.  Why?  Well, $\oplus$ is not distributive, even with itself,
+{\bf Section 7.1.1 Basic Identities} \hfil\break
+\vskip 0.05in
+\noindent [p 50] Eq (9) states $\left( x \oplus y \right)
+\oplus x = y$.  Why?  \hfil\break
+Well, $\oplus$ is not distributive, even with itself,
 but it is commutative and associative. The above is therefore
 equivalent to $y \oplus \left( x \oplus x \right) = y \oplus 0 = y$.
 The same argument shows that $\left( x \oplus y \right) \oplus y = x$.
 
-\vskip 0.06in
-Why are Eq (13)-(15) true?  I don't
-see how to derive (13), or (14) besides just writing out the truth table, but (15) is:
+\vskip 0.05in
+\noindent [p 51] Why are Eq (13)-(15) true? \hfil\break
+I don't see how to derive (13), or (14) besides just writing out the truth table, but (15) is:
 $x \oplus y = \left(x \vee y\right) \wedge \overline x \wedge y$, which
 is true by inspection (either x or y has to be true, but not both).
 These can be expanded using (12) and (1) to give
@@ -26,8 +29,11 @@ $x \oplus y = \left(x \wedge \overline{y}\right) \vee \left(\overline{x}
 
 \vskip 0.1in
 \noindent
-{\bf Section 7.1.1 Functions of n variables} Why does the functional decomposition
-of eq (16) and (17) work?  First, note that $h$ is 0 if
+{\bf Section 7.1.1 Functions of n variables} \hfil\break
+
+\noindent [p51] Why does the functional decomposition
+of eq (16) and (17) work? \hfil\break
+First, note that $h$ is 0 if
 $f\left(x_1,\ldots,x_{n-1},0\right) = f\left( x_1,\ldots,x_{n-1},1\right)$, so
 in this case we have (on the right hand side of (16)),
  $g\left(x_1,\ldots,x_{n-1}\right) \oplus 0 = f\left(x_1,\ldots,x_{n-1},0\right)$.
@@ -44,25 +50,71 @@ so this is just $f\left(x_1,\ldots,x_{n-1},1\right)$, which is what we want.
 Similarly, for $x_n = 0$, we just get
 $f\left(x_1,\ldots,x_{n-1},0\right) \oplus 0 = f\left(x_1,\ldots,x_{n-1},0\right)$.
 
-\vskip 0.06in
-That demonstrates why (16) works -- why does (18), the ``law of development'', work?
+\vskip 0.05in
+\noindent [p52] That demonstrates why (16) works -- why does (18), 
+the ``law of development'', work?\hfil\break
 First, let's say that $x_n = 0$.  Then only the first term applies, giving
 $f\left(x_1,\ldots,x_{n-1},0\right) \wedge 1 = f\left(x_1,\ldots,x_{n-1},0\right)$,
 which is indeed the value of $f\left( x_1,\ldots,x_n \right)$ when $x_n = 0$.
 It works the same way for $x_n = 1$.
 
-\vskip 0.1in
-\noindent
-{\bf Section 7.1.1 Theorem Q} A prime implicant corresponds to a 1 in the
+\vskip 0.05in \noindent [p55] {\bf Theorem Q}\hfil\break 
+A prime implicant corresponds to a 1 in the
 truth table of the function.  Since the function is monotone, the implicant
 can't become false (0) when any of it's values go from 0 to 1.  If one
 of the terms in the prime implicant were, say, $\overline{x_i}$, then
 when that changed from 0 to 1, the implicant would become false.  This
 is not allowed.
 
-\vskip 0.1in
+\vskip0.1in
 \noindent
-{\bf Section 7.1.1 Theorem H} The first step in the formula is to use the 
+{\bf Section 7.1.1 Satisfiability}\hfil\break
+
+\noindent [p56] 3SAT\hfil\break
+The text uses problem 39 to explore a fairly general form where the 
+operators between variables
+in the function can be any of the 16 boolean 2-ary functions, but it's
+interesting enough to explore the more restrictive reduction from SAT --
+which is how to turn a general problem in conjunctive normal form
+into one with only three literals per clause.  After all, we know that
+any boolean function can be written that way, so while it may be
+possible to make a more efficient 3SAT instance using problem 39,
+just studying how to do this with CNF form is enough to imply that
+all boolean functions can be turned into 3SAT.
+
+Clearly it's enough to figure out how to turn any clause $t_1 \vee \ldots
+\vee t_n$ into a conjunction of 3-literal clauses.  To do this, one introduces
+``nuisance'' variables $x_i$ for $2 \leq i \leq n - 2$ and uses them to sandwich
+each literal.
+$$
+t_1 \vee \ldots \vee t_n = \left(t_1 \vee t_2 \vee x_2\right)
+\land \left(\bar x_2 \vee t_3 \vee x_3\right)
+\land \left(\bar x_3 \vee t_4 \vee x_4\right)
+\land \ldots \land \left(\bar x_{n-2} \vee t_{n-1} \vee t_n\right) .
+$$
+Actually, they aren't {\it identical}, they are {\it equisatisfiable}.
+
+So, why does this work?  Well, imagine this clause is satisfiable.
+Then at least one of the $t_i$ must be 1. 
+The point is that we can force all of the other 3-literal clauses
+to be true by a judicious choice of the $x_i$.   Say that the
+literal is $t_j$.  We then set $x_k$ for $k \le j$ to 1,
+and $x_k$ for $k \geq j$ to 0 and the clause is satisfiable.
+
+Conversely, say that the clause is not satisfiable, so all the $t$
+are zero.  Then to satisfy the new form we need $x_2 = 1$ for
+the first clause, but then that forces $x_3 = 1$ in the second,
+etc., until we get to the last clause where we need $x_{n-2} = 0$
+but it has been forced to be 1 by the previous clause.  So therefore
+if the original clause is satisfiable we can satisfy the new one, and
+if it isn't then we can't.
+
+\vskip0.1in
+\noindent
+{\bf Section 7.1.1 Simple Special Cases}\hfil\break
+
+\noindent [p57] {\bf Theorem H} \hfil\break
+The first step in the formula is to use the 
 distributive law (2): $\left(x \wedge y\right) \vee z = \left(x \vee z\right) 
 \wedge \left(y \vee z\right)$.
 The second step makes use of the fact that $\vee$ is commutative to move all the $y$s 
@@ -73,9 +125,9 @@ rightward in the left term.  We then have $\left(x_1 \vee \overline{x}_2
 which is clearly true since the extra terms can either leave the truth value 
 unchanged or increase it from 0 to 1.  The same logic applies to the second term.
 
-\vskip 0.06in
-In the example of Horn clauses following theorem H, where do the propositions come
-from?  Well, take the first one: $\bf xE \Rightarrow xT$ states
+\vskip0.05in \noindent [p58] In the example of Horn clauses following theorem H, where 
+do the propositions come from? \hfil\break  
+Well, take the first one: $\bf xE \Rightarrow xT$ states
 that it is allowable for an expression to start with {\bf x} if and only if
 it is allowable for a term to start with {\bf x}; this is clear from the first
 line of the specification.  
@@ -84,9 +136,12 @@ How do these convert into Horn clauses?  Well, recall that $x \Rightarrow y$
 is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
 just all of those $\wedge$ed together.
 
-\vskip 0.1in
+\vskip0.1in
 \noindent
-{\bf Section 7.1.1 Theorem T} The proof works because the number
+{\bf Section 7.1.1 Threshold functions}\hfil\break
+
+\noindent [p 77] {\bf Theorem T} \hfil\break
+The proof works because the number
 of vectors where we must have $f\left(x^{\left(m\right)}\right) = 
 g\left(x^{\left(m\right)}\right) = 1$ is $N\left(f\right) - k = N\left(g\right) - k$.
 That means there must also be $k$ vectors where $f\left(y^{\left(k\right)}\right) = 1$
@@ -95,7 +150,7 @@ and $g\left(y^{\left(k\right)}\right) = 0$.
 In the next step, note that $w \cdot x^{\left(j\right)} \geq t$ for each of the $k$
 such values.
 
-\break
+\vfil\break
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
 \vskip 0.5in
