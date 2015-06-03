@@ -17,15 +17,25 @@ public class TestLexicographic {
     }
 
     @org.junit.Test
-    public void testIteratorHasExpectedNumber() throws Exception {
-        Integer[] test = {1, 2, 3, 4};
+    public void testFirstPerm() throws Exception {
+        // First permutation should be input one!
+        Integer[] test = {1, 2, 2, 4};
         Lexicographic<Integer> l = new Lexicographic<>(test);
         Iterator<List<Integer>> it = l.iterator();
-        for (int i = 0; i < 24; ++i) {
-            assertTrue("Should have more permutations on " + i, it.hasNext());
+        assertEquals("First permutation should be input",
+                     Arrays.asList(test), it.next());
+    }
+
+    @org.junit.Test
+    public void testIteratorHasExpectedNumber() throws Exception {
+        Integer[] test = {1, 2, 3};
+        Lexicographic<Integer> l = new Lexicographic<>(test);
+        Iterator<List<Integer>> it = l.iterator();
+        for (int i = 0; i < 6; ++i) {
+            assertTrue("Should have more permutations on " + (i+1), it.hasNext());
             it.next();
         }
-        assertFalse("Should not have any more permutations after " + 24, it.hasNext());
+        assertFalse("Should not have any more permutations after " + 6, it.hasNext());
     }
 
     @org.junit.Test

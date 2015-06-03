@@ -9,8 +9,9 @@ package taocp.permutations;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 
-public class Lexicographic<E> implements Iterable<List<E>> {
+public class Lexicographic<E extends Comparable<E>> implements Iterable<List<E>> {
     private E[] arr;  // Holds elements of original list
 
     public Lexicographic(E[] orig) {
@@ -20,14 +21,12 @@ public class Lexicographic<E> implements Iterable<List<E>> {
     private class LexIterator implements Iterator<List<E>> {
 
         private int n; // Number of elements in arrayList
-        private int[] a; // Holds current permutation indices
+        private E[] a; // Holds current permutation
         private boolean done; // True if we are done; worth caching
 
-        public LexIterator(int n) {
-            this.n = n;
-            a = new int[n + 1]; // a[0] is a dummy
-            for (int i = 0; i < n + 1; ++i)
-                a[i] = i;
+        public LexIterator() {
+            n = arr.length;
+            a = arr.clone();  // Another defensive copy
             done = false;
         }
 
@@ -38,34 +37,31 @@ public class Lexicographic<E> implements Iterable<List<E>> {
 
         @Override
         public List<E> next() {
-            // This is the array list we return on each
-            // permutation
-            // Note this makes an empty list of capacity n
-            List<E> r = new ArrayList<E>(n);
 
-            // Knuth L1 -- this copies the current permutation
-            //  into r
-            for (int i = 0; i < n; ++i) r.add(arr[a[i+1]-1]);
+            // Step L1 -- make a copy of the current
+            //  permutation to return
+            List<E> r = Arrays.asList(a.clone()); // The clone is critical!
 
             // Next iterate a forward; this is the complicated bit!
+            // Tricky part: we index from 0 rather than 1!
             // Knuth L2
             // Note: a0 (which isn't touched) makes this safe
-            int j = n - 1;
-            while (a[j] >= a[j + 1])
+            int j = n - 2;
+            while ((j >= 0) && (a[j].compareTo(a[j + 1]) >= 0))  // a[j] >= a[j+1]
                 --j;
 
-            // Knuth L3
-            if (j > 0) {
-                int l = n;
-                int tmp = a[j];
-                while (tmp >= a[l])
+            if (j >= 0) {
+                // Knuth L3
+                int l = n - 1;
+                E tmp = a[j];
+                while (tmp.compareTo(a[l]) >= 0) // a[j] >= a[l]
                     --l;
                 a[j] = a[l];
                 a[l] = tmp;
 
                 // Knuth L4
                 int k = j + 1;
-                l = n;
+                l = n - 1;
                 while (k < l) {
                     tmp = a[k];
                     a[k] = a[l];
@@ -76,12 +72,13 @@ public class Lexicographic<E> implements Iterable<List<E>> {
             } else {
                 done = true;
             }
+
             return r;
         }
     }
 
     @Override
     public Iterator<List<E>> iterator() {
-        return new LexIterator(arr.length);
+        return new LexIterator();
     }
 }
