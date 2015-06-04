@@ -67,6 +67,34 @@ public class TestLexicographic {
     }
 
     @org.junit.Test
+    public void testOrderDistinctUnsorted() throws Exception {
+        // Exactly the same as the previous test, but start
+        //  them -out of order-.
+        Character[] test = {'b', 'a', 'c'};
+        Lexicographic<Character> l = new Lexicographic<>(test);
+        // Expected order -- note you can't seem to do
+        //  ArrayList<ArrayList>, at least not and have asList be
+        //  at all helpful.
+        List<List<Character>> expected = new ArrayList<List<Character>>(6);
+        expected.add(Arrays.asList('a', 'b', 'c'));
+        expected.add(Arrays.asList('a', 'c', 'b'));
+        expected.add(Arrays.asList('b', 'a', 'c'));
+        expected.add(Arrays.asList('b', 'c', 'a'));
+        expected.add(Arrays.asList('c', 'a', 'b'));
+        expected.add(Arrays.asList('c', 'b', 'a'));
+
+        Iterator<List<Character>> itl = l.iterator();
+        Iterator<List<Character>> ite = expected.iterator();
+        for (int i = 0; i < 6; ++i) {
+            List<Character> perm = itl.next();
+            List<Character> expct = ite.next();
+            assertEquals("On iteration " + (i + 1) + " got unexpected permutation",
+                    expct, perm);
+        }
+        assertFalse("Should not have any more permutations after " + 6, itl.hasNext());
+    }
+
+    @org.junit.Test
     public void testOrderRepeats() throws Exception {
         // A more difficult test -- 4 elements -with- a repeat
         Integer[] test4 = {1, 2, 2, 3};
