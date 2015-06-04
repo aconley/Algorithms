@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import static org.junit.Assert.*;
 
-public class TestLexicographic {
+public class TestLexPerm {
 
     @org.junit.Test
     public void testIteratorHasNext() throws Exception {
         Integer[] test = {1, 2, 3, 4};
-        Lexicographic<Integer> l = new Lexicographic<>(test);
+        LexPerm<Integer> l = new LexPerm<>(test);
         Iterator<List<Integer>> it = l.iterator();
         assertTrue("Should have at least one permutation", it.hasNext());
     }
@@ -20,7 +20,7 @@ public class TestLexicographic {
     public void testFirstPerm() throws Exception {
         // First permutation should be input one!
         Integer[] test = {1, 2, 2, 4};
-        Lexicographic<Integer> l = new Lexicographic<>(test);
+        LexPerm<Integer> l = new LexPerm<>(test);
         Iterator<List<Integer>> it = l.iterator();
         assertEquals("First permutation should be input",
                      Arrays.asList(test), it.next());
@@ -29,7 +29,7 @@ public class TestLexicographic {
     @org.junit.Test
     public void testIteratorHasExpectedNumber() throws Exception {
         Integer[] test = {1, 2, 3};
-        Lexicographic<Integer> l = new Lexicographic<>(test);
+        LexPerm<Integer> l = new LexPerm<>(test);
         Iterator<List<Integer>> it = l.iterator();
         for (int i = 0; i < 6; ++i) {
             assertTrue("Should have more permutations on " + (i+1), it.hasNext());
@@ -43,7 +43,7 @@ public class TestLexicographic {
         // Test they come out in the order we expect
         //  when the elements are distinct
         Character[] test = {'a', 'b', 'c'};
-        Lexicographic<Character> l = new Lexicographic<>(test);
+        LexPerm<Character> l = new LexPerm<>(test);
         // Expected order -- note you can't seem to do
         //  ArrayList<ArrayList>, at least not and have asList be
         //  at all helpful.
@@ -71,7 +71,7 @@ public class TestLexicographic {
         // Exactly the same as the previous test, but start
         //  them -out of order-.
         Character[] test = {'b', 'a', 'c'};
-        Lexicographic<Character> l = new Lexicographic<>(test);
+        LexPerm<Character> l = new LexPerm<>(test);
         // Expected order -- note you can't seem to do
         //  ArrayList<ArrayList>, at least not and have asList be
         //  at all helpful.
@@ -98,7 +98,7 @@ public class TestLexicographic {
     public void testOrderRepeats() throws Exception {
         // A more difficult test -- 4 elements -with- a repeat
         Integer[] test4 = {1, 2, 2, 3};
-        Lexicographic<Integer> l4 = new Lexicographic<>(test4);
+        LexPerm<Integer> l4 = new LexPerm<>(test4);
         List<List<Integer>> expected4 = new ArrayList<List<Integer>>(12); // Note -- only 12!
         expected4.add(Arrays.asList(1, 2, 2, 3));
         expected4.add(Arrays.asList(1, 2, 3, 2));

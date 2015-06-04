@@ -6,19 +6,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
+ * Generate the permutations of a sequence lexicographically.
+ *
  * Implementation of Knuth vol 4a algorithm L from 7.2.1.2, p 319
  *
- * Generates all permutations of an input array Lexicographically.
  * Note that only distince permutations are produced -- so the
  * permutations of 1 2 2 are : 122 212 221, and there are 3
- * instead of 6.
+ * instead of 3! = 6.
  */
-public class Lexicographic<E extends Comparable<E>> implements Iterable<List<E>> {
+public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
     // Our strategy here is to hold a copy of the original list
     //  in this class, and have the Iterator just play with the indices
     private E[] arr;  // Holds elements of original list -- never modified
 
-    public Lexicographic(E[] orig) {
+    public LexPerm(E[] orig) {
         arr = orig.clone(); // Defensive copy
         // The algorithm expects them to be sorted
         Arrays.sort(arr);
