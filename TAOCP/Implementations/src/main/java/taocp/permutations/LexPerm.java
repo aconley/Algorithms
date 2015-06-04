@@ -10,14 +10,14 @@ import java.util.Arrays;
  *
  * Implementation of Knuth vol 4a algorithm L from 7.2.1.2, p 319
  *
- * Note that only distince permutations are produced -- so the
+ * Note that only distinct permutations are produced -- so the
  * permutations of 1 2 2 are : 122 212 221, and there are 3
  * instead of 3! = 6.
  */
 public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
     // Our strategy here is to hold a copy of the original list
     //  in this class, and have the Iterator just play with the indices
-    private E[] arr;  // Holds elements of original list -- never modified
+    private final E[] arr;  // Holds elements of original list -- never modified
 
     public LexPerm(E[] orig) {
         arr = orig.clone(); // Defensive copy
@@ -48,7 +48,7 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
 
             // Step L1 -- make a copy of the current
             //  permutation to return
-            List<E> r = new ArrayList<E>(arr.length); // Note: no elements, just with given capacity
+            List<E> r = new ArrayList<>(arr.length); // Note: no elements, just with given capacity
             for (int i : idx) r.add(arr[i]);
 
             // Next iterate a forward; this is the complicated bit!

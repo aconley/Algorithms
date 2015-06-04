@@ -75,7 +75,7 @@ public class TestLexPerm {
         // Expected order -- note you can't seem to do
         //  ArrayList<ArrayList>, at least not and have asList be
         //  at all helpful.
-        List<List<Character>> expected = new ArrayList<List<Character>>(6);
+        List<List<Character>> expected = new ArrayList<>(6);
         expected.add(Arrays.asList('a', 'b', 'c'));
         expected.add(Arrays.asList('a', 'c', 'b'));
         expected.add(Arrays.asList('b', 'a', 'c'));
@@ -99,7 +99,7 @@ public class TestLexPerm {
         // A more difficult test -- 4 elements -with- a repeat
         Integer[] test4 = {1, 2, 2, 3};
         LexPerm<Integer> l4 = new LexPerm<>(test4);
-        List<List<Integer>> expected4 = new ArrayList<List<Integer>>(12); // Note -- only 12!
+        List<List<Integer>> expected4 = new ArrayList<>(12); // Note -- only 12!
         expected4.add(Arrays.asList(1, 2, 2, 3));
         expected4.add(Arrays.asList(1, 2, 3, 2));
         expected4.add(Arrays.asList(1, 3, 2, 2));
