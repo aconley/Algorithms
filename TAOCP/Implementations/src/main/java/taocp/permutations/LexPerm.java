@@ -29,14 +29,12 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
 
         // The idea is that arr[idx[i]] is like a_i in Knuth - notation
         //  (although we use 0 based indexing here)
-        private int n; // Number of elements in arrayList
         private int[] idx; // Holds current permutation as indices into arr
         private boolean done; // True if we are done; worth caching
 
         public LexIterator() {
-            n = arr.length;
-            idx = new int[n];
-            for (int i = 0; i < n; ++i) idx[i] = i;
+            idx = new int[arr.length];
+            for (int i = 0; i < arr.length; ++i) idx[i] = i;
             done = false;
         }
 
@@ -50,19 +48,19 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
 
             // Step L1 -- make a copy of the current
             //  permutation to return
-            List<E> r = new ArrayList<E>(n); // Note: capacity n, no elements though!
+            List<E> r = new ArrayList<E>(arr.length); // Note: no elements, just with given capacity
             for (int i : idx) r.add(arr[i]);
 
             // Next iterate a forward; this is the complicated bit!
             // Tricky part: we index from 0 rather than 1!
             // Knuth L2
-            int j = n - 2;
+            int j = arr.length - 2;
             while ((j >= 0) && (arr[idx[j]].compareTo(arr[idx[j + 1]]) >= 0))  // a[j] >= a[j+1]
                 --j;
 
             if (j >= 0) {
                 // Knuth L3
-                int l = n - 1;
+                int l = arr.length - 1;
                 E tmp = arr[idx[j]];
                 while (tmp.compareTo(arr[idx[l]]) >= 0) // a[j] >= a[l]
                     --l;
@@ -72,7 +70,7 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
 
                 // Knuth L4
                 int k = j + 1;
-                l = n - 1;
+                l = arr.length - 1;
                 while (k < l) {
                     t = idx[k];
                     idx[k] = idx[l];
