@@ -137,10 +137,38 @@ is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
 just all of those $\wedge$ed together.
 
 \vskip0.1in
+\noindent {\bf Section 7.1.1 Medians}\hfil\break
+
+\noindent [p63] Self duality: in the discussion after (46), why does a formula
+need to be indifferent to swapping $\wedge$ and $\vee$?  Recall De Morgan's
+laws (11 and 12): $\bar{x \wedge y} = \bar x \vee \bar y$ and $\bar{x \vee y} =
+\bar x \wedge \bar y$.  So, using (46), when we negate the entire function,
+we get something like $\bar{\left(x_i \wedge \ldots \wedge x_j\right) \vee
+\left(x_k \wedge \ldots \wedge x_l\right) \vee \ldots} =
+\left(\bar x_i \vee \ldots \vee \bar x_j\right) \wedge
+\left(\bar x_k \vee \ldots \vee \bar x_l\right) \wedge \ldots$;
+if this is to be equal to the original with the variables negated, then
+indeed we must be able to interchange $\vee$ and $\wedge$.
+
+\vskip0.1in
 \noindent
 {\bf Section 7.1.1 Threshold functions}\hfil\break
 
-\noindent [p 77] {\bf Theorem T} \hfil\break
+\noindent [p75] Negative weights: to get rid of negative weights,
+the replacements $x_j \gets \bar x_j$ and $w_j \gets -w_j$ seem
+pretty obvious, but what about the $t \gets t + \left|w_j\right|$?
+Well, consider some variable $x_j$.  the old contribution was
+$w_j x_j$, the new one is $-w_j \bar x_j$.  The first evaluates to
+$0, w_j$ for $x_j = 0, 1$, the second to $-w_j, 0$.  These aren't
+equal, so the right hand side ($t$) also needs to be adjusted.
+Let's say the old threshold was 2, and $w_j = -2$.  Then with
+the negative weight the rest of the terms need to add up to 2 or 4
+for $x_j = 0, 1$.  For the new form, if we didn't adjust $t$, they
+would have to add up to $0, 2$, so the formula are no longer
+equivalent.  If we add $\left|-w_j\right| = 2$ so that $t \gets 4$,
+then they need to be $2, 4$, as before.
+
+\vskip 0.05in \noindent [p 77] {\bf Theorem T} \hfil\break
 The proof works because the number
 of vectors where we must have $f\left(x^{\left(m\right)}\right) = 
 g\left(x^{\left(m\right)}\right) = 1$ is $N\left(f\right) - k = N\left(g\right) - k$.
@@ -156,7 +184,12 @@ such values.
 \vskip 0.5in
 
 \noindent
-{\bf Section 7.2.1.2 Algorithm L} It's useful to create an example of this
+{\bf Section 7.2.1.2 Algorithm L} The important thing to note here is that
+this generates only {\it distinct} permutations -- so 1223 has only 12
+permutations, not 24, because in any permutation the two 2s can be
+exchanged.
+
+It's useful to create an example of this
 in action.  Consider the sequence $246$ -- so $a_1 = 2$, $a_2 = 4$,
 $a_3 = 6$, and the convenience value $a_0$ is, say $a_0 = 0$.
 So, step by step:\hfil\break
