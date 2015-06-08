@@ -1,9 +1,11 @@
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.1}
-\vskip 0.5in
+\vskip 0.3in
+\centerline{\tt Section 7.1.1}
+\vskip 0.2in
 
 \noindent
-{\bf Section 7.1.1 Basic Identities} \hfil\break
+{\bf Basic Identities} \hfil\break
 \vskip 0.05in
 \noindent [p 50] Eq (9) states $\left( x \oplus y \right)
 \oplus x = y$.  Why?  \hfil\break
@@ -29,7 +31,7 @@ $x \oplus y = \left(x \wedge \overline{y}\right) \vee \left(\overline{x}
 
 \vskip 0.1in
 \noindent
-{\bf Section 7.1.1 Functions of n variables} \hfil\break
+{\bf Functions of n variables} \hfil\break
 
 \noindent [p51] Why does the functional decomposition
 of eq (16) and (17) work? \hfil\break
@@ -66,9 +68,7 @@ of the terms in the prime implicant were, say, $\overline{x_i}$, then
 when that changed from 0 to 1, the implicant would become false.  This
 is not allowed.
 
-\vskip0.1in
-\noindent
-{\bf Section 7.1.1 Satisfiability}\hfil\break
+\vskip0.1in \noindent {\bf Satisfiability}\hfil\break
 
 \noindent [p56] 3SAT\hfil\break
 The text uses problem 39 to explore a fairly general form where the 
@@ -109,9 +109,7 @@ but it has been forced to be 1 by the previous clause.  So therefore
 if the original clause is satisfiable we can satisfy the new one, and
 if it isn't then we can't.
 
-\vskip0.1in
-\noindent
-{\bf Section 7.1.1 Simple Special Cases}\hfil\break
+\vskip0.1in \noindent {\bf Simple Special Cases}\hfil\break
 
 \noindent [p57] {\bf Theorem H} \hfil\break
 The first step in the formula is to use the 
@@ -136,8 +134,7 @@ How do these convert into Horn clauses?  Well, recall that $x \Rightarrow y$
 is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
 just all of those $\wedge$ed together.
 
-\vskip0.1in
-\noindent {\bf Section 7.1.1 Medians}\hfil\break
+\vskip0.1in \noindent {\bf Medians}\hfil\break
 
 \noindent [p63] Self duality: in the discussion after (46), why does a formula
 need to be indifferent to swapping $\wedge$ and $\vee$?  Recall De Morgan's
@@ -150,9 +147,7 @@ we get something like $\bar{\left(x_i \wedge \ldots \wedge x_j\right) \vee
 if this is to be equal to the original with the variables negated, then
 indeed we must be able to interchange $\vee$ and $\wedge$.
 
-\vskip0.1in
-\noindent
-{\bf Section 7.1.1 Threshold functions}\hfil\break
+\vskip0.1in \noindent {\bf Threshold functions}\hfil\break
 
 \noindent [p75] Negative weights: to get rid of negative weights,
 the replacements $x_j \gets \bar x_j$ and $w_j \gets -w_j$ seem
@@ -176,7 +171,37 @@ That means there must also be $k$ vectors where $f\left(y^{\left(k\right)}\right
 and $g\left(y^{\left(k\right)}\right) = 0$.
 
 In the next step, note that $w \cdot x^{\left(j\right)} \geq t$ for each of the $k$
-such values.
+such values. 
+
+\vfil\break
+
+\vskip 0.3in
+\centerline{\tt Section 7.1.2}
+\vskip0.2in
+
+\noindent {\bf Boolean Evaluation}
+
+\noindent [p 97] Different boolean chains with the same diagram: the point
+of the discussion in the paragraph following the one with (4) is that the same
+steps are just being done in a different order.  As long as they don't depend
+on each other, that's fine -- which is equivalent to a different topological sorting.
+
+\vskip 0.05in \noindent [p 98] Note the convention for the truth tables here:
+the columns are just $\left(x_1 x_2 x_3 x_4\right)_2$ counted up from 0.
+
+\vskip 0.05in \noindent [p 99] The difference between $L\left(f\right)$
+and $C\left(f\right)$ is that $C$ is allowed to re-use intermediate results,
+$L$ is not.  So, the reuse of $x_6$ in (7) is fine for $C$, but not for $L$.
+
+\vskip 0.1in \noindent {\bf Optimum chains for n=4}
+
+\noindent [p 99] Each boolean function has the same depth, length,
+and cost as it's negation because the latter computed by using the same
+chain except for the last step, where the operator $\circ$ is replaced
+by the 2-ary binary function with the negated truth table.  And it can't
+be shallower/shorter/cheaper because if we had such a chain for the
+negation we could negate it in the same fashion to get a shallower/shorter/cheaper
+chain for the original function.
 
 \vfil\break
 \topglue 0.5in
