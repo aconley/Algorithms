@@ -223,7 +223,7 @@ and both $\bar \lor$ and $\subset$ are decidedly non-normal operators.
 The number of normalized 4-ary functions simply comes from their being
 only 15 free settings for the truth table, since the all 0s one is fixed.
 
-\vskip 0.05in \noindent {\bf Algorithm L} ({\it Find normal lengths}).\hfil\break
+\vskip 0.05in \noindent [p 100] {\bf Algorithm L} ({\it Find normal lengths}).\hfil\break
 The idea is pretty obvious -- make a vector for all possible truth tables.
 Then set all the trivial 1-element functions (which are just the $x_j$ --
 recall that since we are considering normal functions we don't have
@@ -231,6 +231,20 @@ a matching truth table for $\bar x_j$.  Then just keep forming all the
 combinations of previously computed truth tables with the allowed operators,
 keeping the shortest one -- which is easy since the algorithm always goes
 through them in length order.
+
+\vskip 0.1in \noindent {\bf Multiple Outputs}
+
+\noindent [p 107] It is simply stated that the cost of the 3-ary median
+operator is 4, but this hasn't been proven.  On the other hand, (23)
+demonstrates the chain: $x_4 = x_1 \oplus x_2$, $x_5 = x_3 \land x_4$,
+$x_6 = x1 \land x_2$, $x_7 = x_5 \lor x_6$.  Note that the discussion
+on p99 therefore implies there is a formula of length 4 as well, although
+the formula 7.1.1.43 has 5 operators.  Let's see -- does just writing
+the above out work?  Sure:
+$
+\left< x_1 x_2 x_3 \right> = \left(\left(x_1 \oplus x_2\right) \land x_3\right)
+\lor \left(x_1 \land x_2\right).
+$
 
 \vfil\break
 \topglue 0.5in
