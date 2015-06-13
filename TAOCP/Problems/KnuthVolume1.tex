@@ -578,4 +578,31 @@ tree by creating a new tree whose root is ${\rm root}\left(B\right)$ and
 with subtrees $F\left({\rm left}\left(B\right)\right)$.  Then build the rest
 of the forest by doing $F\left({\rm right}\left(B\right)\right)$.
 
+\vskip 0.5in
+\centerline{\tt Knuth 2.3.4.1}
+\vskip 0.3in
+
+\noindent {\bf Problem 1} BEDB, BDEB, BDCAB, BACDB, BEDCAB, BACDEB.
+
+\vskip 0.05in \noindent {\bf Problem 2} All one has to do is remove any cycles.
+So, if we have a path $V_1, \ldots, V_n$ and $V_i = V_j$ for some $i \ne j$,
+then we can make a shorter path $V_1, \ldots, V_i, V_j, \ldots, V_n$
+by removing all the steps between $V_i$ and $V_j$.
+
+\vskip 0.05in \noindent {\bf Problem 10}  Connection implied connection
+of the related graph.  To have the minimum number of wires we can't have
+cycles, or we could always eliminate at least one edge and stay connected.
+So it's an acyclic undirected graph, or, in Knuth-speak, a free tree.  Thus,
+by Theorem A, it has $n-1$ edges.
+
+\vskip 0.5in
+\centerline{\tt Knuth 2.3.4.2}
+\vskip 0.3in
+
+\noindent {\bf Problem 1} This is exactly like Problem 2.3.4.1.2.
+
+\vskip 0.05in \noindent {\bf Problem 4} It can't have any oriented cycles, or 
+topological sorting would be impossible.
+
+
 \end
