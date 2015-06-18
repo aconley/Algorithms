@@ -214,4 +214,25 @@ In practice, we would stop as soon as {\bf C5} was about to set $y$ to true.
 So therefore $\exists \exists \exists, \exists \exists \forall, \forall \exists \exists$
 are satisfied.
 
+\topglue 0.5in
+\centerline{\tt Knuth 7.1.2}
+\vskip 0.5in
+
+\noindent {\bf Problem 6} If $f$ is normal, and $y = 0$ then we
+have $f\left(x_1, \ldots, x_n\right) \land y = 0$ on the left and
+$f\left(x_1, \ldots, x_n \land 0\right) = f\left(x_1, \ldots, 0\right) = 0$
+on the right, so they are equal.  If $y=1$, then these are 
+$f\left(x_1, \ldots, x_n\right)$ and $f\left(x_1, \ldots, x_n\right)$, which
+are obviously equal.  Now, assume the equality holds and show
+$f$ must be normal.  First, if $y=0$ then the left is 0 and the right is
+$f\left(x_1, \ldots, 0\right)$, showing normality. 
+
+\vskip 0.1in \noindent {\bf Problem 7} One approach is to try computing 
+the negated truth table whenever non-normal operators are used, 
+until the last step.  So, instead of $x_1 \bar \vee x_4$,
+compute $x_1 \vee x_4$, instead of $\bar x_2 \vee x_5$ compute
+$x_2 \land \bar x_5 = x_2 \land \hat x_5$, etc.  Putting it together:
+$\hat x_5 = x_1 \vee x_4$, $\hat x_6 = x_2 \land \hat x_5$,
+$\hat x_7 = x_1 \vee x_3$, $\hat x_8 = \hat x_6 \oplus \hat x_7$.
+
 \end
