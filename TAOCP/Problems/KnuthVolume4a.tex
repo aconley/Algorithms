@@ -1,6 +1,6 @@
 \topglue 0.5in
 \centerline{\tt Knuth 7}
-\vskip 0.5in
+\vskip 0.3in
 
 \noindent
 {\bf Problem 2} We can start with any solution to the normal problem (where we count
@@ -76,7 +76,7 @@ have two of three vertices point into the third vertex.
 
 \topglue 0.5in
 \centerline{\tt Knuth 7.1.1}
-\vskip 0.5in
+\vskip 0.3in
 
 \noindent
 {\bf Problem 3} (a) max corresponds to logical or: $\vee$ (b) min corresponds to 
@@ -216,9 +216,13 @@ are satisfied.
 
 \topglue 0.5in
 \centerline{\tt Knuth 7.1.2}
-\vskip 0.5in
+\vskip 0.3in
 
-\noindent {\bf Problem 6} If $f$ is normal, and $y = 0$ then we
+\noindent {\bf Problem 1} As it happens, problem 7 provides exactly such
+a formula: $\left(x_1 \bar \vee x_4\right) \vee \bar x_2 \equiv 
+x_1 \bar \vee x_3$.
+
+\vskip 0.1in \noindent {\bf Problem 6} If $f$ is normal, and $y = 0$ then we
 have $f\left(x_1, \ldots, x_n\right) \land y = 0$ on the left and
 $f\left(x_1, \ldots, x_n \land 0\right) = f\left(x_1, \ldots, 0\right) = 0$
 on the right, so they are equal.  If $y=1$, then these are 
@@ -227,12 +231,39 @@ are obviously equal.  Now, assume the equality holds and show
 $f$ must be normal.  First, if $y=0$ then the left is 0 and the right is
 $f\left(x_1, \ldots, 0\right)$, showing normality. 
 
-\vskip 0.1in \noindent {\bf Problem 7} One approach is to try computing 
+\vskip 0.1in \noindent {\bf Problem 7} One approach (and maybe there
+are others -- I don't know) is to try computing 
 the negated truth table whenever non-normal operators are used, 
 until the last step.  So, instead of $x_1 \bar \vee x_4$,
 compute $x_1 \vee x_4$, instead of $\bar x_2 \vee x_5$ compute
 $x_2 \land \bar x_5 = x_2 \land \hat x_5$, etc.  Putting it together:
 $\hat x_5 = x_1 \vee x_4$, $\hat x_6 = x_2 \land \hat x_5$,
 $\hat x_7 = x_1 \vee x_3$, $\hat x_8 = \hat x_6 \oplus \hat x_7$.
+
+\vskip 0.1in \noindent {\bf Problem 8} Explain equation (11).\hfil\break
+Equation (11) is 
+$$
+ x_k = \left(2^{2^n} - 1\right) / \left(2^{2^{n-k}} + 1\right).
+$$
+First, try some examples.  Say $n = 3$ and $k=1$, then this is
+$255 / 17$, or, with the appropriate padding, $0\,0\,0\,0\,1\,1\,1\,1$.
+For $k=2$ we get $255 / 5$ or $0\,0\,1\,1\,0\,0\,1\,1$.
+
+Now try to think about this generally; the desired truth table is $2^{n-k}$
+0s alternating with the same number of 1s.  Multiply that by the denominator
+of (11), which is $1$, $101$, $1001$, etc., to get 
+$x_k + \left(x_k \ll 2^{n-k}\right)$, which is simply a block of 1s of the
+appropriate length, which the numerator generates.  Note that we don't have
+to worry about things overflowing the gaps.
+
+\vskip 0.1in \noindent {\bf Problem 10} Modify Algorithm L to compute $D$
+instead of $L$.\hfil\break
+All we have to do is change the looping ranges so that we are computing up
+to the specified {\it depth} rather than length.  In particular, step 
+{\bf L3} is limiting our length, instead we want depth, so we just change
+the limit to $r - 1$ from $r - j - 1$.
+
+\vskip 0.1in \noindent {\bf Problem 12} $x_4 = x_1 \oplus x_2$,
+$x_5 = x_3 \land x_4$, $x_6 = x_2 \land \bar x_4$, $x_7 = x_5 \vee x_6$.
 
 \end
