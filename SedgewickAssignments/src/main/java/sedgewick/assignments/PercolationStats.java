@@ -71,7 +71,7 @@ public class PercolationStats {
         double sumsq = 0;
         double mn = mean();
         for (double v : perc) sumsq += (v - mn) * (v - mn);
-        return Math.sqrt(sumsq);
+        return Math.sqrt(sumsq / (nsims - 1));
     }
 
     public double confidenceLo() {

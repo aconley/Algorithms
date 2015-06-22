@@ -4,5 +4,5 @@ Assignments
 Doing exercises from Sedgewick's Algorithms class on Coursera.
 Here the point is mostly to remember how to program in Java.
 
-These aren't quite the official problems; I'm reimplementing
-stuff and not following instructions where they seem boring.
+Unlike SedgewickAssignments, these are the actual problems
+for the course.
