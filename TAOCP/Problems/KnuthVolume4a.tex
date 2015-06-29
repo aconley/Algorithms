@@ -266,6 +266,30 @@ the limit to $r - 1$ from $r - j - 1$.
 \vskip 0.1in \noindent {\bf Problem 12} $x_4 = x_1 \oplus x_2$,
 $x_5 = x_3 \land x_4$, $x_6 = x_2 \land \bar x_4$, $x_7 = x_5 \vee x_6$.
 
+\vskip 0.1in \noindent {\bf Problem 17} One can do this by taking
+advantage of CNF.  Actually, that suffices to do it in $n+2$ registers;
+one calculates each miniterm in $x_{n+1}$ and stores the running
+conjunction in $x_0$.  To get that down to $n+1$, take advantage of
+7.1.1.16: $f\left(x_1, \ldots, x_n\right) = g\left(x_1, \ldots, x_{n-1}\right)
+\oplus h\left(x_1, \ldots x_{n-1}\right) \land x_n$ by, say, accumulating
+each miniterm of $h$ in $x_0$, anding that into $x_n$, then doing
+something similar with $g$ applying $\oplus$ into $x_n$ on each step.
+
+\vskip 0.1in \noindent {\bf Problem 51} When $x_5 x_6 = 00$
+the numbers are never prime (since, after all, they are a multiple
+of 4), nor whenever $x_6$ is 0 (multiple of 2).  Anyways:
+$$
+\eqalign{
+ f\left(x_1, \ldots, x_6 \right) = \enspace
+   & \left( \left[ x_5 x_6 \in \{ 01 \} \right] \land \left[ x_1 x_2 x_3 x_4 \in 
+   \{0001, 0011, 0100, 0111, 1001, 1010, 1101, 1111 \} \right] \right) \cr
+   \vee & \left(\left[x_5 x_6 \in \{10, 11\} \right] \land \left[ x_1 x_2 x_3 x_4 \in \{0000\}
+      \right] \right)\cr
+   \vee & \left(\left[x_5 x_6 \in \{11\} \right] \land \left[x_1 x_2 x_3 x_4 \in
+     \{0001, 0010, 0100, 0101, 0111, 1010, 1011, 1110\} \right] \right)\cr
+}
+$$
+
 \vskip 0.1in \noindent {\bf Problem 56} Imagine a truth table with only
 two don't cares.  It's either a constant (0 or 1), or else we can match it
 to one of the variables so that it is either $x_i$ or $\bar x_i$ for some
