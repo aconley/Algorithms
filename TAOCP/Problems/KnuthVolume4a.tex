@@ -266,4 +266,47 @@ the limit to $r - 1$ from $r - j - 1$.
 \vskip 0.1in \noindent {\bf Problem 12} $x_4 = x_1 \oplus x_2$,
 $x_5 = x_3 \land x_4$, $x_6 = x_2 \land \bar x_4$, $x_7 = x_5 \vee x_6$.
 
+\vskip 0.1in \noindent {\bf Problem 56} Imagine a truth table with only
+two don't cares.  It's either a constant (0 or 1), or else we can match it
+to one of the variables so that it is either $x_i$ or $\bar x_i$ for some
+$i$.
+
+\vskip 0.1in \noindent {\bf Problem 57}
+$$
+\matrix{
+ x_1                              & 1 & 1 & 1 & 1 & 1 & 1 \cr
+ x_2                              & 0 & 0 & 1 & 1 & 1 & 1 \cr
+ x_3                              & 1 & 1 & 0 & 0 & 1 & 1 \cr
+ x_4                              & 0 & 1 & 0 & 1 & 0 & 1 \cr
+ x_5 = x_1 \oplus x_2   & 1 & 1 & 0 & 0 & 0 & 0 \cr
+ x_6 = x_3 \land \bar x_4 & 1 & 0 & 0 & 0 & 1 & 0 \cr
+ x_7 = x_1 \oplus x_3   & 0 & 0 & 1 & 1 & 0 & 0 \cr
+ x_8 = x_2 \land \bar x_6 & 0 & 0 & 1 & 1 & 0 & 1 \cr
+ x_9 = x_3 \wedge x_4 & 1 & 1 & 0 & 1 & 1 & 1 \cr
+ \bar e = x_10 = x_4 \wedge x_8 & 0 & 1 & 1 & 1 & 0 & 1 \cr
+ g = x_11 = x_7 \oplus x_8 & 0 & 0 & 0 & 0 & 0 & 1 \cr
+ x_12 = x_4 \oplus x_11 & 0 & 1 & 0 & 1 & 0 & 0 \cr
+ \bar d = x_13 = x_10 \land x_12 &  0 & 1 & 0 & 1 & 0 & 0 \cr
+ \bar a = x_14 = \bar x_3 \land x_13 & 0 & 0 & 0 & 1 & 0 & 0 \cr
+ \bar b = x_15 = x_2 \land \bar x_13 & 0 & 0 & 1 & 0 & 1 & 1 \cr
+ \bar c = x_16 = \bar x_2 \land x_6 & 1 & 0 & 0 & 0 & 0 & 0 \cr
+ \bar f = x_17 = \bar x_5 \land x_9 & 0 & 0 & 0 & 1 & 1 & 1 \cr
+}
+$$
+or, debarring,
+$$
+\matrix{
+\left(x_4 x_3 x_2 x_1\right)_2 & 10 & 11 & 12 & 13 & 14 & 15 \cr
+ a & 1 & 1 & 1 & 0 & 1 & 1 \cr
+ b & 1 & 1 & 0 & 1 & 0 & 0 \cr
+ c & 0 & 1 & 1 & 1 & 1 & 1 \cr
+ d & 1 & 0 & 1 & 0 & 1 & 1 \cr
+ e & 1 & 0 & 0 & 0 & 1 & 0 \cr
+ f & 1 & 1 & 1 & 0 & 0 & 0 \cr
+ g & 0 & 0 & 0 & 0 & 0 & 1 \cr
+}
+$$
+These aren't really numbers as such, so I'll leave it to the true experts
+to typset them == but 11 is 7 and 13 is 1.
+
 \end
