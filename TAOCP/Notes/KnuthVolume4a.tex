@@ -251,7 +251,7 @@ $
 \vskip0.2in
 
 Most of the stuff in this chapter is covered a little more gently
-in {\it Hackers Delight}, also using an imaginary RISC machine,
+in {\it Hackers~Delight} by Henry~S.~Warren,~Jr., also using an imaginary RISC machine,
 but with more extensive discussion about what to do when certain
 operators aren't available.
 
@@ -278,7 +278,9 @@ for a signed 64 bit number, $1 \ll 63$ is negative ($-2^{63}$).
 Similar complications can ensue with right shifts because one has to
 be careful to understand what bit gets inserted at the left.
 
-\vskip 0.08in \noindent [p 140] Why is it called the ruler function?
+\vskip 0.1in \noindent {\bf Working with the rightmost bits.}
+
+\noindent [p 140] Why is it called the ruler function?
 Because if you want to draw a ruler with $k$ ticks (where $k$ is
 a power of 2), then the number of trailing 0s plus 1 is the size of the
 tick (with 0 a special case).  Example: make a ruler with 8
@@ -287,6 +289,12 @@ Then, in binary, count up:
 $\rho\left(\{001, 010, 011, 100, 101, 110, 111\}\right) + 1 = 
 \{1, 2, 1, 3, 1, 2, 1\}$.  If you draw this, it looks like, well,
 a ruler. 
+
+\vskip 0.08in \noindent [p 141] The $\mu_k$: the point is not 
+exactly what integers the $\mu_k$ are (although Knuth being
+Knuth, he gives a formula), but what the binary representation
+looks like: alternating blocks of $2^k$ 0s and 1s.  They allow
+you to select every other something (bit, $\ldots$, byte, $\ldots$).
 
 \vskip 0.08in \noindent [p 141] So, how does the computation
 of the ruler (number of trailing zeros) function actually work?  The idea
@@ -297,6 +305,28 @@ This is basically a binary search -- see if there are any 1s
 in the right half by {\tt AND}ing with $\mu_5$.  If there are not,
 add 32 to the number of trailing zeros.  Then see if there are any
 1s in the right half of each half, and add 16 if there are, etc.
+
+An example -- but with 8 bits only.  The equivalent to (50)
+is: {\tt NEGU y,x}, {\tt AND y,x,y}, {\tt AND q,y,m2}, {\tt ZSZ rho,q,4},
+{\tt AND q,y,m1}, {\tt ADD t,rho,2}, {\tt CSZ rho,q,t},
+{\tt AND q,y,m0}, {\tt ADD,t,rho,1}, {\tt CSZ rho,q,t},
+where here {\tt m2 = \#0f}, {\tt m1=\#33}, and {\tt m0=\#55}.
+Say that $x = 96 = \left(0\,1\,1\,0\,0\,0\,0\,0\right)_2$,
+so that $\rho\,x = 5$.  The first two instructions result in
+$y \gets 96\, \& -96 = \left(0\,0\,1\,0\,0\,0\,0\,0\right)_2$.
+Next $q \gets y\, \& \,\mu_2 = 0$ so {\tt ZSN rho,q,4} sets $\rho \gets 4$
+(recall that {\tt ZSZ a,b,c} sets {\tt a} to {\tt c} if {\tt b} is 0, and
+otherwise sets it to 0).  Next, $q \gets y\, \& \,\mu_1 = 32$, {\tt ADD t,rho,2} 
+results in $t \gets 6$, and {\tt CSZ rho,q,t} leaves {\tt rho} unmodified
+(recall: {\tt CSZ x,y,z} sets {\tt x} to {\tt z} if {\tt y} is 0, and otherwise
+leaves it unmodified).  So, next $q \gets y\, \& \, \mu_0 = 0$,
+$t \gets 5$, and the final instruction sets $\rho \gets 5$.
+
+\vskip 0.1in \noindent {\bf Sideways addition}
+
+\noindent [p 143] Note that {\tt MMIX} has a sideways add intrinsic
+({\tt SADD}) -- which isn't actually that exotic.  x86 has such an intrinsic,
+for example.
 
 \vfil\break
 \topglue 0.5in

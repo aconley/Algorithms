@@ -1,3 +1,5 @@
 *.class
 *.jar
 *.zip
+*.sublime-project
+*.sublime-workspace
