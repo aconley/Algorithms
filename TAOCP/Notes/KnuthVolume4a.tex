@@ -385,6 +385,27 @@ $z \gets \left(x \, \& \, \mu_2\right) \ll 4 = 0$,
 and $x = 6 = \left(\,0\,0\,0\,0\,0\,1\,1\,0\right)_2$,
 which is indeed the bit reversal of 96.
 
+\vskip 0.1in \noindent {\bf Bit swapping}
+
+\noindent [p 144] How does (67) work?\hfil\break
+Well, $y$ gets the new j$^{th}$ elements with everything
+else 0, $z$ gets the new i$^{th}$ element, again with
+everything else 0.  Then $x \, \& \, m$ turns off those two
+bits, and the or puts the new ones in.
+
+\vskip 0.08in \noindent [p 145] Now, how about (68)?\hfil\break
+The first step puts $x_i \, \oplus \, x_j$ into position $j$ will all
+other entries 0.  For all positions besides $i$ and $j$, the second
+is $x_k \, \oplus \, 0 \, \oplus \, 0 = x_k$, so it doesn't touch those
+positions.  In position $i$ we have $x_i \gets x_i \, \oplus \, 0 \, \oplus \,
+\left(x_i \, \oplus \, x_j\right)$, since $y \ll \delta$ is a bit vector
+with $x_i \, \oplus \, x_j$ in the i$^{th}$ position and 0 elsewhere.
+$z \, \oplus \, 0 = z$, $\oplus$ is distributive, so this is
+$\left(x_i \, \oplus \, x_i\right) \, \oplus \, x_j$.  And now, 
+$z \, \oplus \, z = 0$, so this is $0 \, \oplus \, x_j = x_j$.
+Thus, this chain sets $x_i = x_j$.  The same logic applies
+to $x_j$, so this does indeed swap the bits.
+
 
 \vfil\break
 \topglue 0.5in
