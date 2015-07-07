@@ -406,6 +406,59 @@ $z \, \oplus \, z = 0$, so this is $0 \, \oplus \, x_j = x_j$.
 Thus, this chain sets $x_i = x_j$.  The same logic applies
 to $x_j$, so this does indeed swap the bits.
 
+\vskip 0.08in \noindent [p 150] Notes on (84): $x^{\prime} = 
+\left(x - \chi\right) \, \& \, x$\hfil\break
+You know it must be non-obvious when Knuth actually explains
+the derivation...  One note: the replacement of $\left( \bar \chi + 1\right)$
+with $-\chi$ is the well-known `negate all the bits and add one is the same
+as sign flipping' rule for 2s complement signed integers.
+
+\vskip 0.08in \noindent [p 150] Subcube generation\hfil\break
+Here $a$ has a 1 at the location of each $*$, and $b$ has
+a 1 at the location of each actual 1, and 0 for actual 0s or
+$*$s.  So, what's going on in this formula?  All that is happening
+is that the algorithm is generating all the subsets for $\chi = a$
+and then adding the fixed values back in.  The derivation
+is the same but starting by considering $x\, | \, \overline{a + b}$,
+which now has 1s only at the positions fixed to be 0.  That is,
+$a + b = a \, | \, b$, since $a \, \& \, b$ by construction.
+Then we select only the wildcard bits, leaving the set bits in $b$
+alone, and finally add them back in.
+
+\vskip 0.1in \noindent {\bf Tweaking several bytes at once}\hfil\break
+
+\noindent [p 151] Byte summing: equation~(87).\hfil\break
+The first line ($z \gets \left(x \, \oplus \, y\right) \, \& \, h$)
+selects the leading bits where either $x$ has a 1 or $y$
+has a 1 -- but not both.  These are where carries might
+cause problems.  The $0\,0$ case is obviously not a problem,
+but neither is $1\,1$ (at least in this step) because the
+addition will be modulo 256.  The second line explicitly
+masks off the leading bit, then adds it back in with
+$\oplus \, z$.  
+
+So -- example: $x = 160 = \left(1\,0\,1\,0\,0\,0\,0\,0\right)_2$,
+$y = 100 = \left(0\,1\,1\,0\,0\,1\,0\,0\right)_2$.  Done 
+carelessly this would spill over: 
+$x + y = 260 = \left(1\,0\,0\,0\,0\,0\,1\,0\,0\right)_2$,
+which has 9 bits.  To correct for this problem, the first line
+carries out $z \gets \left(x \, \oplus \, y\right) \, \& \, h =
+\left(1\,1\,0\,0\,0\,1\,0\,0\right)_2 \, \& \, h =
+\left(1\,0\,0\,0\,0\,0\,0\,0\right)$, indicating there is a carry
+bit issue.  The second
+line then does 
+$$\eqalign{z \gets \left(\left(x \, \& \, \bar h\right) \, \oplus
+\left(y \, \& \, \bar h\right)\right) \, \oplus \, z &= 
+\left( \left(0\,0\,1\,0\,0\,0\,0\,0\right)_2 + \left(0\,1\,1\,0\,0\,1\,0\,0\right)_2
+\right) \, \oplus \, z\cr &= \left(1\,0\,0\,0\,0\,1\,0\,0\right)_2 \, \oplus \, z \cr
+&= \left(0\,0\,0\,0\,0\,1\,0\,0\right)_2}
+$$
+which is $260 \bmod 256$.
+
+How about one where there should be a leading 1?
+Try $y = 225$, so $x + y \bmod 256 = \left(1\,0\,0\,0\,0\,0\,0\,1\right)_2$.
+Now they both have leading 1s, so the first line sets $z \gets 0$,
+and the second line does the sum just throwing out the leading bit.
 
 \vfil\break
 \topglue 0.5in
