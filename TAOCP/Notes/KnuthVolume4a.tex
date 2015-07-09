@@ -413,6 +413,12 @@ the derivation...  One note: the replacement of $\left( \bar \chi + 1\right)$
 with $-\chi$ is the well-known `negate all the bits and add one is the same
 as sign flipping' rule for 2s complement signed integers.
 
+This can be extended to larger sets by treating several words as
+one contiguous number.  Addition and subtraction of such numbers 
+is discussed in {\t Hackers Delight} -- the issue is more or less
+how to detect overflow so effects can propagate across word
+boundaries.
+
 \vskip 0.08in \noindent [p 150] Subcube generation\hfil\break
 Here $a$ has a 1 at the location of each $*$, and $b$ has
 a 1 at the location of each actual 1, and 0 for actual 0s or
@@ -459,6 +465,43 @@ How about one where there should be a leading 1?
 Try $y = 225$, so $x + y \bmod 256 = \left(1\,0\,0\,0\,0\,0\,0\,1\right)_2$.
 Now they both have leading 1s, so the first line sets $z \gets 0$,
 and the second line does the sum just throwing out the leading bit.
+
+\vskip 0.08in \noindent [p 151] Byte averages: equation~(88).\hfil\break
+The first operation ($z \gets \left(\left( x \, \oplus \, y \right) \, \& \, \bar l
+\right) \gg 1$), first finds all the places where the sum will be one,
+then right shifts to divide by 2.  The $\&\,\bar l$ is to remove the
+first (irrelevant) bit so that the shift doesn't move it across a byte
+boundary.  The second line ($z \gets \left(x\,\&\,y\right) + z$)
+deals with the positions where both $x$ and $y$ were 1,
+so the sum is 2, which when divided by 2 is 1 again.
+
+\vskip 0.08in \noindent [p 152] Testing whether all bytes are zero: 
+equations~(90) and (91). \hfil\break 
+Recall from 42 that the effects of $\left(x - 1\right) \, \& \, \bar x$
+is to turn all trailing 0s into 1s and zero everything else.  $l$
+is used instead to make this into a bytewise operation.  The
+largest this can be if the byte is non-zero is $\#7f$ -- that is, the 
+first bit must be zero. So, when $\& \, h$ is applied you get zero.
+Now -- what happens if the all 8 bytes are 0?  It turns out you
+just get $h$ back, since $\left(0 - l\right) \, \& \bar 0$ is all 1s.
+
+Now, on to identifying the zero byte with equation~(91).
+Well, first imagine a byte that is zero.  Well,
+$\left(x | \left(\left(0 | h\right) - l \right)\right) = \bar h$,
+so this becomes $h \, \& \, h = h$, and each byte of $h$
+is $\#80 = 128$.  Now, for non-zero bytes, the trick
+is that the expression in parenthesis will have a leading 1,
+and so when it is negated and $\&$ed with $h$ it will be zero.
+If $x \neq h$ (and not zero) it must have a 1 bit somewhere
+in the middle.  So the subtraction will leave the leading bit
+added by the $|\,h$ will still be there, and we will get zero.
+But if it is $h$, then we will have $h | \left(h - l\right) = \#ff$,
+and hence $h \, \& \,0 = 0$.
+
+there (obviously)
+must be some non-zero bit of $x$.  So $\left(x | h\right) - l$
+will have a zero bit somewhere other than the leading position
+unless $x = h$.
 
 \vfil\break
 \topglue 0.5in
