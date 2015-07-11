@@ -253,18 +253,19 @@ $
 Most of the stuff in this chapter is covered a little more gently
 in {\it Hackers~Delight} by Henry~S.~Warren,~Jr., also using an imaginary RISC machine,
 but with more extensive discussion about what to do when certain
-operators aren't available.
+operators aren't available, as well as a bunch of other stuff not
+covered here.
 
 \vskip 0.1in \noindent {\bf Enriched arithmetic}
 
-\noindent [p 135] Where does (18) come from?  Combining (16) and
+\noindent [p 135] Where does (18) come from? \hfil\break Combining (16) and
 (17) we have $\bar x + 1 = \overline{x - 1}$.  Substitute $x-1$ for $x$
 to get $\overline{x - 1} + 1 = \overline{x - 2}$, and use the same
 formula to convert that to $\bar x + 2 = \overline{x - 2}$.  For any
 finite $y$, just repeat $y-2$ more times to get $\overline{x - y} = \bar x + y$.
 
 \vskip 0.08in \noindent [p 135] Left and right shift: what are the floor
-relations doing in (19)?  They have to do with what happens when $k$
+relations doing in (19)?  \hfil\break They have to do with what happens when $k$
 is negative, and so you can loose 1 bits off of the right.
 
 Note that (19) and (20) are assuming infinite 2-adic numbers; on a real
@@ -280,7 +281,18 @@ be careful to understand what bit gets inserted at the left.
 
 \vskip 0.1in \noindent {\bf Working with the rightmost bits.}
 
-\noindent [p 140] Why is it called the ruler function?
+\noindent [p 140] Equation (32): note that the exceptions 
+are for any non-negative integer $b$ in $-2^b$: -1, -2, -4, etc.,
+not just $-2^{d-1}$ (where $d$ is the word size).
+
+\vskip 0.08in \noindent [p 140] So, given that (and the fact that
+that representation doesn't work for 0), which of the formulae
+(36)-(42) are affected if $x$ is one of those values? Equations (36)-(39)
+all give zero for $x=0$, so can be said to work.
+Equation (40)-(42) give $-1$, which doesn't really
+match the description.  For $x = -2^b$, they all work as advertised.
+
+\vskip 0.08in \noindent [p 140] Why is it called the ruler function?\hfil\break
 Because if you want to draw a ruler with $k$ ticks (where $k$ is
 a power of 2), then the number of trailing 0s plus 1 is the size of the
 tick (with 0 a special case).  Example: make a ruler with 8
@@ -303,7 +315,7 @@ all of the rightmost digits where they do agree will be zero.
 Recall that {\tt SADD x,y,z} counts the number of places that
 {\tt y} has a 1 while {\tt z} has a 0.  So {\tt SADD rho,(x-1),x}
 is computing the sideways addition of (42): $\bar x \, \& \, 
-\left(x 0 1\right)$, which is the ruler function.
+\left(x - 1\right)$, which is the ruler function.
 
 \vskip 0.08in \noindent [p 141] The $\mu_k$: the point is not 
 exactly what integers the $\mu_k$ are (although Knuth being
@@ -312,7 +324,8 @@ looks like: alternating blocks of $2^k$ 0s and 1s.  They allow
 you to select every other something (bit, $\ldots$, byte, $\ldots$).
 
 \vskip 0.08in \noindent [p 141] So, how does the computation
-of the ruler (number of trailing zeros) function actually work?  The idea
+of the ruler (number of trailing zeros) function actually work?
+\hfil\break The idea
 is that $x\, \& -x$ turns off all bits except the rightmost one --
 so it is a power of 2.  So now we just need to figure
 out what power of 2 it is.  That is, $x\, \& -x = 2^{\rho x}$.
@@ -356,7 +369,8 @@ because $y = 0$.
 
 \noindent [p 143] Note that {\tt MMIX} has a sideways add intrinsic
 ({\tt SADD}) -- which isn't actually that exotic.  x86 has such an intrinsic,
-for example.
+for example, in recent (SSE4) architectures, as well as the number of
+leading zeros intrinsic.  Even {\tt MMIX} doesn't have that...
 
 \vskip 0.1in \noindent {\bf Bit reversal}
 
