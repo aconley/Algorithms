@@ -1,0 +1,2 @@
+javac -cp stdlib.jar:. Point.java Brute.java Fast.java
+java -cp stdlib.jar:. Fast collinear/input8.txt
