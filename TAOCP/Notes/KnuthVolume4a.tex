@@ -5,8 +5,8 @@
 \vskip 0.2in
 
 \noindent
-{\bf Basic Identities} \hfil\break
-\vskip 0.05in
+{\bf Basic Identities}
+
 \noindent [p 50] Eq (9) states $\left( x \oplus y \right)
 \oplus x = y$.  Why?  \hfil\break
 Well, $\oplus$ is not distributive, even with itself,
@@ -31,7 +31,7 @@ $x \oplus y = \left(x \wedge \overline{y}\right) \vee \left(\overline{x}
 
 \vskip 0.1in
 \noindent
-{\bf Functions of n variables} \hfil\break
+{\bf Functions of n variables}
 
 \noindent [p51] Why does the functional decomposition
 of eq (16) and (17) work?\hfil\break
@@ -68,7 +68,7 @@ of the terms in the prime implicant were, say, $\overline{x_i}$, then
 when that changed from 0 to 1, the implicant would become false.  This
 is not allowed.
 
-\vskip0.1in \noindent {\bf Satisfiability}\hfil\break
+\vskip0.1in \noindent {\bf Satisfiability}
 
 \noindent [p56] 3SAT\hfil\break
 The text uses problem 39 to explore a fairly general form where the 
@@ -134,7 +134,7 @@ How do these convert into Horn clauses?  Well, recall that $x \Rightarrow y$
 is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
 just all of those $\wedge$ed together.
 
-\vskip0.1in \noindent {\bf Medians}\hfil\break
+\vskip0.1in \noindent {\bf Medians}
 
 \noindent [p63] Self duality: in the discussion after (46), why does a formula
 need to be indifferent to swapping $\wedge$ and $\vee$?  Recall De Morgan's
@@ -147,7 +147,7 @@ we get something like $\bar{\left(x_i \wedge \ldots \wedge x_j\right) \vee
 if this is to be equal to the original with the variables negated, then
 indeed we must be able to interchange $\vee$ and $\wedge$.
 
-\vskip0.1in \noindent {\bf Threshold functions}\hfil\break
+\vskip0.1in \noindent {\bf Threshold functions}
 
 \noindent [p75] Negative weights: to get rid of negative weights,
 the replacements $x_j \gets \bar x_j$ and $w_j \gets -w_j$ seem
@@ -338,7 +338,7 @@ An example -- but with 8 bits only.  The equivalent to (50)
 is: {\tt NEGU y,x}, {\tt AND y,x,y}, {\tt AND q,y,m2}, {\tt ZSZ rho,q,4},
 {\tt AND q,y,m1}, {\tt ADD t,rho,2}, {\tt CSZ rho,q,t},
 {\tt AND q,y,m0}, {\tt ADD,t,rho,1}, {\tt CSZ rho,q,t},
-where here {\tt m2 = \#0f}, {\tt m1=\#33}, and {\tt m0=\#55}.
+where here \hbox{\tt m2 = \#0f}, {\tt m1=\#33}, and {\tt m0=\#55}.
 Say that $x = 96 = \left(0\,1\,1\,0\,0\,0\,0\,0\right)_2$,
 so that $\rho\,x = 5$.  The first two instructions result in
 $y \gets 96\, \& -96 = \left(0\,0\,1\,0\,0\,0\,0\,0\right)_2$.
@@ -445,7 +445,7 @@ $a + b = a \, | \, b$, since $a \, \& \, b$ by construction.
 Then we select only the wildcard bits, leaving the set bits in $b$
 alone, and finally add them back in.
 
-\vskip 0.1in \noindent {\bf Tweaking several bytes at once}\hfil\break
+\vskip 0.1in \noindent {\bf Tweaking several bytes at once}
 
 \noindent [p 151] Byte summing: equation~(87).\hfil\break
 The first line ($z \gets \left(x \, \oplus \, y\right) \, \& \, h$)
@@ -512,18 +512,34 @@ added by the $|\,h$ will still be there, and we will get zero.
 But if it is $h$, then we will have $h | \left(h - l\right) = \#ff$,
 and hence $h \, \& \,0 = 0$.
 
-there (obviously)
-must be some non-zero bit of $x$.  So $\left(x | h\right) - l$
-will have a zero bit somewhere other than the leading position
-unless $x = h$.
+\vskip 0.1in \noindent {\bf An application in directed graphs}
+
+\noindent [p 159] As a reminder, Algorithm 2.3.5E is more or
+less depth first search specialized for binary trees.
+
+\vskip 0.08in \noindent [p 159] {\bf Algorithm R} ({\it Reachability})\hfil\break
+This is, or course, breath first search, very slightly modified from
+the usual implementation to search from a set of starting vertices
+rather than a single one.  The real point, of course, is the bitwise
+operations implementation...
+
+\vskip 0.08in \noindent [p 160] {\bf Program R} ({\it Reachability})\hfil\break
+So, how does it work?  It's not really all that tricky; almost the only
+thing worth noting is that $X \subset R$, which is why $\sigma\left(R\right) -
+\sigma\left(X\right)$ works -- the subtraction never causes any carry issues.
+Also, ${\tt ANDN\ tt,t,tt}$, which is ${\tt tt} \gets {\tt t \, \& \, \overline{\left( t - 1 \right)}}$.
+Examination of (32) and (34) shows this is equivalent to (37): it extracts the
+rightmost 1, and thus is equivalent to $2^u = 2^{\rho\left(t\right)}$.
+
 
 \vfil\break
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
-\vskip 0.5in
+\vskip 0.3in
+\centerline{\tt Section 7.2.1.2: Generating all permutation}
+\vskip 0.2in
 
-\noindent
-{\bf Section 7.2.1.2 Algorithm L} The important thing to note here is that
+\noindent [p 319] {\bf Algorithm L} The important thing to note here is that
 this generates only {\it distinct} permutations -- so 1223 has only 12
 permutations, not 24, because in any permutation the two 2s can be
 exchanged.
