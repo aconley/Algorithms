@@ -38,8 +38,9 @@ public class Solver {
       implements Comparator<SearchNode> {
 
     public int compare(SearchNode n1, SearchNode n2) {
-      return n1.board.manhattan() + n1.nMoves -
-        n2.board.manhattan() - n2.nMoves;
+      int b1score = n1.board.manhattan() + n1.nMoves;
+      int b2score = n2.board.manhattan() + n2.nMoves;
+      return b1score - b2score;
     }
   }
 
@@ -113,11 +114,19 @@ public class Solver {
   }
 
   public int moves() {
-    return solvable ? nMovesSolution : -1;
+    if (solvable) {
+      return nMovesSolution;
+    } else {
+      return -1;
+    }
   }
 
   public Iterable<Board> solution() {
-    return solvable ? sol : null;
+    if (solvable) {
+      return sol;
+    } else {
+      return null;
+    }
   }
 
   public static void main(String[] args) {
@@ -133,8 +142,8 @@ public class Solver {
     if (!solver.isSolvable())
       StdOut.println("No solution possible");
     else {
-      StdOut.println("Minimum number of moves = " +
-        solver.moves());
+      StdOut.println("Minimum number of moves = "
+        + solver.moves());
       StdOut.println("\n");
       for (Board board : solver.solution())
         StdOut.println(board);
