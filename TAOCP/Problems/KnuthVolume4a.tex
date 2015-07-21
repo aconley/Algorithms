@@ -357,7 +357,9 @@ since it is in both components of the union and is clearly the smallest element.
 Now, if they aren't equal, then, since $x \notin S$ and $y \notin T$, clearly
 we have $x \, \oplus \, y \notin Z$ since it would have to either be
 $x \, \oplus \, y^{\prime}$ for some $y^{\prime} \in Z$ or the similar expression
-for $x^{\prime} \, \oplus y$.  Since we already excluded the $x = y$ case,
+for $x^{\prime} \, \oplus y$.  
+
+Since we already excluded the $x = y$ case,
 we know that $x \, \oplus \, y$ must have at least one 1 in it, so
 we can write $x \, \oplus \, y = \alpha 1 \beta$.  Therefore, there must be
 some integer $k < x \, \oplus \, y$ which we can write as
@@ -368,11 +370,63 @@ and  $|\zeta| = |\theta| = |\beta|$).  Now, this implies that $\delta \, \oplus 
 and $\zeta \oplus \theta = \beta$, and $k \, \oplus \, y = \left(\alpha \, \oplus \, \eta\right)
 0 \left(\gamma \, \oplus \, \theta\right) = \left(\delta \, \oplus \, \eta \, \oplus \, \eta\right)
 0 \left(\gamma \, \oplus \, \theta\right)$.  This must be less than $x$ as well by
-comparison -- it agrees until it has a 0 and $x$ has a 1.  Since, by definition,
+comparison -- it agrees until it has a 0 and $x$ has a 1.  
+
+Since, by definition,
 $x$ is the smallest non-negative integer not in S, we must have $k \, \oplus \, y \in S$,
 and so $k  = \left(k \, \oplus \, y\right) \, \oplus \, y \in S \, \oplus \, y$.
 Since the above definition of $k$ was general, this means that any $k < x \, \oplus \, y$
 must be in $S \oplus y$.  Swapping the 0/1 in $x$ and $y$ would give the same
 thing with $x \oplus T$, and therefore we conclude that $x \, \oplus \, y$
 must be the smallest thing not in their union, which is the desired result.
+
+\vskip 0.08in {\bf Problem 9} ({\it Nim}) \hfil\break
+The entire point of the previous exercise is to show that two piles
+of sticks of size $x$ and $y$ are equivalent to a single pile of size
+$x \, \oplus \, y$.  A different way to phrase the Sprague-Grundy theorem
+of the last problem is that if there is a $0 \le k < x \, \oplus \, y$
+if and only if either there exists a $0 \le i < x$ with $i \, \oplus \, y < x \, \oplus \, y$
+or a $0 \le j < y$ with $x \, \oplus \, j < x \, \oplus \, y$.  Why?  These
+are just the two cases of the union, and the existence of $i, j$ is
+simply another way of saying that the player has at least one place
+to move -- if both $x$ and $y$ are 0 -- which corresponds to the
+player losing -- then there is no $i$ or $j$ and hence no $k$.
+This corresponds to $x \, \oplus \, y = 0$ -- so if that is the case,
+the player loses.  And we can just keep applying this, concluding
+that if $a_0 \, \oplus \, \ldots \, \oplus \, a_k = 0$, the player loses.
+
+The other piece is that it is always possible to force the nim sum
+to be zero after your turn if you start with it non-zero.  Let $s$
+be the sum before the move, and $t$ after.  
+Then $t = s \, \oplus \, s \, \oplus \, t$.  But $s \, \oplus \, t$
+is just $x_j \, \oplus \, y_j$, where the player has removed
+sticks from pile $j$, $x_j$ the original size, and $y_j$ the
+new one.  Since these aren't equal, this can't be zero.  And
+so $t = s \, \oplus \, x_j \, \oplus \, y_j$.  Now if $s = 0$,
+then from this we can conclude that $t \ne 0$ after the move.
+
+However, what we really want is the other way -- if $s \ne 0$,
+can we force $t = 0$?  Sure!  $s$ must have a non-zero bit --
+let's say the leftmost one is in position $d$.  Now chose $j$
+so that the dth bit of $x_j$ is also zero.  There must be at
+least one such pile, or $s$ would have a zero there.
+Now subtract such that $y_j = s \, \oplus \, x_j$. This
+is less than $x_j$ since all the bits to the left are the same
+but the dth changes from 1 to 0.  So the move is to remove
+$x_j - y_j$ sticks from $j$, and we have $t = s \, \oplus \, x_j
+\, \oplus \, s \, \oplus \, x_j = 0$.  Note this is a rephrasing
+of bits of the proof of the Sprague-Grundy theorem.
+
+The connection to mex is a bit mysterious here, however.  If $x$ is
+the size of the pile, then what is $S$?  It is $S = \{ 0, 1, \ldots, x - 1 \}$.
+These are all the legal states that the pile can be in after the player moves,
+since they are forced to remove at least one stick but can remove up to
+$x$ of them.  Now, if we also have a pile $y$ corresponding to the set
+$T = \{0, 1, \ldots, y - 1\}$, then what are all the possible states
+of the game after the player moves?  Well, if the player takes sticks
+from pile $x$ then it is some element of $S$ plus $y$ in the other pile,
+and if the player takes from $y$ it is $x$ plus some elements of $T$.
+This corresponds to the two cases in the Sprague-Grundy theorem --
+$S \, \oplus \, y$ and $x \, \oplus \, T$, respectively, although the
+use of $\oplus$ still appears rather strange.
 \end
