@@ -350,14 +350,14 @@ By (17), we have $x^{NC} = \overline{-x} = x - 1 = x^P$.
 
 \vskip 0.08in \noindent {\bf Problem 8} First, denote the
 target set $Z = \left(S \, \oplus \, y\right) \, \cup \, \left(x \, \oplus \, T\right)$.
-Now, consider the case
-when $x = y$, so that $x \, \oplus \, y = 0$.  This is clearly 
+We first need to show that $x \oplus y \notin Z$.  Assume
+that $x \oplus y = s \oplus y$ for some $s \in S$.  This implies that $s = x$
+(apply $\oplus y$ to both sides), and $x \notin S$.  The same argument
+applies to the other subset, so $x \oplus y \notin Z$.
+
+Now, consider the case when $x = y$, so that $x \, \oplus \, y = 0$.  This is clearly 
 ${\rm mex}\left(Z\right)$,
 since it is in both components of the union and is clearly the smallest element.
-Now, if they aren't equal, then, since $x \notin S$ and $y \notin T$, clearly
-we have $x \, \oplus \, y \notin Z$ since it would have to either be
-$x \, \oplus \, y^{\prime}$ for some $y^{\prime} \in Z$ or the similar expression
-for $x^{\prime} \, \oplus y$.  
 
 Since we already excluded the $x = y$ case,
 we know that $x \, \oplus \, y$ must have at least one 1 in it, so
@@ -381,52 +381,79 @@ thing with $x \oplus T$, and therefore we conclude that $x \, \oplus \, y$
 must be the smallest thing not in their union, which is the desired result.
 
 \vskip 0.08in {\bf Problem 9} ({\it Nim}) \hfil\break
-The entire point of the previous exercise is to show that two piles
-of sticks of size $x$ and $y$ are equivalent to a single pile of size
-$x \, \oplus \, y$.  A different way to phrase the Sprague-Grundy theorem
-of the last problem is that if there is a $0 \le k < x \, \oplus \, y$
-if and only if either there exists a $0 \le i < x$ with $i \, \oplus \, y < x \, \oplus \, y$
-or a $0 \le j < y$ with $x \, \oplus \, j < x \, \oplus \, y$.  Why?  These
-are just the two cases of the union, and the existence of $i, j$ is
-simply another way of saying that the player has at least one place
-to move -- if both $x$ and $y$ are 0 -- which corresponds to the
-player losing -- then there is no $i$ or $j$ and hence no $k$.
-This corresponds to $x \, \oplus \, y = 0$ -- so if that is the case,
-the player loses.  And we can just keep applying this, concluding
-that if $a_0 \, \oplus \, \ldots \, \oplus \, a_k = 0$, the player loses.
+There is more than one way to analyze this.  I find direct
+analysis to be much easier to understand than the Sprague-Grundy
+theorem approach from the previous problem, so lets start with that.
+Let $s$ be the nim sum of the state before the player moves
+and $t$ the state after.  $t$ can differ in the contents of at most
+one stack.  So we can write 
+$s = a_0 \oplus \ldots \oplus a_j \oplus \ldots \oplus a_k$ and 
+$t = a_0 \oplus \ldots a^{\prime}_j \oplus \ldots \oplus a_k$ 
+where $a^{\prime}_j < a_j$.  How are $s$ and $t$ related?
 
-The other piece is that it is always possible to force the nim sum
-to be zero after your turn if you start with it non-zero.  Let $s$
-be the sum before the move, and $t$ after.  
-Then $t = s \, \oplus \, s \, \oplus \, t$.  But $s \, \oplus \, t$
-is just $x_j \, \oplus \, y_j$, where the player has removed
-sticks from pile $j$, $x_j$ the original size, and $y_j$ the
-new one.  Since these aren't equal, this can't be zero.  And
-so $t = s \, \oplus \, x_j \, \oplus \, y_j$.  Now if $s = 0$,
-then from this we can conclude that $t \ne 0$ after the move.
+$t = s \oplus s \oplus t$, but $s \oplus t = a_j \oplus a^{prime}_j$
+(since all the other terms are equal), so
+$t = s \oplus a_j \oplus a^{prime}_j$.  Since $a_j \ne a^{\prime}_j$,
+$a_j \oplus a^{\prime}_j \ne 0$.
 
-However, what we really want is the other way -- if $s \ne 0$,
-can we force $t = 0$?  Sure!  $s$ must have a non-zero bit --
-let's say the leftmost one is in position $d$.  Now chose $j$
-so that the dth bit of $x_j$ is also zero.  There must be at
-least one such pile, or $s$ would have a zero there.
-Now subtract such that $y_j = s \, \oplus \, x_j$. This
-is less than $x_j$ since all the bits to the left are the same
-but the dth changes from 1 to 0.  So the move is to remove
-$x_j - y_j$ sticks from $j$, and we have $t = s \, \oplus \, x_j
-\, \oplus \, s \, \oplus \, x_j = 0$.  Note this is a rephrasing
-of bits of the proof of the Sprague-Grundy theorem.
+This leads to an important conclusion: if $s = 0$, then $t \ne 0$.
+Since the winning move will have $t = 0$, this is interesting -- 
+clearly if $s=0$ we can't force a win with the current move, and it's
+possible that our opponent might be able to.  
 
-The connection to mex is a bit mysterious here, however.  If $x$ is
-the size of the pile, then what is $S$?  It is $S = \{ 0, 1, \ldots, x - 1 \}$.
-These are all the legal states that the pile can be in after the player moves,
-since they are forced to remove at least one stick but can remove up to
-$x$ of them.  Now, if we also have a pile $y$ corresponding to the set
-$T = \{0, 1, \ldots, y - 1\}$, then what are all the possible states
-of the game after the player moves?  Well, if the player takes sticks
-from pile $x$ then it is some element of $S$ plus $y$ in the other pile,
-and if the player takes from $y$ it is $x$ plus some elements of $T$.
-This corresponds to the two cases in the Sprague-Grundy theorem --
-$S \, \oplus \, y$ and $x \, \oplus \, T$, respectively, although the
-use of $\oplus$ still appears rather strange.
+But what about the other way -- if $s \ne 0$ can we force $t = 0$ with our 
+move?  The answer is yes.  Since $s \ne 0$ it must have a leading 1
+somewhere in it's binary representation.  We chose the leftmost one in
+position $d$.Moreover, we must be able to
+find at least one pile $a_m$ that also has a 1 at $d$ (or $s$
+would be 0 there).  Now form $a^{prime}_m = s \oplus a_m$.  We must
+have $a^{\prime} < a_m$ -- all bits to the left of $d$ must
+be the same (since $s$ is 0 to the left of $d$ by definition).
+But $a^{\prime}_m \left(d \right) = 0$ and $a_m\left(d\right) = 1$.
+So, the player takes $a_m - a^{\prime}_m$ sticks from the $m$th pile,
+and we have $t = s \oplus a_m \oplus a^{\prime}_m = s \oplus a_m 
+\oplus s \oplus a_m = 0$.
+
+So, if $s \ne 0$, you can force $t = 0$ with your move.  If that 
+empties all the stacks, you win.  If not, the other player is forced
+to make a move that changes $t$ back to 1.  Since that can't be a win,
+and the piles are always getting smaller (and assuming finiteness),
+you can force a win.
+
+How does this relate to the Sprague-Grundy theorem?  It is, in some
+sense, a generalization of the above that can be applied to other games.
+That is, this is an example of Knuth killing a fly with a jackhammer.
+The fundamental idea is to show how to move from a single pile game
+to a multiple pile game. So, consider a single pile game of Nim with
+$x$ sticks.  Let $S$ be the set of all pile states that can be reached
+with one move -- so, if $x \ne 0$, $S = \{0, 1, \ldots, x-1\}$.
+Now ${\rm mex}\left(S\right) = x$, and so ${\rm mex}\left(S\right) = 0$
+corresponds to $S = \emptyset$ -- in which case the player loses.
+
+Now consider two piles of size $x$ and $y$ with corresponding state
+sets $S$ and $T$.  The states that can be reached by the player are 
+the union of one element of $S$ and any element of $T$ and 
+any elements of $S$ and one element of $T$ if the player takes from
+the first or second pile, respectively.  This maps onto the structure
+of the Sprague-Gundy theorem via $\oplus$, although it isn't exactly
+obvious why that is interesting.  The point of the theorem is essentially
+to establish a connection between mex and $\oplus$.
+
+To establish this, an immediate consequence of Sprague-Grundy is that
+there exists a $0 \le k < x \oplus y$ if and only if there exists
+either a $i < x$ such that $i \oplus y < x \oplus y$ or
+a $j < y$ such that $x \oplus j < x \oplus y$ pretty much entirely from
+the definition of mex.  Now, if there is no such $k$, that implies the
+player has no legal move from the position $x, y$, and so loses.
+But if there is, then the players winning strategy is to reduce pile $x$ to
+size $i$ or $y$ to $j$ (depending which one exists).  Thus, if the game state is $x \, \oplus \, y = 0$, it is not possible to reduce that
+value by making any move (since the new game state will either be 
+$i \oplus y$ or $x \oplus j$), and so they must increase it.  But if it
+is, then they can reduce $x \oplus y$, and in fact by the construction
+discussed earlier they can set it to zero.  This therefore becomes the
+same argument as before, although in a rather indirect fashion.
+The point is then that a game with two piles of size $x$ and $y$ is
+the same as a game with one pile of size $x \oplus y$ -- if it's zero
+you lose, if it isn't you can win.  And you can repeat this by stacking
+on extra piles.
 \end
