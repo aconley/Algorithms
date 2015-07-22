@@ -292,6 +292,33 @@ all give zero for $x=0$, so can be said to work.
 Equation (40)-(42) give $-1$, which doesn't really
 match the description.  For $x = -2^b$, they all work as advertised.
 
+\vskip 0.08in \noindent [p 140] Working with $x+1$\hfil\break
+While Knuths expression (32) is a very cool trick for working out
+these expressions, one weakness is that it doesn't make $x + 1$
+particularly clean to express:
+$$
+ x + 1 = \cases{\alpha 1 0^a 0, &if $b = 0$;\cr
+                         \alpha 0 1^a 1 0^{b-1} 1, &otherwise.\cr} 
+$$
+But there are surely ways to use that
+to do interesting things:
+$$
+\eqalign{ 
+ x\, | \left(x + 1\right) = & \cases{\alpha 1 1^a 1, & if $b=0$;
+     \qquad [turn on the rightmost 0 bit]\cr
+    \alpha 0 1^a 1 0^{b-1} 1,  & otherwise. \cr} \cr
+ x\, \& \left(x + 1\right) = & \cases{\alpha 0^{a+1}, & if $b=0$;  
+   \quad \qquad [turn off the trailing 1s]\cr
+     \alpha 0 1^a 1 0^b, & otherwise. \qquad [or return $x$ if none] \cr} \cr
+ \bar x \, \& \left(x + 1\right) = & \cases{0^{\infty} 1 0^{a+1}, & if $b=0$;
+   \qquad [Replace the rightmost 0 with a 1, turn all other bits off]\cr
+   0^{\infty} 0^a 0 0^{b-1} 1, &otherwise.\cr}\cr
+ \bar x \, | \left(x + 1\right) = & \cases{1^{\infty} 1 0^a 0, & if $b=0$;
+   \qquad [Create 0s at the position of any trailing 1s and 1s elsewhere]\cr
+   1^{\infty} 1^a 1 1^b, & otherwise. \quad[Or all 1s if none]\cr}\cr
+}
+$$
+
 \vskip 0.08in \noindent [p 140] Why is it called the ruler function?\hfil\break
 Because if you want to draw a ruler with $k$ ticks (where $k$ is
 a power of 2), then the number of trailing 0s plus 1 is the size of the
