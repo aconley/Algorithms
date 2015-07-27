@@ -344,6 +344,13 @@ becomes $x \gets x \, \oplus \, y \, \oplus \, y = x \, \oplus \, x = x$,
 and $y \gets y$.  So this swaps the bits of $x$ and $y$ where $m$ is
 set without using another register.
 
+\vskip 0.08in \noindent {\bf Problem 2} They don't
+work in general for negative numbers.  As specific
+examples: for (i) $x = -2, y =-4$ gives $x \oplus y = 2$
+and $x\, |\, y = -2$; for (ii) $x=-2, y =4$ gives $x \, \& \, y = 4$
+and $x\, |\, y = -2$; for (iii) the same values give $| x - y | = 6$
+and $x \oplus y = -2$.  They are true for positive integers though.
+
 \vskip 0.08in \noindent {\bf Problem 4} Recall (from 16) that
 $-x = \bar x + 1$.  So $\bar x = -x - 1$, and hence $x^{CN} = x + 1 = x^S$.
 By (17), we have $x^{NC} = \overline{-x} = x - 1 = x^P$.
@@ -456,4 +463,54 @@ The point is then that a game with two piles of size $x$ and $y$ is
 the same as a game with one pile of size $x \oplus y$ -- if it's zero
 you lose, if it isn't you can win.  And you can repeat this by stacking
 on extra piles.
+
+\vskip 0.08in \noindent {\bf Problem 20} ({\it Gosper's hack})\hfil\break
+$x \, \& \, -x$ turns all other bits except the rightmost one off: for
+$x = \alpha 0 1^a 1 0^b$, $u \gets x \, \& \, -x = 0^{\infty} 0^a 1 0^b$.
+Then $v \gets x + u = \alpha 1 0^a 0 0^b$, replaces the rightmost
+run of 1s by zeros but puts a 1 before them.  The last bit is complicated, so
+piece by piece, $v \oplus x = 0^{\infty} 1 1^a 1 0$,
+$v \oplus x / u = 0^{\infty} 1 1^a 1$ -- it's the rightmost run of 1s with a 1 appended,
+then shifted all the way to the right.  Then two more shifts to the right removes
+two of the ones: $\left(v \oplus x / u\right) \gg 2 = 0^{\infty} 1^a$.
+Now, finally, $y \gets v + \left( \left(v \oplus x / u\right) \gg 2 \right)
+= \alpha 1 0^{b} 0 1^a$.  So, what is this?  It's the next larger number than $x$
+with the same number of 1s (that is $\nu x = \nu y$).
+
+\vskip 0.08in \noindent {\bf Problem 21} Start with the case where 
+there are trailing 0s (so $b > 0$ in 32).  Then what we want to
+do is shift the rightmost 1 one to the right: $y = \alpha 0 1^a 1 0^b$,
+$x = \alpha 0 1^1 0 1 0^{b-1}$, which means $x \gets y -  0^{\infty} 1 0^{b-1}$.
+But that's easy enough: $\left(y \, \& \,y\right) \gg 1 = 0^{\infty} 1 0^{b-1}$,
+or, putting it together: $x \gets y - \left( \left(y \,\& y\right)  \gg 1 \right)$.
+Note that the $\gg 1$ can be replaced by $ / \,2$.
+
+Now, if there are no trailing zeros, then $y = \alpha 0 1^a 1$, then
+we start having to mess with $\alpha$.  Basically, we need to 
+extract $\alpha$ and then figure out the right amount to subtract from it
+to keep the number of 1s right.  The first bit can be accomplished by $u \gets y \, \&
+\left(y + 1\right) = \alpha 0^{a+2}$.  But what's the
+right amount to subtract?  Well, we're going to need the rightmost
+1 bit in $\alpha$, which is $u \, \& \, -u$, then we need to shift it right by
+$a + 2$.  So we need to construct $0^{\infty} 1 0^{a+2}$ and divide by it.
+But this is $y \oplus \left(y + 1\right)$ -- so our recipe is
+$u \gets y \, \& \left(y + 1\right)$, $v \gets \left(y \oplus \left(y + 1\right)\right) + 1$,
+and $x \gets u - \left(u \, \& \, -u\right) / v$.
+
+These can be combined by branching on whether or not $y$ is even, but
+Knuth's answer gives a branch free version: $u \gets y \, \& \, \left(y + 1\right)$, 
+$v \gets  y \, \oplus \, \left(y + 1\right)$,
+$x \gets v - \left(u \, \& \, -u\right) / \left( v + 1 \right)$.
+
+\vskip 0.08in \noindent {\bf Problem 27} a) $x + x \oplus \left(x - 1\right) = 
+\left(\alpha 1 0^a 0 1^b\right)_2$. b) $\left(x + x \oplus \left(x - 1\right)\right) \, | \, 
+\left(x \oplus \left(x + 1\right)\right) = \left(\alpha 1 0^a 1 1^b\right)_2$.
+c) This is getting cumbersome; so let $y = \left(x - 1\right)$, $z = x \, \oplus \, 
+\left(x - 1\right) = x \, \oplus \, y$.  Then $y \, \& \, \left(x + z\right) =
+\left(\alpha 0 0^a 0 1^b\right)_2$. d) $y \, \oplus \, \left(x + z \right) =
+\left(0^{\infty} 1 1^a 0 0^b\right)_2$. e) $y \, \& \, \overline{x + z}$.
+f) $x \, \oplus \left(x + z\right)$.
+
+\vskip 0.08in \noindent {\bf Problem 28} What is $\bar x \, \& \left(x + 1\right)$?
+I did this in the notes: it sets the rightmost 0 to 1 and turns off all other bits.
 \end
