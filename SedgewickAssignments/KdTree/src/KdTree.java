@@ -9,6 +9,7 @@ public class KdTree {
   private static final double MAXVAL = 1.0;
 
   // Which direction each split is
+  //  So if horizontal, compare is on x, if VERT on y
   private enum Direction {
     HORIZONTAL, VERTICAL;
 
@@ -24,10 +25,9 @@ public class KdTree {
     private Node left;
     private Node right;
     private Point2D point;
-    private int size; // Number of points below
     private Direction dir;
 
-    private RectHV rect; // Used purely for drawing
+    private RectHV rect; // Enclosing rectangle
 
     public Node(Point2D point, Direction dir, RectHV rect) {
       this(point, dir, rect, null, null);
@@ -44,9 +44,6 @@ public class KdTree {
       this.rect = rect;
       this.point = point;
       this.dir = dir;
-      this.size = 1;
-      if (this.left != null) this.size += this.left.size;
-      if (this.right != null) this.size += this.right.size;
     }
 
     public int compareToPoint(Point2D other) {
@@ -84,20 +81,19 @@ public class KdTree {
 
   // Actual representation
   private Node rootNode;
+  private int nNodes;
 
   public KdTree() {
     rootNode = null;
+    nNodes = 0;
   }
 
   public boolean isEmpty() {
-    return rootNode == null;
+    return nNodes == 0;
   }
 
   public int size() {
-    if (isEmpty())
-      return 0;
-    else
-      return rootNode.size;
+    return nNodes;
   }
 
   // Now the hard stuff...
@@ -107,48 +103,54 @@ public class KdTree {
     if (rootNode == null) {
       RectHV baseRect = new RectHV(MINVAL, MINVAL, MAXVAL, MAXVAL);
       rootNode = new Node(p, Direction.HORIZONTAL, baseRect);
+      nNodes = 1;
     } else {
-      rootNode = insert(p, rootNode);
+      if (insert(p, rootNode))
+        nNodes += 1;
     }
   }
 
   // Insertion -not- at the root
-  private Node insert(Point2D p, Node x) {
-    if (x.point.equals(p)) // Point already present
-      return x; // Note that we don't use compareTo -- we want equality both dims
-    if (x.compareToPoint(p) > 0) {
-      // Insert to the left -- smaller x or smaller y, depending on dir
-      if (x.left == null) {
+  //  Returns true if actually inserted
+  private boolean insert(Point2D p, Node h) {
+    if (h.point.equals(p)) // Point already present
+      return false; // Note that we don't use compareTo -- we want equality both dims
+    if (h.compareToPoint(p) > 0) {
+      // Insert to the left -- smaller x or smaller y, depending on dir (HOR, VERT)
+      if (h.left == null) {
         // Special case so we can set enclosing rect
         RectHV newRect;
-        if (x.dir == Direction.VERTICAL) {
-          newRect = new RectHV(x.rect.xmin(), x.rect.ymin(),
-              x.point.x(), x.rect.ymax());
+        if (h.dir == Direction.VERTICAL) {
+          // Compared on y
+          newRect = new RectHV(h.rect.xmin(), h.rect.ymin(),
+              h.rect.xmax(), h.point.y());
         } else {
-          newRect = new RectHV(x.rect.xmin(), x.rect.ymin(),
-              x.rect.xmax(), x.point.y());
+          // Compared on x
+          newRect = new RectHV(h.rect.xmin(), h.rect.ymin(),
+              h.point.x(), h.rect.ymax());
         }
-        x.left = new Node(p, x.dir.otherDirection(), newRect);
+        h.left = new Node(p, h.dir.otherDirection(), newRect);
+        return true;
       } else {
-        x.left = insert(p, x.left);
+        return insert(p, h.left);
       }
     } else {
-      // And to the right -- larger x or y
-      if (x.right == null) {
+      // And to the right -- larger x or y for HOR, VERT
+      if (h.right == null) {
         RectHV newRect;
-        if (x.dir == Direction.VERTICAL) {
-          newRect = new RectHV(x.point.x(), x.rect.ymin(),
-              x.rect.xmax(), x.rect.ymax());
+        if (h.dir == Direction.VERTICAL) {
+          newRect = new RectHV(h.rect.xmin(), h.point.y(),
+              h.rect.xmax(), h.rect.ymax());
         } else {
-          newRect = new RectHV(x.rect.xmin(), x.point.y(),
-              x.rect.xmax(), x.rect.ymax());
+          newRect = new RectHV(h.point.x(), h.rect.ymin(),
+              h.rect.xmax(), h.rect.ymax());
         }
-        x.right = new Node(p, x.dir.otherDirection(), newRect);
+        h.right = new Node(p, h.dir.otherDirection(), newRect);
+        return true;
       } else {
-        x.right = insert(p, x.right);
+        return insert(p, h.right);
       }
     }
-    return x;
   }
 
   public boolean contains(Point2D p) {
@@ -192,11 +194,12 @@ public class KdTree {
     // And the dividing line
     StdDraw.setPenRadius(0.003);
     if (x.dir == Direction.HORIZONTAL) {
-      StdDraw.setPenColor(StdDraw.BLUE);
-      StdDraw.line(x.rect.xmin(), x.point.y(), x.rect.xmax(), x.point.y());
-    } else {
+      // This is actually a vertical line... the split is on x
       StdDraw.setPenColor(StdDraw.RED);
       StdDraw.line(x.point.x(), x.rect.ymin(), x.point.x(), x.rect.ymax());
+    } else {
+      StdDraw.setPenColor(StdDraw.BLUE);
+      StdDraw.line(x.rect.xmin(), x.point.y(), x.rect.xmax(), x.point.y());
     }
     draw(x.left);
     draw(x.right);
@@ -227,4 +230,64 @@ public class KdTree {
     range(rect, x.right, ret);
   }
 
+  private static class PointDist {
+    public Point2D point;
+    public double distSq;
+
+    public PointDist(Point2D p, double distSq) {
+      this.point = p;
+      this.distSq = distSq;
+    }
+  }
+
+  public Point2D nearest(Point2D p) {
+    if (p == null)
+      throw new NullPointerException("Point was null");
+    if (rootNode == null)
+      return null;
+    PointDist currBest = new PointDist(null, Double.MAX_VALUE);
+    nearest(p, rootNode, currBest);
+    return currBest.point;
+  }
+
+  private void nearest(Point2D p, Node h, PointDist currBest) {
+    double distSq = h.point.distanceSquaredTo(p);
+    if (distSq < currBest.distSq) {
+      currBest.point = h.point;
+      currBest.distSq = distSq;
+    }
+
+    if (h.left == null) {
+      if (h.right == null) {
+        return;
+      } else {
+        // right only
+        double rightDistSq = h.right.rect.distanceSquaredTo(p);
+        if (rightDistSq < currBest.distSq)
+          nearest(p, h.right, currBest);
+      }
+    } else {
+      if (h.right == null) {
+        // Left only
+        double leftDistSq = h.left.rect.distanceSquaredTo(p);
+        if (leftDistSq < currBest.distSq)
+          nearest(p, h.left, currBest);
+      } else {
+        // We have both; search most likely one first
+        double leftDistSq = h.left.rect.distanceSquaredTo(p);
+        double rightDistSq = h.right.rect.distanceSquaredTo(p);
+        if (leftDistSq < rightDistSq) {
+          if (leftDistSq < currBest.distSq)
+            nearest(p, h.left, currBest);
+          if (rightDistSq < currBest.distSq)
+            nearest(p, h.right, currBest);
+        } else {
+          if (rightDistSq < currBest.distSq)
+            nearest(p, h.right, currBest);
+          if (leftDistSq < currBest.distSq)
+            nearest(p, h.left, currBest);
+        }
+      }
+    }
+  }
 }
