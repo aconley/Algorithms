@@ -498,7 +498,7 @@ $u \gets y \, \& \left(y + 1\right)$, $v \gets \left(y \oplus \left(y + 1\right)
 and $x \gets u - \left(u \, \& \, -u\right) / v$.
 
 These can be combined by branching on whether or not $y$ is even, but
-Knuth's answer gives a branch free version: $u \gets y \, \& \, \left(y + 1\right)$, 
+Knuth's gives a branch free version: $u \gets y \, \& \, \left(y + 1\right)$, 
 $v \gets  y \, \oplus \, \left(y + 1\right)$,
 $x \gets v - \left(u \, \& \, -u\right) / \left( v + 1 \right)$.
 
@@ -510,19 +510,28 @@ b) The general rule for finding the successor of any lexicographic pattern $a_1 
 is to find the largest $j$ such that $a_j$ can be increased, increase
 $a_j$ by the smallest possible amount, and then complete the pattern
 in the lexicographically least way possible (\S7.2.1.2).  So -- how do we do that?
+
 The key here is that $\ldots010101$ is the largest possible value.  So we want
 to find the rightmost element that is out of position with respect to that.
 We can extract that bit by doing $z \gets x \oplus \mu_0$, $z \, \& \, -z$,
 where $\mu_0 = -1/3 = \ldots0101$.  Alternatively, we can extract and smear
-the right  with $z \oplus \left(z - 1\right)$.  If we add one to the latter, we'll
-get the position before the last out of place element... but that isn't quite what
-we want, because there might be 1s before that.  So, really, we want the
-set of 1s containing the rightmost out of place value -- note that the rightmost
+the right  with $z \oplus \left(z - 1\right)$.  This is the largest $j$ we can
+increase.
+
+However, we can't just add 1 at that position (which selects 
+the element just before the last out of place element) because there might be 1s 
+before that.  For example, $\ldots))))$ would give $z = \ldots 0011$,
+and if we just added one to that we would be ignoring the )s before
+that point.  So, really, we want the run of 1s containing the rightmost out 
+of place value.  Note, incidentally, that the rightmost
 out of place element will always be a 1. If it were a zero, there
 would have to be another 1 to its right to get a valid pattern.
-So if $u = z \oplus \left(z - 1\right)$, $v = x\, |\, u$, $w = v + 1$
-we get the 0 just before the out of place run increased by one.
-So, this is the increasing the rightmost $a_j$ by the smallest amount.
+Anyways, we can both increment by the least possible amount
+{\it and} preserve the pattern before that by doing 
+$u = z \oplus \left(z - 1\right)$, $v = x\, |\, u$, $w = v + 1$.
+So, this is the increasing the pattern by the smallest amount.
+As an example, for $x = ()(())() = 01001101$, $u = 00001111$,
+$v = 01001111$, $w = 01010000$.
 
 So now we need to complete the pattern in the least way possible --
 which basically means 0s followed by 1s.  What we more or less want
@@ -536,15 +545,18 @@ becomes how many 0s we need in the bits rightward of the rightmost
 which, according to 7.1.3.61 is equal to $1 + \nu v - n / 2$.  That
 may actually not be a bad way to approach it on MMIX, but it
 would be preferable to have something that doesn't depend on $n$.
+
 Recall that $u$ is a mask for the rightmost element out of place
 and all points to the right of it.  That's what we need to fill half with 0s
-and half with 1s.  So we compute $v \, \& \, {\bar w} \gg \left(\nu u \gg 1\right)$,
+and half with 1s.  So we can step back from $w$ and just 
+fill $u$ halfway by doing $v \, \& \, {\bar w} \gg \left(\nu u \gg 1\right)$,
 or, alternatively $v \, \& \, \bar{w} \gg \left(\nu \left(u \, \& \, \bar \mu_0\right)\right)$, or
 $v \, \& \, {\bar w} / \sqrt{u + 1}$, and add that to $w$.
 
 So, putting it together: $z = x \oplus \mu_0$, $u = z \oplus \left(z - 1 \right)$,
 $v = x\, |\, u$, $w = v + 1$, $y = w + \left(v \, \& \, {\bar w}\right) / \sqrt{u + 1}$.
-To actually implement this, you wouldn't want to do the division.
+To actually implement this, you wouldn't want to do the division, but rather
+use one of the other shift forms.
 
 \vskip 0.08in \noindent {\bf Problem 27} a) $x + x \oplus \left(x - 1\right) = 
 \left(\alpha 1 0^a 0 1^b\right)_2$. b) $\left(x + x \oplus \left(x - 1\right)\right) \, | \, 
