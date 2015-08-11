@@ -505,18 +505,19 @@ $x \gets v - \left(u \, \& \, -u\right) / \left( v + 1 \right)$.
 \vskip 0.08in\noindent {\bf Problem 23} ({\it Parenthesis Trace})\hfil\break
 a) The smallest trace is $(( \ldots (()) \ldots )) $, which is $m$ 0s followed
 by $m$ 1s, otherwise known as $2^m-1$.  The largest is $()()\ldots()$ which 
-is $m$ $01$s, which is $\left(2^{2m}-1\right)/3$. \hfil\break
-b) The general rule for finding the successor of any lexicographic pattern $a_1 \ldots a_n$
-is to find the largest $j$ such that $a_j$ can be increased, increase
+is $m$ $01$s, which is $\left(2^{2m}-1\right)/3$.
+
+\noindent b) The general rule for finding the successor of any lexicographic 
+pattern $a_1 \ldots a_n$ is to find the largest $j$ such that $a_j$ can be increased, increase
 $a_j$ by the smallest possible amount, and then complete the pattern
 in the lexicographically least way possible (\S7.2.1.2).  So -- how do we do that?
 
-The key here is that $\ldots010101$ is the largest possible value.  So we want
-to find the rightmost element that is out of position with respect to that.
-We can extract that bit by doing $z \gets x \oplus \mu_0$, $z \, \& \, -z$,
-where $\mu_0 = -1/3 = \ldots0101$.  Alternatively, we can extract and smear
-the right  with $z \oplus \left(z - 1\right)$.  This is the largest $j$ we can
-increase.
+The key here is that $\mu_0 =  -1/3 = \ldots010101$ is the largest possible value.  
+So we want to find the rightmost element that is out of position with respect to that, since
+we can increase anything less.  All elements that differ from $\mu_0$
+can be located by calculating $z \gets \mu_0 \, \oplus \, x$ and then selecting
+that position by either $z \, \& \, -z$ or by extracting and smearing right with
+$z \oplus \left(z - 1\right)$.
 
 However, we can't just add 1 at that position (which selects 
 the element just before the last out of place element) because there might be 1s 
@@ -541,22 +542,51 @@ then add that to $w$.  We can do this by selecting all the trailing 0s
 in $w$ using $w \& \left(w - 1\right) = v \& \bar w$ and then shifting
 the right number off, \'a la Gosper's hack.  So the the question
 becomes how many 0s we need in the bits rightward of the rightmost
-1 bit in $w$?  We need $\rho w + \nu w - n /2$ 0s in a $n$-bit word,
-which, according to 7.1.3.61 is equal to $1 + \nu v - n / 2$.  That
-may actually not be a bad way to approach it on MMIX, but it
-would be preferable to have something that doesn't depend on $n$.
+1 bit in $w$?  Well, we need the total number of either 0s or 1s
+to be equal to $n/2$ (which is equal to $\nu x$), so we could
+just compute $1 \ll \left(\nu x - \nu w - 1\right)$ and add that to $w$.
+That's actually not a bad way to do it if you precompute and save
+$\nu x - 1$, but Knuth gives a different, more mathematical solution
+that took me some effort to understand.
 
-Recall that $u$ is a mask for the rightmost element out of place
-and all points to the right of it.  That's what we need to fill half with 0s
-and half with 1s.  So we can step back from $w$ and just 
-fill $u$ halfway by doing $v \, \& \, {\bar w} \gg \left(\nu u \gg 1\right)$,
-or, alternatively $v \, \& \, \bar{w} \gg \left(\nu \left(u \, \& \, \bar \mu_0\right)\right)$, or
-$v \, \& \, {\bar w} / \sqrt{u + 1}$, and add that to $w$.
+The key is to write out the form that $x, v, w$ must have if $u$ has $k$ 1s:
+$$
+\eqalign{
+ x =& \alpha 0 1^a 1 1 \overbrace{01 \ldots 01}^{k-2}\cr
+ u =& 0^{\infty} 0 0^{a} 1^k\cr
+ v =& \alpha 0 1^a 1^k \cr
+ w =& \alpha 1 0^a 0^k \cr
+ v \& \bar{w} =& 0^{\infty} 0 1^a 1^k\cr
+}
+$$
+where $a \ge 0$.  Note that we can't have $x = \alpha 0 1^a 1 0 \ldots$
+because we would be opening a brace we never closed;
+that is $k must be even$. 
+Now, our goal is to fill out the last $a + k$ positions in $w$, but we have to
+preserve the same number of 0s and 1s in the final $1 + a + k$
+positions as we had in those positions in $x$.  Simply counting
+in $x$ gives $k / 2 + 1 + a$.  $w$ already has 1, so we need
+$k / 2 + a$.  $v \& \bar{w}$ has $a + k$, so if we can shift off $k/2$
+($v \& \bar{w} \gg k / 2$) that will give us what we want.
+
+How do we best compute $k/2$?  There are a number of methods.
+First, note that if $u$ has $k$ 1s, then $u = 2^k - 1$, so
+left shifting by $k/2$ is the same as computing $v \& \bar{w} / \sqrt{u + 1}$.
+However, this is a rather expensive expression to compute.
+An alternative is therefore to compute either $\nu \left(u \& \mu_0\right)$
+or $\nu \left(u \& \bar{\mu_0}\right)$ -- either gives the same answer,
+since $k$ is always even.
 
 So, putting it together: $z = x \oplus \mu_0$, $u = z \oplus \left(z - 1 \right)$,
 $v = x\, |\, u$, $w = v + 1$, $y = w + \left(v \, \& \, {\bar w}\right) / \sqrt{u + 1}$.
 To actually implement this, you wouldn't want to do the division, but rather
 use one of the other shift forms.
+
+\vskip 0.04in \noindent c) This is a straightforward translation of the $\nu\left(u \&
+\bar{\mu_0}\right)$ version:
+{\bf XOR z,x,mu0}; {\bf SUBU u,z,1}; {\bf XOR u,z,u}; {\bf OR v,x,u};
+{\bf ADDU w,v,1}; {\bf ANDN z,v,w}; {\bf SADD y,u,mu0};
+{\bf SRU y,z,y}; {\bf ADDU y,w,y}.
 
 \vskip 0.08in \noindent {\bf Problem 27} a) $x + x \oplus \left(x - 1\right) = 
 \left(\alpha 1 0^a 0 1^b\right)_2$. b) $\left(x + x \oplus \left(x - 1\right)\right) \, | \, 
