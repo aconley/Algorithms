@@ -404,7 +404,10 @@ because $y = 0$.
 \noindent [p 143] Note that {\tt MMIX} has a sideways add intrinsic
 ({\tt SADD}) -- which isn't actually that exotic.  x86 has such an intrinsic,
 for example, in recent (SSE4) architectures, as well as the number of
-leading zeros intrinsic.  Even {\tt MMIX} doesn't have that...
+leading zeros intrinsic.  Even {\tt MMIX} doesn't have that...  What
+is exotic, however, is that {\tt MMIX}s {\bf SADD x,y,z}
+computes $x \gets \nu \! \left(y \& \bar{z}\right)$, which is
+taken advantage of in several of the formulae.
 
 \vskip 0.1in \noindent {\bf Bit reversal}
 
@@ -433,8 +436,9 @@ $z \gets \left(x \, \& \, \mu_2\right) \ll 4 = 0$,
 and $x = 6 = \left(\,0\,0\,0\,0\,0\,1\,1\,0\right)_2$,
 which is indeed the bit reversal of 96.
 
-\vskip 0.1in \noindent {\bf Bit swapping}
+\break
 
+\vskip 0.1in \noindent {\bf Bit swapping}
 \noindent [p 144] How does (67) work?\hfil\break
 Well, $y$ gets the new j$^{th}$ elements with everything
 else 0, $z$ gets the new i$^{th}$ element, again with
@@ -455,15 +459,18 @@ Thus, this chain sets $x_i = x_j$.  The same logic applies
 to $x_j$, so this does indeed swap the bits.
 
 \vskip 0.08in \noindent [p 150] Notes on (84): $x^{\prime} = 
-\left(x - \chi\right) \, \& \, x$\hfil\break
+\left(x - \chi\right) \, \& \, \chi$\hfil\break
 You know it must be non-obvious when Knuth actually explains
 the derivation...  One note: the replacement of $\left( \bar \chi + 1\right)$
 with $-\chi$ is the well-known `negate all the bits and add one is the same
-as sign flipping' rule for 2s complement signed integers.
+as sign flipping' rule for 2s complement signed integers.  The $\& \chi$
+part is because $x | \bar chi = x - \chi$ turns on lots of additional
+bits not in $\chi$ -- in fact, all of them, in addition to the bits already
+set in $x$.  So we have to turn those extra bits off.
 
 This can be extended to larger sets by treating several words as
 one contiguous number.  Addition and subtraction of such numbers 
-is discussed in {\t Hackers Delight} -- the issue is more or less
+is discussed in {\it Hackers Delight} -- the issue is more or less
 how to detect overflow so effects can propagate across word
 boundaries.
 
