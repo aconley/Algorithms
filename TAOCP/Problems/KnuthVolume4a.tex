@@ -543,11 +543,13 @@ in $w$ using $w \& \left(w - 1\right) = v \& \bar w$ and then shifting
 the right number off, \'a la Gosper's hack.  So the the question
 becomes how many 0s we need in the bits rightward of the rightmost
 1 bit in $w$?  Well, we need the total number of either 0s or 1s
-to be equal to $n/2$ (which is equal to $\nu x$), so we could
-just compute $1 \ll \left(\nu x - \nu w - 1\right)$ and add that to $w$.
+to be equal to $n/2$ (which is equal to $\nu x$), so if we
+were working with a $d$ bit word, we could just compute
+$-1 \gg \left(d - \nu x + \nu w \right)$ and add that to $w$.
 That's actually not a bad way to do it if you precompute and save
-$\nu x - 1$, but Knuth gives a different, more mathematical solution
-that took me some effort to understand.
+$\nu x - 1$, but there's something unsatisfying about depending on $d$.
+Knuth gives a different, more mathematical solution that doesn't
+have this problem that took me some effort to understand.
 
 The key is to write out the form that $x, v, w$ must have if $u$ has $k$ 1s:
 $$
@@ -582,11 +584,26 @@ $v = x\, |\, u$, $w = v + 1$, $y = w + \left(v \, \& \, {\bar w}\right) / \sqrt{
 To actually implement this, you wouldn't want to do the division, but rather
 use one of the other shift forms.
 
+So how does this work if we are trying to work with a limited number
+of bits?  For example, if we want to work with 52 bits in a 64 bit word?
+One easy solution is to build a mask of the upper 12 bits and as soon
+as that anded with $y$ is non-zero we are done.  But what happens
+in the formula?  Well, this causes $x \oplus \mu_0$ to have a 1 bit
+in an odd position, which means that $u + 1$ is no longer a power of 4,
+and so the division by $\sqrt{u+1}$ has strange results.  The 
+$\nu\!\left(u \& \bar{\mu_0}\right)$ version produces an invalid pattern
+with a one bit beyond the desired positions and more ones than desired.
+
 \vskip 0.04in \noindent c) This is a straightforward translation of the $\nu\left(u \&
 \bar{\mu_0}\right)$ version:
 {\bf XOR z,x,mu0}; {\bf SUBU u,z,1}; {\bf XOR u,z,u}; {\bf OR v,x,u};
 {\bf ADDU w,v,1}; {\bf ANDN z,v,w}; {\bf SADD y,u,mu0};
-{\bf SRU y,z,y}; {\bf ADDU y,w,y}.
+{\bf SRU y,z,y}; {\bf ADDU y,w,y}.  As mentioned above, if one is
+working with fewer than the full 64 bits, just create a mask with 0s
+in the allowed positions and 1s elsewhere ($-1 \ll n$ for $n$ desired bits),
+AND it with the pattern, and stop via branch if that isn't 0:
+{\tt SLU mask,-1,n}; {\tt AND done,y,mask}, then branch somewhere else if {\tt done} is
+non-zero.
 
 \vskip 0.08in \noindent {\bf Problem 27} a) $x + x \oplus \left(x - 1\right) = 
 \left(\alpha 1 0^a 0 1^b\right)_2$. b) $\left(x + x \oplus \left(x - 1\right)\right) \, | \, 
@@ -601,7 +618,7 @@ f) $x \, \oplus \left(x + z\right)$.
 I did this in the notes: it sets the rightmost 0 to 1 and turns off all other bits.
 
 \vskip 0.08in \noindent {\bf Problem 30} A very simple solution is to add 
-{\tt CSZ rho, x, 64} to set it to 64 in that
+{\tt CSZ rho,x,64} to set it to 64 in that
 case.  Knuth gives a more sophisticated solution.  For the table look-up
 version, one simply has to put the right value (8, as it happens) 
 in the 0 position in the table.
@@ -612,9 +629,9 @@ be a good representation of the numbers people actually want to
 compute $\rho$ for.
 
 \vskip 0.08in \noindent {\bf Problem 38} The MMIX instructions are:
-{\tt SRU t,x,1}, {\tt OR y,x,t}, {\tt SRU t,y,2}, {\tt OR, y,y,t}, {\tt SRU t,y,4},
-{\tt OR, y,y,t}, {\tt SRU t,y,8}, {\tt OR y,y,t}, \dots, {\tt SRU t,y,32},
-{\tt OR y,y,t}, {\tt SRU t,y,1}, {\tt SUBU y,y,t}, which takes 14$\upsilon$.
+{\tt SRU t,x,1}; {\tt OR y,x,t}; {\tt SRU t,y,2}; {\tt OR, y,y,t}; {\tt SRU t,y,4};
+{\tt OR, y,y,t}; {\tt SRU t,y,8}; {\tt OR y,y,t}; \dots, {\tt SRU t,y,32};
+{\tt OR y,y,t}; {\tt SRU t,y,1}; {\tt SUBU y,y,t}, which takes 14$\upsilon$.
 
 However, there's a potentially faster solution not given by Knuth, which
 is to reverse using (66), extract using (37), and then reverse again.
