@@ -645,4 +645,33 @@ general solution, but on MMIX one can just reverse as in the
 previous problem, apply (57), and reverse again.  This is again
 potentially faster, depending on whether one needs to load {\tt rev}.
 
+\vskip 0.08in \noindent {\bf Problem 40} First, suppose that 
+$\lambda x = \lambda y = k$ for $x$ and $y$ not equal to zero.
+Then $x = \left(1 \alpha \right)_2$
+and $y = \left(1 \beta \right)_2$ for some $| \alpha | = | \beta | = x$.
+Well, $x \oplus y < 2^k < x \& y$.  Now suppose that $x < y$.
+Then we have $x \oplus y \geq 2^k \ge x \& y$.  We can just swap
+the arguments to prove the same thing for $x > y$.
+That only leaves $x = y = 0$, in which case $x \oplus y = x \& y$.
+Now, as for the quick test, we can only have $\lambda x < \lambda y$
+if $x < \bar{x} \& y$, since that will always have a 1 somewhere
+left of $\lambda x$.
+
+\vskip 0.08in {\bf Problem 43} Start by implementing (63): 
+{\bf SET  nu,0}; {\bf SET  y,0}; {\bf BZ  y,Done}; {\bf 1B ADDU  nu,nu,1};
+{\bf SUBU  t,y,1}; {\bf AND  y,y,t}; {\bf PBNZ  y,1B} followed by {\bf Done}.
+The loop will be executed $\nu   x$ times, so the total cost is 
+$\left(5 + 4 \nu   x \right) \upsilon$.
+
+Next, implement (62): {\bf SRU  t,x,1}; {\bf AND  t,t,mu0}, {\bf SUBU  y,x,t};
+{\bf SRU  t,y,2}; {\bf AND  t,t,mu1}; {\bf AND  y,y,mu1}; {\bf ADDU  y,y,t};
+{\bf SRU  t,y,4}; {\bf ADDU  y,y,t}; {\bf AND  y,y,mu2}; {\bf MULU  y,a,y};
+{\bf SRU  nu,y,56}.  Assuming we don't have to load any of the constants,
+this takes $21\upsilon$.  So (62) ties for $\nu   x = 4$, and wins for all
+smaller values.
+
+Knuth points out an improved solution that replaces that last two steps of (62)
+with {\bf SRU  t,y,8}; {\bf ADDU  y,y,t}; {\bf SRU  t,y,16}; {\bf ADDU  y,y,t};
+{\bf SRU  t,y,32}; {\bf ADDU  y,y,t}; {\bf AND y,y,\#ff} which reduces the cost
+to $18\upsilon$, which only eliminates the tie case.
 \end
