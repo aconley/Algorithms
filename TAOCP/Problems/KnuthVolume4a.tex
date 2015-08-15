@@ -657,7 +657,7 @@ Now, as for the quick test, we can only have $\lambda x < \lambda y$
 if $x < \bar{x} \& y$, since that will always have a 1 somewhere
 left of $\lambda x$.
 
-\vskip 0.08in {\bf Problem 43} Start by implementing (63): 
+\vskip 0.08in \noindent {\bf Problem 43} Start by implementing (63): 
 {\bf SET  nu,0}; {\bf SET  y,0}; {\bf BZ  y,Done}; {\bf 1B ADDU  nu,nu,1};
 {\bf SUBU  t,y,1}; {\bf AND  y,y,t}; {\bf PBNZ  y,1B} followed by {\bf Done}.
 The loop will be executed $\nu   x$ times, so the total cost is 
@@ -674,4 +674,47 @@ Knuth points out an improved solution that replaces that last two steps of (62)
 with {\bf SRU  t,y,8}; {\bf ADDU  y,y,t}; {\bf SRU  t,y,16}; {\bf ADDU  y,y,t};
 {\bf SRU  t,y,32}; {\bf ADDU  y,y,t}; {\bf AND y,y,\#ff} which reduces the cost
 to $18\upsilon$, which only eliminates the tie case.
+
+\vskip 0.08in \noindent {\bf Problem 47} Yes, and rather straightforwardly:
+$y \gets \left(x \gg \delta\right) \& \,\theta$, $z \gets \left(x\, \& \,\theta\right) \ll \delta$,
+$x \gets \left(x\, \& \, m\right)\,|\,y\,|\,z$, where ${\bar m} = \theta \, | \,
+\left(\theta \ll \delta\right)$.
+
+\vskip 0.08in \noindent {\bf Problem 79} Consider $x - 1$. 
+If $x$ ends in a 1, this will just turn that bit off, which is still
+a subset of $\chi$.  If $x$ doesn't end in a 1, this will
+simply propagate up $x$ flipping 0s to 1s until it encounters it's first 1, which
+it will flip to 0.  The resulting number probably won't be a subset of $\chi$,
+so we just have to mask off the parts we don't want: $x_{\prime} = 
+\left(x - 1\right) \, \& \, \chi$.
+
+\vskip 0.08in \noindent {\bf Problem 80} We want to just take turn flipping off
+bits of $\chi$.  So we want to identify the rightmost bit in $\chi$ we haven't
+yet already tried flipping off.  We'll represent all the unvisited bits of $\chi$
+as $x$.  Thus: start with $x \gets \chi$ (none visited), $t \gets x \, \& \, -x$,
+(identify rightmost bit) visit $\chi - t$, then $x \gets x - t$.  Stop when $x = 0$.
+
+\vskip 0.08in \noindent {\bf Problem 93} $x - y = \left(x \oplus y\right) -
+\left(\left(\bar{x} \, \& \, y\right) \gg 1\right)$; where they are both 1 shut
+off the resulting bit.  Where $x$ is 1 and $y$ is 0, leave it alone,
+but where $x$ is 0 and $y$ is 1, subtract that from the bit one more to the right.
+
+\vskip 0.08in \noindent {\bf Problem 143} ({\it Knights moves})\hfil\break
+This is actually simpler than it sounds.  Consider moving two steps up
+and one left.  That's the same as left shifting by 17 positions.
+However, we have to exclude all pieces that are in the left most column,
+or the top two rows.  We don't have to worry about the top two rows --
+anything there just gets shifted off.  So therefore, the reachable positions
+for this particular type of move are $\left(x \,\&\,k_1\right) \ll 17$,
+where $k_1 = {\bf \#7f7f7f7f7f7f7f7f}$.  Similarly, down 2 and to the right is
+$\left(x \ll 17\right) \, \& \, k_1$.  Up one and left 2 is a 10 shift:
+$\left(x \ll 10\right) \, \& \, k_2$ where $k_2 = {\bf \#3f3f3f3f3f3f3f3f}$,
+and the same mirror.  Up one and left right is a 6 shift:
+$\left(x \ll 6\right) \, \& \, k_3$ where $k_3 = {\bf \#fcfcfcfcfcfcfcfc}$,
+and finally up two and right 1 is a 15 shift with a constant $k_4 = {\bf \#fefefefefefefefe}$.
+Putting it all together is a bit tedious: $f\left(x\right) = \left(\left(x\&k_1\right) \ll 17\right) |
+ \left(\left(x \gg 17\right)\&k_1\right) |\allowbreak \left(\left(x\&k_2\right)\ll 10\right) | \allowbreak
+\left(\left(x\gg10\right)\&k_2\right) | \left(\left(x\&k_3\right)\ll6\right) |
+\left(\left(x\gg6\right) \& k_3\right) | \left(\left(x\&k_4\right)\ll15\right) |
+\left(\left(x\gg15\right)\&k_4\right)$.
 \end
