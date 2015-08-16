@@ -717,4 +717,29 @@ Putting it all together is a bit tedious: $f\left(x\right) = \left(\left(x\&k_1\
 \left(\left(x\gg10\right)\&k_2\right) | \left(\left(x\&k_3\right)\ll6\right) |
 \left(\left(x\gg6\right) \& k_3\right) | \left(\left(x\&k_4\right)\ll15\right) |
 \left(\left(x\gg15\right)\&k_4\right)$.
+
+\topglue 0.5in
+\centerline{\tt Knuth 7.1.4}
+\vskip 0.3in
+
+\noindent {\bf Problem 3} There are 2 with size 1 (the constants truth and falsehood),
+none with size 2 (need one for each result, but then there's no way to branch),
+and $x_i$ and $\bar x_i$ for each $i$, so $2n + 2$.
+
+\vskip 0.08in \noindent {\bf Problem 5} $\overline{f\left(\bar x_1, \ldots, \bar x_n\right)}$ --
+which is not the same as $f$.
+
+\vskip 0.08in \noindent {\bf Problem 6} There doesn't seem to be any completely
+trivial way to do this -- it isn't, for example, the reverse.  But you can read
+it off logically by decorating each value with the values of the $x$s:
+$1 0 1 1 0 0 0 1 1 0 0 1 0 0 1 1$.  This has beads almost all the way down:
+$1011000110010011, 10110001, 10010011, 1011, 0001, 1001, 0011, 01, 10$. 
+
+\vskip 0.08in \noindent {\bf Problem 12} a) An independent set is a set
+of vertices in a graph such that no two elements in the set have a edge
+between them.  A maximal independent set is a maximal set that is
+not a subset of any other independent set.  Thus, every edge of the graph must have
+one, and only end, in the set. The first kernel condition thus implies that the kernel 
+is independent, and the second that it is maximal.\hfil\break
+b) For $n$ even, the two sets of alternating vertices.  For $n$ odd, there are none.
 \end

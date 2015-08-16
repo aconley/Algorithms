@@ -572,6 +572,64 @@ Also, ${\tt ANDN\ tt,t,tt}$, which is ${\tt tt} \gets {\tt t \, \& \, \overline{
 Examination of (32) and (34) shows this is equivalent to (37): it extracts the
 rightmost 1, and thus is equivalent to $2^u = 2^{\rho\left(t\right)}$.
 
+\vfil\break
+
+\vskip 0.3in
+\centerline{\tt Section 7.1.4: Binary Decision Diagrams}
+\vskip0.2in
+
+\noindent [p 204] Why (3) gives the truth tables of functions that
+depend on $x_1$: because the first two elements of each truth table
+are $f\left(0, x_2\right)$ (00, 01) and the second two are $f\left(1, x_2\right)$
+(10, 11).  If the two halves are the same, then clearly $f$ doesn't
+depend on $x_1$.
+
+\vskip 0.08in \noindent [p205] Correspondence between beads and BDDs.\hfil\break
+Consider diagram (5): the top level is the full truth table before any
+decisions are made.  Chose $x_1 = 0$ and going right restricts
+the truth table to what is shown.  The critical point here is that truth
+tables that are not beads don't show up, because those correspond
+to variables that {\it don't matter}, at least given the previous choices.
+
+\vskip 0.08in \noindent [p 205] Working out the BDD for the ``more-or-less-random''
+function.\hfil\break
+We only skip a variable when the corresponding truth table isn't a bead.  Since
+the full truth table isn't a bead, therefore the first node is on variable 1, and
+since both halves are also beads in their own right, they will both be on
+variable 2.  The $x_2 = 0$ branch is also a bead (11001001) so we will
+get 3 nodes for that branch.  But the $x_2 = 1$ branch is not a bead
+(0011), so we don't need $x_3$ and can just hook up true/false sinks, etc.
+
+\noindent
+{\bf BDD Virtues}
+
+\noindent [p 206] The list of virtues is somewhat meaningless unless there is something
+to compare it to.  So, how about just storing the truth table?  Evaluating
+$f\left(x\right)$ is certainly fast -- it just amounts to memory lookup, probably
+using bit-packing in the style of 7.1.3.(23).  The issue is that directly
+storing the truth table can really take up a lot of space compared to a BDD.
+For `random' truth tables BDDs don't have an advantage, but for the
+sort of things encountered in practice it can make a very large difference,
+at least once the number of variables becomes large.  
+
+Consider (12): these are functions of 6 variables, so the truth table is $2^6$ bits
+in length, which is just one octabyte.  Hence, it is massively more efficient
+to just store the truth table.  Consider the maximal independent sets of the
+49 `united states' as in (17); that has 780 nodes, so takes $780 \times 8 = 6240$
+bytes.  Representing the truth table for 49 variables requires $2^49 / 2^3 = 2^46$
+bytes, which is spectacularly larger.  The point being that BDDs can stop early
+once something evaluates to true or false, the truth table can't.  If, for example,
+the first five variables force a function of 32 variables to be false, the BDD
+can stop there, while the truth table can't.  And sharing subtables can save
+significant space as well.
+
+The other big win is composing BDDs.  Combining binary functions with
+logical operations is easier with truth tables (e.g., $h\left(x_1, \ldots, x_n\right)
+= f\left(x_1, \ldots, x_n\right) \land g\left(x_1, \ldots, x_n\right)$), but
+composing them (e.g., $h\left(x_1, \ldots, x_n\right) = f\left(x_1, \ldots,
+g\left(x_1, \ldots, x_n\right), \ldots, x_n\right)$) is not so easy, and 
+that corresponds to the way that humans, at least, like to build up complicated
+functions.
 
 \vfil\break
 \topglue 0.5in
