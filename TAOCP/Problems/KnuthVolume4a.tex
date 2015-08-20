@@ -735,6 +735,16 @@ it off logically by decorating each value with the values of the $x$s:
 $1 0 1 1 0 0 0 1 1 0 0 1 0 0 1 1$.  This has beads almost all the way down:
 $1011000110010011, 10110001, 10010011, 1011, 0001, 1001, 0011, 01, 10$. 
 
+\vskip 0.08in \noindent {\bf Problem 9} Start with $I_{s-1}$.  If the 
+variable associated with that node isn't 1 (e.g., $v_k > 1$) set
+all the $x_j$ for $1 \le j < v_k$ to one.  Then, for each node, unless
+$h_k$ takes you to node $1$ (which would force the function to evaluate
+to 1), set $v_k \gets 1$ and go to $h_k$.
+If it does, set $v_k \gets 0$ and go to $l_k$, in both cases filling
+in missing variables as in the first step.  Stop when you reach
+$I_0$.  Note that finding the largest value such that $f=1$ is similar
+except you avoid the $h_k = 0$ branch.
+
 \vskip 0.08in \noindent {\bf Problem 12} a) An independent set is a set
 of vertices in a graph such that no two elements in the set have a edge
 between them.  A maximal independent set is a maximal set that is
