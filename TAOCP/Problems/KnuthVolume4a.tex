@@ -743,7 +743,9 @@ to 1), set $v_k \gets 1$ and go to $h_k$.
 If it does, set $v_k \gets 0$ and go to $l_k$, in both cases filling
 in missing variables as in the first step.  Stop when you reach
 $I_0$.  Note that finding the largest value such that $f=1$ is similar
-except you avoid the $h_k = 0$ branch.
+except you avoid the $h_k = 0$ branch.  Also note that this depends on
+the BDD being reduced; if it isn't you can't tell if taking a low branch will
+leave you stuck in a false.
 
 \vskip 0.08in \noindent {\bf Problem 12} a) An independent set is a set
 of vertices in a graph such that no two elements in the set have a edge
@@ -752,4 +754,29 @@ not a subset of any other independent set.  Thus, every edge of the graph must h
 one, and only end, in the set. The first kernel condition thus implies that the kernel 
 is independent, and the second that it is maximal.\hfil\break
 b) For $n$ even, the two sets of alternating vertices.  For $n$ odd, there are none.
+
+\vskip 0.08in \noindent {\bf Problem 18} We start with
+$W = \left(5, 4, 4, 4, 0\right)$, $m = \left(0, \ldots\right)$,  $k \gets 2$,
+and then {\bf B3} starts with
+$v \gets 4$, $l \gets 0$, $h \gets 1$, $t_2 \gets 0$, and $m \gets w_4 = 4$,
+$m_2 \gets 4$, $t_2 \gets 1$.  For $k \gets 3$, $v \gets 4$, $l \gets 1$,
+$h \gets 0$, $m_3 \gets m_1 + W_5 - W_5 = 0$, $t_3 = 0$.
+For $k \gets 4$, $v \gets 3$, $l \gets 3$, $h \gets 2$,
+$m_4 \gets m_3 + W_4 - W_4 = 0$, $m \gets m_2 + W_4 - W_4 + w_3 = 
+4 - 3 = 1$, and $m > m_4$ so $t_4 \gets 1$.   Now for $k = 5$,
+$v \gets 3$, $l \gets 1$, $h \gets 0$, and $m_5 = 
+{\rm max}\left(m_1 + W_4 - W_5, m_0 + W_4 - W_5 + w_3\right) = 
+4$ with $t_5 = 0$, and $k=6$ does $m_6 \gets w_2 + W_3 - W_5 = 2$,
+$t_6 \gets 1$.  Continuing $m_7 \gets 4$, $t_7 \gets 0$, $m_8 \gets 4$,
+$t_8 \gets 0$.  Thus we have $m \gets \left(0, 4, 0, 0, 4, 2, 4, 4\right)$
+and $t \gets \left(1, 0, 1, 0, 1, 0, 0\right)$ (recalling that the first entry
+is $t_2$).
+
+Now {\bf B4} does
+$j \gets 0$, $k \gets 8$.  The first step is $0 < 0$, which is not true, so $j \gets 1$
+and $x_1 \gets t_8 = 0$ with $k \gets 7$.  Next $j \gets 2$, $x_2 \gets t_7 = 0$,
+$k \gets 5$.  Then $j \gets 3$, $x_3 \gets t_5 = 0$, $k \gets 1$.  Now $v_1 - 1 = 0$,
+so $ j > v_k - 1$, $j \gets 4$, $x_4 \gets t_1 = 1$, $k \gets h_1 = 1$, but
+$j = n = 4$ so we stop, and $x = 0001$.
+
 \end
