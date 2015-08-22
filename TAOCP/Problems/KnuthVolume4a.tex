@@ -755,6 +755,26 @@ one, and only end, in the set. The first kernel condition thus implies that the 
 is independent, and the second that it is maximal.\hfil\break
 b) For $n$ even, the two sets of alternating vertices.  For $n$ odd, there are none.
 
+\vskip 0.08in \noindent {\bf Problem 16} Generate all solution vectors:
+Basically, just take every branch that doesn't lead immediately to falsehood.
+Whenever you hit truth, output the solution.  This is quite simple if you do in 
+recursively, building up the bit vector in accumulators.  If you want to be more
+efficient by not keeping many copies of the bit vector (which may be important
+in large BDDs), then you need to carry along an index of what variable you
+are on.
+
+In slightly more detail, call ${\rm visit}\left(1, s-1\right)$ (unless the
+entire BDD is simply falsehood), where ${\rm visit}\left(i, k\right)$ 
+does the following: if $i < v_k$, then we have skipped some variables.
+So we need to visit both branches by first doing $x_i \gets 0$,
+call ${\rm visit}\left(i+1, k\right)$, then $x_i \gets 1$, ${\rm visit}
+\left(i + 1, k\right)$.  Note that we haven't moved on to the next node,
+so we'll keep hitting this node until $i = v_k$.  Either way we got there,
+if $k$ is the sink (truth) node, visit $x$.  Otherwise, do 
+$x_i \gets 0$, ${\rm visit}\left(i + 1, l_k\right)$ (visit LO),
+then $x_i \gets 1$, ${\rm visit}\left(i + 1, h_k\right)$ (visit HI).
+This manages to sound more complicated than it is.
+
 \vskip 0.08in \noindent {\bf Problem 18} We start with
 $W = \left(5, 4, 4, 4, 0\right)$, $m = \left(0, \ldots\right)$,  $k \gets 2$,
 and then {\bf B3} starts with
@@ -777,6 +797,10 @@ $j \gets 0$, $k \gets 8$.  The first step is $0 < 0$, which is not true, so $j \
 and $x_1 \gets t_8 = 0$ with $k \gets 7$.  Next $j \gets 2$, $x_2 \gets t_7 = 0$,
 $k \gets 5$.  Then $j \gets 3$, $x_3 \gets t_5 = 0$, $k \gets 1$.  Now $v_1 - 1 = 0$,
 so $ j > v_k - 1$, $j \gets 4$, $x_4 \gets t_1 = 1$, $k \gets h_1 = 1$, but
-$j = n = 4$ so we stop, and $x = 0001$.
+$j = n = 4$ so we stop, and $x = 0001$.  That wasn't all that illuminating, really;
+see the notes for a better explanation of what this is doing.
+
+\vskip 0.08in \noindent {\bf Problem 21} This is trivial; to find the minimum
+weight solution, just flip all the signs of the $w$s (weights) and run Algorithm~B.
 
 \end
