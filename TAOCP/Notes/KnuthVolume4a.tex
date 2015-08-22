@@ -600,8 +600,7 @@ variable 2.  The $x_2 = 0$ branch is also a bead (11001001) so we will
 get 3 nodes for that branch.  But the $x_2 = 1$ branch is not a bead
 (0011), so we don't need $x_3$ and can just hook up true/false sinks, etc.
 
-\noindent
-{\bf BDD Virtues}
+\vskip 0.08in \noindent {\bf BDD Virtues}
 
 \noindent [p 206] The list of virtues is somewhat meaningless unless there is something
 to compare it to.  So, how about just storing the truth table?  Evaluating
@@ -638,6 +637,30 @@ on $x_3$ or $x_4$, or the leftmost pair of 5 boxes in the independent
 sets example (12), where the leftmost one gets 2 for skipping variable 6
 on the LO chain and 1 by not skipping 6 on the HI chain, and the one
 next to that gets 2 from the LO chain connecting to true.
+
+\noindent [p 209] {\bf Algorithm B} ({\it Solutions of Maximum Weight})\hfil\break
+Working through the example (problem~18) wasn't that helpful, but the
+algorithm isn't that hard to understand if you just think about how to
+combine optimum sub-problems.  The idea is that each node in a diagram,
+or instruction in the sequential list form, corresponds to a bead.
+The LO branch corresponds to setting $x_k \gets 0$ and hence
+has the same weight as the LO branch, while taking the HI branch
+sets $x_k \gets 1$ and has a weight equal to that of the high branch
+plus $w_k$.  $m_k$ corresponds to the current weight, $t_k$ to
+whether we took LO or HI, and $W_i$ provides a way to handle
+the situation where we skip a few variables (like skipping 3 and 4
+in diagram 6 in the rightmost branch).  So step 3 is all about moving up
+the BDD choosing the best sub-branch at each step, then 4 is about
+unwinding that chain back down the globally best one.
+
+\vskip 0.08in \noindent {\bf Friendly functions}
+
+\noindent [p 213] Constraint on the maximum size of the BDD for
+a symmetric function: the number of nodes in the `body' is
+$1 + 2 + \ldots + n = n \left(n + 1\right) / 2 = {n + 1 \choose 2}$,
+and we only need one copy each of truth and falsehood, since
+we share in BDDs.  So the maximum size is ${n + 1 \choose 2} + 2$.
+
 
 \vfil\break
 \topglue 0.5in
