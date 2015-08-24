@@ -803,4 +803,62 @@ see the notes for a better explanation of what this is doing.
 \vskip 0.08in \noindent {\bf Problem 21} This is trivial; to find the minimum
 weight solution, just flip all the signs of the $w$s (weights) and run Algorithm~B.
 
+\vskip 0.08in \noindent {\bf Problem 53} ({\it Reduction to BDD})\hfil \break
+As advertised, step R1 of Algorithm R is a depth first search where
+the HI node is visited first, and AUX is initially used to hold the stack.
+
+If the nodes are labeled $a, b, c, d, e, f, g$ in tree order (so $a$ is the
+root, $d$ the leftmost bottom node, $g$ the rightmost), then after
+visiting $f$, {\tt AUX(f) = }$b$.
+
+So we have ${\tt V} = \left[1, 2, 2, 3, 3, 3\right]$, ${\tt LO} = \left[b, d, f, 0, 0, 0, 1\right]$,
+${\tt HI} = \left[c, e, g, 0, 1, 1, 1\right]$ in the order $a, b, c, d, e, f$.
+{\tt AUX} has two extra entries for 0 and 1.  The first step sets
+${\tt AUX} = \left[-1, 0, 0, 0, 0, 0, -1, -1\right]$ in the order $a, b, c, d, e, f, 0, 1$,
+and ${\tt HEAD} = \left[-1, -1, -1\right]$.  Then we set $s \gets a$ and begin
+the real work of step R1.
+
+The first step does $p \gets a$, $s \gets \sim \left(-1\right) = 0$, where $\sim$
+is bitwise negation.   This is followed by ${\tt AUX}\left(a\right) \gets {\tt HEAD}\left(1\right) = -1$
+and ${\tt HEAD}\left(1\right) \gets \sim a$.  Next, ${\tt LO}\left(a\right) = b$,
+and we don't know what ${\tt AUX}\left(b\right)$ is, but we do know it's $>0$.
+The same holds true for ${\tt HI}\left(a\right)$, and so both of the optional steps
+execute, which has the net effect  ${\tt AUX}\left(b\right) \gets \sim s = -1$,
+${\tt AUX}\left(c\right) = \sim b$, and $s \gets c$.  Altogether then,
+${\tt AUX} = \left[ -1, -1, \sim b, >0, >0, >0, >0, -1, -1\right]$
+and ${\tt HEAD} = \left[\sim a, -1, -1\right]$.
+
+Next, $p \gets c$, $s \gets b$, ${\tt AUX}\left(c\right) \gets -1$, ${\tt HEAD}\left(2\right) \gets
+\sim c$, and the extra steps set ${\tt AUX}\left(f\right) \gets \sim b$,
+${\tt AUX}\left(g\right) \gets \sim f$, $s \gets g$.  We now have
+${\tt AUX} = \left[ -1, -1, -1, >0, >0, \sim b, \sim f, -1, -1\right]$
+and ${\tt HEAD} = \left[\sim a, \sim c, -1\right]$.  The next step does
+$p \gets g$, $s \gets \sim {\tt AUX}\left(g\right) = f$, ${\tt AUX}\left(g\right)
+\gets {\tt HEAD}\left(3\right) = -1$ and ${\tt HEAD}\left(3\right) \gets \sim g$.
+This time the extra steps aren't carried out, since $g$ is terminal, so
+${\tt AUX} = \left[ -1, -1, -1, >0, >0, \sim b, -1, -1, -1\right]$
+and ${\tt HEAD} = \left[\sim a, \sim c, \sim g\right]$.  Next $p \gets f$,
+$s \gets \sim {\tt AUX}\left(f\right) = b$, ${\tt AUX}\left(g\right) \gets
+{\tt HEAD}\left(3\right) = \sim g$, ${\tt HEAD}\left(3\right) \gets \sim f$,
+giving ${\tt AUX} = \left[ -1, -1, -1, >0, >0, \sim g, -1, -1, -1\right]$
+and ${\tt HEAD} = \left[\sim a, \sim c, \sim f\right]$.
+
+Switching to the other branch, $p \gets b$, $s \gets \sim {\tt AUX}\left(b\right) = 0$,
+${\tt AUX}\left(b\right) \gets {\tt HEAD}\left(2\right) = \sim c$, ${\tt HEAD}\left(2\right)
+\gets \sim b$.  Now the optional steps go into effect again, so ${\tt AUX}\left(d\right)
+\gets \sim 0 = -1$, ${\tt AUX}\left(e\right) \gets \sim d$, $s \gets e$, giving
+${\tt AUX} = \left[ -1, \sim c, -1, -1, \sim d, \sim g, -1, -1, -1\right]$
+and ${\tt HEAD} = \left[\sim a, \sim b, \sim f\right]$.  Next $p \gets e$,
+$s \gets \sim {\tt AUX}\left(e\right) = d$, ${\tt AUX}\left(e\right) \gets
+{\tt HEAD}\left(3\right) = \sim f$, ${\tt HEAD}\left(3\right) = \sim e$,
+so ${\tt AUX} = \left[ -1, \sim c, -1, -1, \sim f, \sim g, -1, -1, -1\right]$
+and ${\tt HEAD} = \left[\sim a, \sim b, \sim e\right]$.
+
+The final step is $p \gets d$, $s \gets \sim {\tt AUX}\left(d\right) = 0$,
+${\tt AUX}\left(d\right) \gets {\tt HEAD}\left(3\right) = \sim e$,
+${\tt HEAD}\left(3\right) \gets \sim d$, so ${\tt AUX} = \left[ -1, \sim c, -1, \sim e, 
+\sim f, \sim g, -1, -1, -1\right]$, ${\tt HEAD} = \left[\sim a, \sim b, \sim d\right]$.
+Since $s = 0$, that finishes step R1.
+
+
 \end
