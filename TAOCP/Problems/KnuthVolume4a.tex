@@ -858,7 +858,43 @@ The final step is $p \gets d$, $s \gets \sim {\tt AUX}\left(d\right) = 0$,
 ${\tt AUX}\left(d\right) \gets {\tt HEAD}\left(3\right) = \sim e$,
 ${\tt HEAD}\left(3\right) \gets \sim d$, so ${\tt AUX} = \left[ -1, \sim c, -1, \sim e, 
 \sim f, \sim g, -1, -1, -1\right]$, ${\tt HEAD} = \left[\sim a, \sim b, \sim d\right]$.
-Since $s = 0$, that finishes step R1.
+Since $s = 0$, that finishes step R1.  Note that {\tt HEAD} contains
+the first element for each {\tt V}, and that {\tt AUX} contains links to all the others.
+For example, $b$ is the first example of $x_2$, and ${\tt AUX}\left(b\right) = \sim c$,
+the other node, and $d$ (the first example of $x_3$) links to $e, f, g$ through 
+{\tt AUX}. Step R2 sets ${\tt AUX} = \left[-1, \sim c, -1, \sim e, \sim f, \sim g, -1, 0, 0\right]$
+and $v = 3$.  
 
+The steps of R3 will follow through the {\tt AUX} links, finding
+all nodes with the same variables -- so the pass for $v=3$ will pass
+through $d, e, f, g$ in order.  The $p \gets d$ pass does
+$s \gets 0$, $p^{\prime} \gets \sim {\tt AUX}\left(p\right) = \sim {\tt AUX}\left(d\right) = e$.
+Then $q \gets 0$ and $q \gets 0$ -- ${\tt LO}\left(0\right)$ isn't defined, so I'll
+assume those don't activate.  But $q = {\tt HI}\left(d\right)$, so ${\tt LO}\left(d\right) = 
+\sim 0 = -1$, ${\tt HI}\left(d\right) \gets {\tt A}$, ${\tt AUX}\left(d\right) \gets 0$,
+${\tt AVAIL} \gets d$, where ${\tt A}$ is whatever was in ${\tt AVAIL}$.
+In the $p \gets e$ branch, $p^{\prime} \gets f$, but this time {\tt LO} and {\tt HI}
+aren't the same, and the ${\tt AUX}\left(q\right) = {\tt AUX}\left(0\right) = 0 
+\ge 0$ branch triggers, so ${\tt AUX}\left(e\right) \gets 0$, $s \gets -1$,
+${\tt AUX}\left( 0 \right) \gets \sim e$.  Next, $p \gets f$, again
+the branches are different, and ${\tt AUX}\left(q\right) = \sim e < 0$, so
+the final branch triggers.  ${\tt AUX} \left( {\tt AUX} \left( q  \right) \right) =
+{\tt AUX}\left(e\right)$, so this does ${\tt AUX}\left(f\right) = {\tt AUX}\left(e\right) = 0$,
+and ${\tt AUX}\left(e\right) \gets f$.
+Now, $p \gets g$, and $p^{\prime} = \sim {\tt AUX}\left(g\right) = 0$, so this will
+be the final step for $v = 3$.  $q \gets 1$ from both branches, so
+${\tt LO}\left(g\right) \gets \sim q = \sim 1$, ${\tt HI}\left(g\right) \gets d$,
+${\tt AUX}\left(g\right) \gets 0$, and ${\tt AVAIL} \gets g$.
+The net effect is therefore $s \gets -1$, 
+${\tt AUX} = \left[-1, \sim c, -1, \sim e, f, 0, \sim 0, \sim e, 0\right]$,
+${\tt AVAIL} \gets g$, ${\tt LO}\left(g\right) \gets \sim 1$, ${\tt HI}\left(g\right) \gets d$,
+${\tt LO}\left(d\right) \gets -1$, and ${\tt HI}\left(d\right) \gets {\tt A}$.  As advertised,
+{\tt AVAIL} points to the deleted nodes $d, g$ -- specifically, it points $g$,
+it's {\tt HI} pointer links to $d$, and they both have negative {\tt LO} pointers.
+
+R4 cleans up by setting $s \gets e$ and ${\tt AUX}\left(0\right) \gets 0$,
+so ${\tt AUX} = \left[-1, \sim c, -1, \sim e, f, 0, \sim 0, 0, 0\right]$.
+So $s$ points at the $v=3$ nodes, which are linked through {\tt AUX}
+(only to $f$ now).
 
 \end
