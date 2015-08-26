@@ -892,9 +892,35 @@ ${\tt LO}\left(d\right) \gets -1$, and ${\tt HI}\left(d\right) \gets {\tt A}$.  
 {\tt AVAIL} points to the deleted nodes $d, g$ -- specifically, it points $g$,
 it's {\tt HI} pointer links to $d$, and they both have negative {\tt LO} pointers.
 
-R4 cleans up by setting $s \gets e$ and ${\tt AUX}\left(0\right) \gets 0$,
+R4 does $s \gets e$ and ${\tt AUX}\left(0\right) \gets 0$,
 so ${\tt AUX} = \left[-1, \sim c, -1, \sim e, f, 0, \sim 0, 0, 0\right]$.
 So $s$ points at the $v=3$ nodes, which are linked through {\tt AUX}
-(only to $f$ now).
+(only to $f$ now).  R5 sets $q \gets e$, then R6 does $s \gets {\tt LO}\left(e\right) = 0$.
+Now R7 first sets ${\tt AUX}\left(1\right) \gets \sim q = \sim e$, then
+$q \gets {\tt AUX}\left(q\right) = {\tt AUX}\left(e\right) = f$, and indeed
+$q \ne 0$ and ${\tt LO}\left(q\right) = s = 0$, so repeat.  The next
+iteration sets $r \gets {\tt HI}\left(f\right) = 1$, but now ${\tt AUX}\left(1\right) = \sim e
+< 0$ so ${\tt LO}\left(q\right) = {\tt LO}\left(f\right) \gets {\tt AUX}\left(r\right) = \sim e$,
+${\tt HI}\left(q\right) = {\tt HI}\left(f\right) \gets g$ and ${\tt AVAIL} \gets f$.
+Then $q \gets {\tt AUX}\left(q\right) = {\tt AUX}\left(f\right) = 0$, which terminates R7.
+Then R8 changes ${\tt AUX}\left(1\right) \gets 0$ again, then starts again with
+$p \gets f$, but ${\tt LO}\left(f\right) = \sim e < 0$, and $p \gets {\tt AUX}\left(f\right)
+= 0$ which does equal $s$, so finishes.  In R9, $p = 0$, and $v \gets 2$.
+The upshot of all this is that nodes $f, g, d$ have been eliminated,
+with {\tt AVAIL} pointing to $f$ and the others linked to $f$ through their {\tt HI}
+nodes.  Their parents still point to them however.
+
+Now back to R3, which starts with $p \gets b$, $s \gets 0$, $p^{\prime} \gets c$.
+The second $q$ branch fires, since $q \gets {\tt LO}\left(b\right) = d$,
+and ${\tt LO}\left(d\right) = \sim 0 < 0$, so ${\tt LO}\left(b\right) \gets 0$,
+$q \gets d$.  Then follows
+${\tt AUX}\left(b\right) \gets f$, ${\tt AUX}\left(e\right) \gets b$, $p \gets c$.
+Then $p^{\prime} \gets 0$, so this will be the last pass through R3.
+This time the first one fires, doing ${\tt HI}\left(c\right) \gets 1$,
+and then the second one also fires, doing ${\tt LO}\left(c\right) \gets e$.
+That's the last important thing that happens, and we are left with
+${\tt LO} = \left[ b, 0, e, \sim 0, 0, \sim e, \sim 1\right]$
+and ${\tt HI} = \left[c, e, 1, \alpha, 1, g, d \right]$, which actually
+only has nodes $a, b, c, e, 0, 1$, and corresponds to Fig.~21 on p~203.
 
 \end
