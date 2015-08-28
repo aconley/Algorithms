@@ -661,6 +661,24 @@ $1 + 2 + \ldots + n = n \left(n + 1\right) / 2 = {n + 1 \choose 2}$,
 and we only need one copy each of truth and falsehood, since
 we share in BDDs.  So the maximum size is ${n + 1 \choose 2} + 2$.
 
+\vskip 0.08in \noindent {\bf Algorithm R} ({\it Reduction to BDD})\hfil\break
+This is pretty complicated as spelled out, although here doing
+the example (problem~53) was somewhat helpful, if tedious.
+R1 is relatively easy to understand -- it does a depth first search,
+with {\tt HEAD} pointing to the first item of a linked list (through {\tt AUX})
+of all fields with the same $v$ (variable).  So, for example,
+if ${\tt HEAD}\left(2\right) = \sim b$ for some node with address $b$,
+this means that the first element with variable 2 is node $b$,
+and the negation of ${\tt AUX}\left(b\right)$ will point at the next node with the same
+variable if any, and then that nodes {\tt AUX} at the next, etc., with
+a $-1$ in AUX terminating the list (since negating that gives 0).
+On each step, $p$ holds the current node, $s$ the next node to consider
+(unless a higher priority one is found -- basically, any child of $p$ since
+this is depth first).  After setting $s$, the possible children are checked,
+{\tt LO} first then {\tt HI} so that {\tt HI} will be searched first (if {\tt LO}
+was also present it's pushed onto the {\tt AUX} stack).  The truth and
+falsehood nodes have been set to $-1$ so that the search doesn't
+actually examine them directly.
 
 \vfil\break
 \topglue 0.5in
