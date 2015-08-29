@@ -891,11 +891,16 @@ ${\tt AVAIL} \gets g$, ${\tt LO}\left(g\right) \gets \sim 1$, ${\tt HI}\left(g\r
 ${\tt LO}\left(d\right) \gets -1$, and ${\tt HI}\left(d\right) \gets {\tt A}$.  As advertised,
 {\tt AVAIL} points to the deleted nodes $d, g$ -- specifically, it points $g$,
 it's {\tt HI} pointer links to $d$, and they both have negative {\tt LO} pointers.
+Moreover, $\sim {\tt LO}\left(d\right) = 0$ is the equivalent non-deleted node
+for $d$ (falsehood), and $\sim {\tt HI}\left(g\right) = 1$ the equivalent
+node for $g$ (truth).  Moreover, the {\tt AUX} pointers for the fully
+reduced nodes $e$ and $f$ are now non-negative.
 
 R4 does $s \gets e$ and ${\tt AUX}\left(0\right) \gets 0$,
 so ${\tt AUX} = \left[-1, \sim c, -1, \sim e, f, 0, \sim 0, 0, 0\right]$.
 So $s$ points at the $v=3$ nodes, which are linked through {\tt AUX}
-(only to $f$ now).  R5 sets $q \gets e$, then R6 does $s \gets {\tt LO}\left(e\right) = 0$.
+(which only links $e$ to $f$ now).  R5 sets $q \gets e$, then R6 does 
+$s \gets {\tt LO}\left(e\right) = 0$.
 Now R7 first sets ${\tt AUX}\left(1\right) \gets \sim q = \sim e$, then
 $q \gets {\tt AUX}\left(q\right) = {\tt AUX}\left(e\right) = f$, and indeed
 $q \ne 0$ and ${\tt LO}\left(q\right) = s = 0$, so repeat.  The next
@@ -903,6 +908,12 @@ iteration sets $r \gets {\tt HI}\left(f\right) = 1$, but now ${\tt AUX}\left(1\r
 < 0$ so ${\tt LO}\left(q\right) = {\tt LO}\left(f\right) \gets {\tt AUX}\left(r\right) = \sim e$,
 ${\tt HI}\left(q\right) = {\tt HI}\left(f\right) \gets g$ and ${\tt AVAIL} \gets f$.
 Then $q \gets {\tt AUX}\left(q\right) = {\tt AUX}\left(f\right) = 0$, which terminates R7.
+We now have ${\tt AUX} = \left[-1, \sim c, -1, \sim e, f, 0, \sim 0, 0, \sim e\right]$,
+and ${\tt LO}\left(f\right) \gets \sim e$, ${\tt HI}\left(f\right) \gets g$.
+Essentially, we set $f$ up to be eliminated by making it's ${\tt LO} negative
+and pointing at it's equivalent node $e$, and linking it with the other
+deleted nodes through {\tt HI}.
+
 Then R8 changes ${\tt AUX}\left(1\right) \gets 0$ again, then starts again with
 $p \gets f$, but ${\tt LO}\left(f\right) = \sim e < 0$, and $p \gets {\tt AUX}\left(f\right)
 = 0$ which does equal $s$, so finishes.  In R9, $p = 0$, and $v \gets 2$.

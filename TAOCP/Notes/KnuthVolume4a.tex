@@ -661,7 +661,7 @@ $1 + 2 + \ldots + n = n \left(n + 1\right) / 2 = {n + 1 \choose 2}$,
 and we only need one copy each of truth and falsehood, since
 we share in BDDs.  So the maximum size is ${n + 1 \choose 2} + 2$.
 
-\vskip 0.08in \noindent {\bf Algorithm R} ({\it Reduction to BDD})\hfil\break
+\vskip 0.08in \noindent [p 216] {\bf Algorithm R} ({\it Reduction to BDD})\hfil\break
 This is pretty complicated as spelled out, although here doing
 the example (problem~53) was somewhat helpful, if tedious.
 R1 is relatively easy to understand -- it does a depth first search,
@@ -679,6 +679,40 @@ this is depth first).  After setting $s$, the possible children are checked,
 was also present it's pushed onto the {\tt AUX} stack).  The truth and
 falsehood nodes have been set to $-1$ so that the search doesn't
 actually examine them directly.
+
+Step R3 iterates through the levels of the variable $v$, starting at
+the bottom.  It uses ${\tt HEAD}\left(v\right)$ to find the first element for a 
+level, and then the {\tt AUX} fields to move to the next.  It has three jobs:
+first, to correct the {\tt LO} and {\tt HI} links from a node that now point
+to deleted nodes on lower levels, to eliminate unused nodes,
+and to link together all nodes with the same {\tt LO} by their
+{\tt AUX} fields.
+The first part is handled by the second and third statements.  Recall
+that deleted nodes are identified by having their {\tt LO} fields
+made negative such that their complements point to equivalent 
+non-deleted nodes.  So, first the algorithm looks at the {\tt HI}
+field of the current node, and if it is pointing to a deleted node
+(that is, ${\tt LO}({\tt HI}\left(p\right)right) < 0$, then {\tt HI}
+is repointed at the non-deleted equivalent.  The same is done
+for {\tt LO}.  
+
+The next step is to eliminate unused nodes. If {\tt HI} and {\tt LO} for the current node
+point at the same thing, then the node can be eliminated by pushing it onto
+the stack.  The other two cases deal with the case where {\tt LO}
+and {\tt HI} are different by linking together all nodes with the same
+{\tt LO} field $x$ through their {\tt AUX} fields beginning with ${\tt AUX}\left(x\right)$.
+In addition, the reduced nodes that aren't eliminated have their {\tt AUX} fields 
+non-negative.  The job of R4 is to make $s$ points at the first of the 
+non-eliminated nodes on this level, which are still linked together by their
+(now positive) {\tt AUX} fields.
+
+The next step is to loop through all these sets and remove the duplicates,
+which is mostly the job of R7.  It does a similar trick -- set's the {\tt LO}
+nodes of the duplicate nodes to the negation of the link to their equivalent
+nodes and uses their {\tt HI} nodes to link them into the stack of deleted
+nodes.  This may require another clean up if this caused our current node
+to point at something eliminated.  Finally, check if we've reached the top.
+If not, move up a level, if so, finish (after one final cleanup of the root).
 
 \vfil\break
 \topglue 0.5in
