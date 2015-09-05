@@ -630,7 +630,7 @@ g\left(x_1, \ldots, x_n\right), \ldots, x_n\right)$) is not so easy, and
 that corresponds to the way that humans, at least, like to build up complicated
 functions.
 
-\noindent [p 207] {\bf Algorithm C} ({\it Count solutions})\hfil\break
+\vskip 0.08in \noindent [p 207] {\bf Algorithm C} ({\it Count solutions})\hfil\break
 The powers of 2 are all about what happens when you skip unused
 variables -- for example, the right branch in (6) which doesn't depend
 on $x_3$ or $x_4$, or the leftmost pair of 5 boxes in the independent
@@ -638,7 +638,8 @@ sets example (12), where the leftmost one gets 2 for skipping variable 6
 on the LO chain and 1 by not skipping 6 on the HI chain, and the one
 next to that gets 2 from the LO chain connecting to true.
 
-\noindent [p 209] {\bf Algorithm B} ({\it Solutions of Maximum Weight})\hfil\break
+\vskip 0.08in \noindent [p 209] {\bf Algorithm B} ({\it Solutions of 
+Maximum Weight})\hfil\break
 Working through the example (problem~18) wasn't that helpful, but the
 algorithm isn't that hard to understand if you just think about how to
 combine optimum sub-problems.  The idea is that each node in a diagram,
@@ -713,6 +714,33 @@ nodes and uses their {\tt HI} nodes to link them into the stack of deleted
 nodes.  This may require another clean up if this caused our current node
 to point at something eliminated.  Finally, check if we've reached the top.
 If not, move up a level, if so, finish (after one final cleanup of the root).
+
+\vskip 0.08in \noindent {\bf Synthesis of BDDs}
+
+\noindent [p 218] What's the idea behind equation (37)?  It's designed
+to match variables.  Only when the two nodes being merged are
+for the same variable can we immediately proceed to merging their
+subtrees.  If they don't, we need to merge the one with the larger
+variable with both subtrees until it reaches its level.
+
+\vskip 0.08in \noindent [p 222] {\bf Algorithm S}
+This one is too complicated to make me want to play through, so
+I'll skip the lengthy explanation.  The first stage (43) is easy
+to understand, but the second stage is pretty complicated, although
+similar in principle to what was done in Algorithm~R.
+
+\vskip 0.08in \noindent {\bf Synthesis in a BDD base}
+
+\noindent Recall that a BDD `base' is defined in the Shared BDDs section
+on page 215.  But the idea is what you would expect: to share
+common sub-functions between different BDDs.
+
+\noindent [p 225] Why set all the unused variables to 0 low
+and 1 high?  Because you can -- you could make any other
+choice -- after all, $f$ doesn't depend on $x_1, \ldots, x_{v-1}$ --
+but it is a convenient choice.  The idea behind $v$ in (52) follows --
+the join doesn't depend on any variables that neither $f$ nor $g$
+depend on.
 
 \vfil\break
 \topglue 0.5in
