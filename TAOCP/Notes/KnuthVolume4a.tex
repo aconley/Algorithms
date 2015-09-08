@@ -742,6 +742,17 @@ but it is a convenient choice.  The idea behind $v$ in (52) follows --
 the join doesn't depend on any variables that neither $f$ nor $g$
 depend on.
 
+\vskip 0.08in \noindent {\bf Zero Suppressed BDDs}
+
+\noindent [p 250] Zeads: The first rule for zeads is easy to 
+understand: A binary string ending in all 0s corresponds to
+the function being zero whenever the current variable is 1, which 
+means we can skip it in the ZDD.  The whole point of a ZDD
+is to do exactly this: skip over any nodes where the HI pointer
+leads to false.  However, the second rule doesn't
+make any sense in the context of the truth tables we've been working
+with, which never double the length of an odd number.
+
 \vfil\break
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
