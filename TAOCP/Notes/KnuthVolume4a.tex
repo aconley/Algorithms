@@ -638,6 +638,29 @@ sets example (12), where the leftmost one gets 2 for skipping variable 6
 on the LO chain and 1 by not skipping 6 on the HI chain, and the one
 next to that gets 2 from the LO chain connecting to true.
 
+\vskip 0.08in \noindent [p 208] Independent and maximal subset
+examples: recall that the independent subsets are those such that
+no edge is entirely contained in the subset (hence, two 1s in a row
+for the cycle would not be independent).  And a kernel/maximal
+independent subset means no element not in the subset can be
+added without making it non-independent.   And if you had 3 0s in 
+a row you could replace them with 010 to get a larger independent
+subset.  But note these are {\it maximum} independent subsets -- 
+they aren't necessarily the largest possible; for example, 001001
+is maximal, but has fewer 1 elements than 010101.
+
+\vskip 0.08in \noindent [p 208] Generating random solutions: note that
+it's not quite enough to just use the $c_k$ because we have
+to account for skipping variables in the computation.  For example,
+consider the path $x_1 x_2 x_3 \gets 1 0 0$ in the left hand part
+of (13); to chose the next path, we can't just use $c_6$ and $c_5$
+(which are both 1), but must take into account the fact that
+going from 4 to 6 skips 5, and hence $c_6$ needs to be multiplied
+by 2.  Unfortunately, we can't just pre-tabulate these values because
+there can be multiple ways into the node.  In the example just given,
+there's also a path from a 5 node for which $c_6$ shouldn't be multiplied
+by 2.
+
 \vskip 0.08in \noindent [p 209] {\bf Algorithm B} ({\it Solutions of 
 Maximum Weight})\hfil\break
 Working through the example (problem~18) wasn't that helpful, but the
@@ -653,6 +676,13 @@ the situation where we skip a few variables (like skipping 3 and 4
 in diagram 6 in the rightmost branch).  So step 3 is all about moving up
 the BDD choosing the best sub-branch at each step, then 4 is about
 unwinding that chain back down the globally best one.
+
+\vskip 0.08in \noindent [p 211] Positive weights and independent subsets:
+the kernel of maximum weight and an independent set of maximum weight
+are the same with positive weights because for any independent set that
+was not a kernel, you could always add at least one more element
+and still be independent while increasing the total weight because the
+weights are positive.
 
 \vskip 0.08in \noindent {\bf Friendly functions}
 
@@ -751,7 +781,8 @@ means we can skip it in the ZDD.  The whole point of a ZDD
 is to do exactly this: skip over any nodes where the HI pointer
 leads to false.  However, the second rule doesn't
 make any sense in the context of the truth tables we've been working
-with, which never double the length of an odd number.
+with, which never double the length of an odd number.  But Knuth
+has defined it for arbitrary binary strings.
 
 \vfil\break
 \topglue 0.5in
