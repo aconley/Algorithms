@@ -816,9 +816,19 @@ see the notes for a better explanation of what this is doing.
 \vskip 0.08in \noindent {\bf Problem 21} This is trivial; to find the minimum
 weight solution, just flip all the signs of the $w$s (weights) and run Algorithm~B.
 
+\vskip 0.08in \noindent {\bf Problem 25} ({\it Compute the generating function})
+\hfil\break This really boils down to knowing how to combine the generating
+functions from the two contributing sub-nodes.  Assuming you haven't
+skipped any nodes, you get a factor of $c_l$ from {\tt LO} and $z c_h$
+from {\tt HI}.  But what if you do skip nodes?  Well, you get a 1 from skipped
+0s and z from skipped 1s, so this becomes $\left(1 + z\right)^{v_l - v_k - 1} c_l
++ \left(1 + z\right)^{v_h - v_k - 1} z c_h$ in C2, and in C1 $\left(1 + z\right)^{v_{s-1} - 1}
+c_{s-1}$. 
+
 \vskip 0.08in \noindent {\bf Problem 26} ({\it Compute the reliability polynomial})
 \hfil\break Note that the sums break this up into terms like
-$\left(1 - p_1\right) + p_1$.  So step C2 of Algorithm~C becomes
+$\left(1 - p_1\right) + p_1$.  Alternatively, just look at 7.1.4(20).
+So step C2 of Algorithm~C becomes
 $\left(1 - p_{v_k}\right) c_l + p_{v_k} c_h$, and C1 simply returns $c_s$.
 
 \vskip 0.08in \noindent {\bf Problem 35} We want to walk up the BDD,
