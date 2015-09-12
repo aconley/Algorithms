@@ -831,6 +831,18 @@ $\left(1 - p_1\right) + p_1$.  Alternatively, just look at 7.1.4(20).
 So step C2 of Algorithm~C becomes
 $\left(1 - p_{v_k}\right) c_l + p_{v_k} c_h$, and C1 simply returns $c_s$.
 
+\vskip 0.08in \noindent {\bf Problem 30} Consider diagram 26.
+We start with this, which has $n \left(n + 1\right) / 2 + 2$ nodes,
+and remove all the redundant ones.  Say $k = 4$.  Then we
+would remove the bottom triangle of $k \left(k - 1\right) / 2 = 6$ nodes,
+but also the bottom rightmost node, so in this particular case
+there would be 10 nodes.  Now imagine $k = 3$ -- we remove
+the $k \left(k - 1\right) / 2 = 3$ bottom left nodes, but also 
+the $\left(n - k\right) \left(n - k + 1\right) / 2 = 3$ bottom right ones,
+leaving 11.  Overall the formula is thus $n \left(n + 1\right) / 2
+- k \left(k - 1\right) / 2 - \left(n - k\right) \left(n - k + 1\right) / 2 + 2$,
+which simplifies to $k \left(n + 1 - k\right) + 2$.
+
 \vskip 0.08in \noindent {\bf Problem 35} We want to walk up the BDD,
 as in Algorithm~C, but keeping track of all variables reachable from
 that node.  Then, at each node, if the variable in that node is in either
@@ -997,5 +1009,11 @@ while the right branch does point to a zead (01) and so there is a 2 node.
 Yet another example: truth, which has the simplest BDD.  Here every level is a zead,
 but they all point to the same thing.  So there's a node for 1 with both links pointing
 to 2, which also has both links pointing to the same place (truth).
+
+\vskip 0.08in \noindent {\bf Problem 208} ({\it Modify Algorithm C to work with ZDDs})
+\hfil\break This is actually much easier; you no longer have to worry about accounting
+for skipping variables, since skipping variables means they all get set to 0, and
+hence represents only one path.  Thus, simply remove all the $2^x$ factors
+from Algorithm~C.
 
 \end
