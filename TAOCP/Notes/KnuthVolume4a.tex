@@ -759,7 +759,7 @@ I'll skip the lengthy explanation.  The first stage (43) is easy
 to understand, but the second stage is pretty complicated, although
 similar in principle to what was done in Algorithm~R.
 
-\vskip 0.08in \noindent {\bf Synthesis in a BDD base}
+\vskip 0.08in [p 224] \noindent {\bf Synthesis in a BDD base}
 
 \noindent Recall that a BDD `base' is defined in the Shared BDDs section
 on page 215.  But the idea is what you would expect: to share
@@ -771,6 +771,31 @@ choice -- after all, $f$ doesn't depend on $x_1, \ldots, x_{v-1}$ --
 but it is a convenient choice.  The idea behind $v$ in (52) follows --
 the join doesn't depend on any variables that neither $f$ nor $g$
 depend on.
+
+\vskip 0.08in \noindent  {\bf Quantifiers}
+
+\noindent [p231] Independent sets and Kernels.  The Independent
+set function of (67) is easy to understand (no two points connected
+by an edge are included), but (68), the Kernel function, is a bit
+more complicated.  Recall that a Kernel is a maximal independent set,
+meaning adding any more vertices makes it no longer independent.
+The first part just makes it independent.  The second clause amounts
+to saying that for every vertex we must either have the vertex or
+some vertex connected to it in the set, because if that wasn't the case 
+we could add that vertex and still have an independent set.
+
+On a related note, the statement that we must have an edge between
+$u$ and $v$ if two kernels differ only in those variables.  It isn't
+true in general that if two kernels differ for $u$, $v$ there must be 
+an edge between them. However, if two kernels differ in {\it only} that
+position there must be an edge essentially because there is no place
+else to put the vertex and not have it ruin the independence property.
+
+\vskip 0.08in \noindent {\bf Functional composition}
+
+\noindent [p 233] The map 4 coloring relation is one relation
+for each color (00, 01, 10, 11) that just says each submap
+is independent, and hence colors never neighbor themselves.
 
 \vskip 0.08in \noindent {\bf Zero Suppressed BDDs}
 
