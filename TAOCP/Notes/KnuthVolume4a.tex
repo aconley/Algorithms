@@ -797,6 +797,31 @@ else to put the vertex and not have it ruin the independence property.
 for each color (00, 01, 10, 11) that just says each submap
 is independent, and hence colors never neighbor themselves.
 
+\vskip 0.08in \noindent {\bf Nasty functions}
+
+\noindent [p 234] The upper bound on the BDD size is theoretical,
+and wouldn't quite be met in practice because it assumes you
+can always get exactly the number of bits you need, while
+on a real machine you need some multiple of the word size.
+But you won't be that much worse.
+
+\vskip 0.08in \noindent [p 234] Average BDD size: the usual
+caveats to the `average' size apply: choosing a random truth
+table is a rather poor model for boolean functions that arise
+in practice (as Knuth commented earlier, and as the examples
+tend to reflect).
+
+\vskip 0.08in \noindent [p 235] Quasi-profiles: $q_k$ is the
+number of distinct subtables because the QDD is reduced;
+non-distinct subtables would be reduced to the same node.
+Furthermore, (85)  arises just because if the two relations
+are summed in (84) they are $1 + \sum b_k = 1 + B\left(f\right)$.
+The other limit, (86) is because
+$Q\left(f\right) = \sum q_k =
+1/2 \left(\sum q_k + \sum q_k\right)
+\le {1 \over 2} \sum_k \left(B\left(f\right) + 1\right) = \left(n + 1\right)
+\left(B\left(f\right) + 1\right) / 2$.
+
 \vskip 0.08in \noindent {\bf Zero Suppressed BDDs}
 
 \noindent [p 250] Zeads: The first rule for zeads is easy to 
@@ -807,7 +832,8 @@ is to do exactly this: skip over any nodes where the HI pointer
 leads to false.  However, the second rule doesn't
 make any sense in the context of the truth tables we've been working
 with, which never double the length of an odd number.  But Knuth
-has defined it for arbitrary binary strings.
+has defined it for arbitrary binary strings for reasons that aren't
+clear.
 
 \vfil\break
 \topglue 0.5in
