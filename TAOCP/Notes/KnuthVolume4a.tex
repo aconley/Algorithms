@@ -851,6 +851,32 @@ in the third and fourth, but also in the first because.
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
 \vskip 0.3in
+\centerline {\tt Section 7.2.1.1: Generating all $n$-tuples}
+\vskip 0.2in
+
+\noindent [p 284] Reflection: why does $g\left(k\right) = 2^n + g\left(
+2^n - 1 - r\right)$ for $k = 2^n + r$?  The $2^n$ outside $g$ is
+just starting the value with a 1, as per (5), and the value inside
+$g$ is just working out the reflection.
+
+\noindent [p 284] Inverting the binary formula (6): Note that
+$a_j \oplus a_{j + 1} = b_j \oplus b_{j+1} \oplus b_{j+1} \oplus b_{j+2}
+= b_j \oplus b_{j+2}$.  In other words, the xor chain cancels
+out all the internal variables.  But since $b_k = 0$ for all
+$k$ above some value, the upper term vanishes as well.
+
+\noindent [p 284] Show $g\left(k \oplus k^{\prime}\right) = g\left(k\right)
+\oplus g\left(k^{\prime}\right)$:
+$\left(k \oplus k^{\prime}\right)_j = k_j \oplus k^{\prime}_j$,
+so $g_j\left(k \oplus k^{\prime}\right) = \left(k \oplus k^{\prime}\right)_j
+\oplus \left(k \oplus k^{\prime}\right)_{j+1} =
+k_j \oplus k^{\prime} \oplus k_{j+1} \oplus k^{\prime}_{j+1} =
+\left(k_j \oplus k_{j+1}\right) \oplus \left(k^{\prime}_j \oplus k^{\prime}_{j+1}
+\right) = g\left(k\right)_j \oplus g\left(k^{\prime}\right)_j$.
+
+\vfil\break
+
+\vskip 0.3in
 \centerline{\tt Section 7.2.1.2: Generating all permutation}
 \vskip 0.2in
 
