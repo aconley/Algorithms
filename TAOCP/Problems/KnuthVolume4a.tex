@@ -1023,4 +1023,29 @@ one black, this is a problem.  More formally, removing those squares
 leaves an odd number of red and black squares, so we can't cover
 the reduced board.
 
+\topglue 0.5in
+\centerline{\tt Knuth 7.2.1.1}
+\vskip 0.3in
+
+\noindent {\bf Problem 1} When initializing, set $l_0 \gets 0$
+and $u_0 \gets 1$, and in M4 change the test from $a_j = m_j - 1$
+to $a_j = u_j$, and $a_j \gets 0$ to $a_j \gets l_j$.
+
+\vskip 0.08in \noindent {\bf Problem 6} Let's say that the relation has been proved for
+all values up to $n-1$.  Then, in particular, we have that
+$g\left(0 b_{n-1} b_{n-2} \ldots b_0\right) = 0 b_{n-1} \left(b_{n-1}
+\oplus b_{n-2}\right)\ldots \left(b_1 \oplus b_0 \right)$.  Now we
+want to prove it for $n$, so consider $g\left(1 b_{n-1} b_{n-2} \ldots b_0\right)$.  
+This maps onto the symmetry relation with $r = 0 b_{n-1}\ldots b_0$, so
+we have $g\left(1 b_{n-1} b_{n-2} \ldots b_0\right) = 2^n
++ g\left(2^n - 1 - 0 b_{n-1}\ldots b_0\right)$.  But $2^n-1 = 01\ldots1$,
+so $2^n - 1 - r = 0 \bar b_{n-1} \ldots \bar b_0$, and by the relation for $n-1$
+we have $g \left( 0 \bar b_{n-1} \ldots \bar b_0 \right) = 0 \bar b_{n-1}
+\left(\bar b_{n-1} \oplus \bar b_{n-2}\right) \ldots \left(\bar b_1 \oplus \bar b_0\right)$.
+Adding $2^n$, and noting that $\bar a \oplus \bar b = a \oplus b$, we
+have $g\left(1 b_{n-1} b_{n-2} \ldots b_0\right) = 1 b_{n-1} 
+\left(b_{n-1} \oplus b_{n-2}\right) \ldots \left(b_1 \oplus b_0\right)$,
+which is the desired relation.
+
+
 \end
