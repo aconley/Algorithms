@@ -859,14 +859,14 @@ in the third and fourth, but also in the first because.
 just starting the value with a 1, as per (5), and the value inside
 $g$ is just working out the reflection.
 
-\noindent [p 284] Inverting the binary formula (6): Note that
+\vskip 0.08in \noindent [p 284] Inverting the binary formula (6): Note that
 $a_j \oplus a_{j + 1} = b_j \oplus b_{j+1} \oplus b_{j+1} \oplus b_{j+2}
 = b_j \oplus b_{j+2}$.  In other words, the xor chain cancels
 out all the internal variables.  But since $b_k = 0$ for all
 $k$ above some value, the upper term vanishes as well.
 
-\noindent [p 284] Show $g\left(k \oplus k^{\prime}\right) = g\left(k\right)
-\oplus g\left(k^{\prime}\right)$:
+\vskip 0.08in \noindent [p 284] Show $g\left(k \oplus k^{\prime}\right) = 
+g\left(k\right) \oplus g\left(k^{\prime}\right)$:
 $\left(k \oplus k^{\prime}\right)_j = k_j \oplus k^{\prime}_j$,
 so $g_j\left(k \oplus k^{\prime}\right) = \left(k \oplus k^{\prime}\right)_j
 \oplus \left(k \oplus k^{\prime}\right)_{j+1} =
@@ -874,11 +874,11 @@ k_j \oplus k^{\prime} \oplus k_{j+1} \oplus k^{\prime}_{j+1} =
 \left(k_j \oplus k_{j+1}\right) \oplus \left(k^{\prime}_j \oplus k^{\prime}_{j+1}
 \right) = g\left(k\right)_j \oplus g\left(k^{\prime}\right)_j$.
 
-\noindent [p 284] Reversing a Gray binary code: The equation
+\vskip 0.08in \noindent [p 284] Reversing a Gray binary code: The equation
 before (12) is really just another way of stating the symmetry
 relation at the top of the page.
 
-\noindent [p 285] Chinese ring puzzle: note that the state
+\vskip 0.08in \noindent [p 285] Chinese ring puzzle: note that the state
 of the puzzle is the Gray's binary code number.  This makes sense --
 we are removing or adding one ring at a time, which is what
 a Gray's code is designed to do.
@@ -890,6 +890,17 @@ adding a ring in the middle changes $\left(110^{\,j-1}\right)_2 \rightarrow
 \left(010^{\,j-1}\right)_2$ or $\left(010^{\,j-1}\right)_2 \rightarrow
 \left(110^{\,j-1}\right)_2$, which injects an extra 1 into all positions
 $i \le j+1$, which is the same as $k \gets k \oplus \left(2^{\,j+1} - 1\right)$.
+
+\vskip 0.08in \noindent [p 286] {\bf Algorithm G}\hfil\break
+This follows immediately from the ring discussion.  The parity bit
+tells us if we want to make a type (a) move (remove or add the ring
+at the end), if not G4/G5 find $\rho$ and remove or add that ring.
+
+\vskip 0.08in \noindent [p 288] Why does $r_j\left(x\right)^{a \oplus b} =
+r_j\left(x\right)^{a+b}$?  This goes back to 7.1.3.(89):  
+$x + y = \left(x \oplus y\right) + \left(\left(x \& y \right) \ll 1\right)$,
+and noting that the $\left(a \& b\right) \ll 1$ part will always be a power
+of 2, and so cancels out because $r_j\left(x\right)^2 = 1$.
 
 \vfil\break
 
