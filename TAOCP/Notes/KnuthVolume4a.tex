@@ -878,6 +878,18 @@ k_j \oplus k^{\prime} \oplus k_{j+1} \oplus k^{\prime}_{j+1} =
 before (12) is really just another way of stating the symmetry
 relation at the top of the page.
 
+\noindent [p 285] Chinese ring puzzle: note that the state
+of the puzzle is the Gray's binary code number.  This makes sense --
+we are removing or adding one ring at a time, which is what
+a Gray's code is designed to do.
+
+Removing or adding the ring at the end changes $a_0$ from
+0 to 1 or vice versa, so by equation (8) changes $b_0$ to $b_0 \oplus 1$,
+which is the same as doing $k \gets k \oplus 1$.  Removing or
+adding a ring in the middle changes $\left(110^{\,j-1}\right)_2 \rightarrow
+\left(010^{\,j-1}\right)_2$ or $\left(010^{\,j-1}\right)_2 \rightarrow
+\left(110^{\,j-1}\right)_2$, which injects an extra 1 into all positions
+$i \le j+1$, which is the same as $k \gets k \oplus \left(2^{\,j+1} - 1\right)$.
 
 \vfil\break
 
