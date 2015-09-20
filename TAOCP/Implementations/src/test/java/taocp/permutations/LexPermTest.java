@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import static org.junit.Assert.*;
 
-public class TestLexPerm {
+public class LexPermTest {
 
   @org.junit.Test
   public void testIteratorHasNext() throws Exception {

@@ -1,9 +1,6 @@
 package taocp.permutations;
 
-import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * Generate the permutations of a sequence lexicographically.
@@ -45,6 +42,9 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
 
     @Override
     public List<E> next() {
+
+      if (done)
+        throw new NoSuchElementException();
 
       // Step L1 -- make a copy of the current
       //  permutation to return
