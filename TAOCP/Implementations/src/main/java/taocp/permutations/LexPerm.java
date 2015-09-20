@@ -1,5 +1,7 @@
 package taocp.permutations;
 
+import com.google.common.collect.Ordering;
+
 import java.util.*;
 
 /**
@@ -14,12 +16,10 @@ import java.util.*;
 public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
   // Our strategy here is to hold a copy of the original list
   //  in this class, and have the Iterator just play with the indices
-  private final E[] arr;  // Holds elements of original list
+  private final List<E> arr;  // Holds elements of original list
 
-  public LexPerm(E[] orig) {
-    arr = orig.clone(); // Defensive copy
-    // The algorithm expects them to be sorted
-    Arrays.sort(arr);
+  public LexPerm(List<E> orig) {
+    arr = Ordering.natural().immutableSortedCopy(orig);
   }
 
   private class LexIterator implements Iterator<List<E>> {
@@ -30,8 +30,8 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
     private boolean done; // True if we are done; worth caching
 
     public LexIterator() {
-      idx = new int[arr.length];
-      for (int i = 0; i < arr.length; ++i) idx[i] = i;
+      idx = new int[arr.size()];
+      for (int i = 0; i < arr.size(); ++i) idx[i] = i;
       done = false;
     }
 
@@ -48,16 +48,17 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
 
       // Step L1 -- make a copy of the current
       //  permutation to return
-      List<E> r = new ArrayList<>(arr.length); // Note: no elements, just with given capacity
-      for (int i : idx) r.add(arr[i]);
+      List<E> r = new ArrayList<>(arr.size()); // Note: no elements, just with given capacity
+      for (int i : idx) r.add(arr.get(i));
 
       // Next iterate a forward; this is the complicated bit!
       // Tricky part: we index from 0 rather than 1!
       // Knuth L2:
       //  Find the index j such that we have visited all permutations
       //   beginning with a[0] ... a[j]
-      int j = arr.length - 2;
-      while ((j >= 0) && (arr[idx[j]].compareTo(arr[idx[j + 1]]) >= 0))  // a[j] >= a[j+1]
+      int j = arr.size() - 2;
+      while ((j >= 0)
+          && (arr.get(idx[j]).compareTo(arr.get(idx[j + 1])) >= 0))  // a[j] >= a[j+1]
         --j;
 
       if (j < 0) {
@@ -67,9 +68,9 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
         //  Increase a[j]
         //  First find the smallest element a[l] that can legitimately
         //   follow a[0]...a[j-1]
-        int l = arr.length - 1;
-        E tmp = arr[idx[j]];
-        while (tmp.compareTo(arr[idx[l]]) >= 0) // a[j] >= a[l]
+        int l = arr.size() - 1;
+        E tmp = arr.get(idx[j]);
+        while (tmp.compareTo(arr.get(idx[l])) >= 0) // a[j] >= a[l]
           --l;
         // Then interchange a[j] and a[l]
         int t = idx[j];
@@ -80,7 +81,7 @@ public class LexPerm<E extends Comparable<E>> implements Iterable<List<E>> {
         //  Finish the permutation in the lexicographically least way we can,
         //   which turns out to be by reversing a[j+1] to a[n-1].
         int k = j + 1;
-        l = arr.length - 1;
+        l = arr.size() - 1;
         while (k < l) {
           t = idx[k];
           idx[k] = idx[l];
