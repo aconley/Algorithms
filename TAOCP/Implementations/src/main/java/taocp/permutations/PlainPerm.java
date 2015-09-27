@@ -1,9 +1,9 @@
 package taocp.permutations;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Generate the permutations of a sequence containing only unique elements
@@ -47,6 +47,9 @@ public class PlainPerm<E> implements Iterable<List<E>> {
 
     @Override
     public List<E> next() {
+
+      if (done)
+        throw new NoSuchElementException();
 
       // Step P2 -- visit permutation by making a copy of the current
       //  permutation to return after we update
