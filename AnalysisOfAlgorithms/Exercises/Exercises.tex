@@ -1,0 +1,51 @@
+\topglue 0.5in
+\centerline {\tt Analysis of Algorithms}
+\vskip 0.3in
+\centerline {Week 1}
+\vskip 0.2in
+
+\noindent {\bf Problem 1.14}: Evaluate $A_N = 1 + 2 / N \sum_{1 \le j \le N} A_{j-1}$.
+Multiply by $N$ to get $N A_N = N + 2 \sum_{1 \le j \le N} A_{j-1}$,
+then write the same equation for $N-1$: ($\left(N - 1\right) 
+A_{N-1} = N  - 1 + 2 \sum_{1 \le j \le N-1} A_{j-1}$) and subtract the two
+to get $N A_N - \left(N - 1\right) A_{N-1} = 1 + 2 A_{N-1}$.  Now
+divide by $N \left(N - 1\right)$ to get
+$$
+{A_N \over N  + 1} = {A_{N-1} \over N} + {1 \over N \left(N + 1\right)}.
+$$
+Now telescope to get
+$$
+ {A_N \over N - 1} = {A_1 \over 2} + \sum_{j = 1}^N {1 \over j \left(j + 1\right)}.
+$$
+If we write $1 / j \left(j + 1\right)$ as $1 / k - 1 / k+1$ then all the terms except
+the first and last cancel in the sum, leaving $1 - 1 / N + 1 = N / N + 1$.
+Thus,
+$$
+ A_N = \left(N + 1\right) A_1 / 2 + N .
+$$
+
+\vskip 0.08in \noindent {\bf Problem 1.15}: Say that the partition
+element belongs in position $j$ (where $0 \le j < N$, so 0 based
+numbering).  The chance of this happening is $1/N$, independent
+of $j$.  There are $N - j - 1$ elements to the right, and $j$ to the left.
+The ones on the right have a $j / N-1$ chance of needing to be
+swapped, so the expected number of exchanges is 
+$$
+ E_j = {j \over N - 1} \left(N - j - 1\right) = j - {j^2 \over N - 1}
+$$
+and so the average number of swaps overall is
+$$
+  \alpha = {1 \over N} \sum_{0 \le j < N} E_j =
+   {1 \over N} \sum_{0 \le j < N} j - {1 \over N \left(N - 1\right)} \sum_{0 \le j < N} j^2.
+$$
+Now we take advantage of $\sum j = N \left(N + 1\right) / 2$
+and $\sum j^2 = N \left(N + 1\right) \left(2 N + 1\right)$, but
+note that those are for sums over $1 \le j \le N$, so we have to
+replace $N$ by $N-1$.  In any case that gives
+$$
+ \alpha = {N - 1 \over 2} - {2 N - 1 \over 6} = {3 N  - 3 - 2 N + 1 \over 6} 
+  = {N - 2 \over 6}
+$$
+as advertised.
+
+\end
