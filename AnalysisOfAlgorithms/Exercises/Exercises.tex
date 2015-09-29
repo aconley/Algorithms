@@ -48,4 +48,121 @@ $$
 $$
 as advertised.
 
+\vskip 0.08in \noindent {\bf Problem 1.17}\hfil\break
+Symmetrizing the sum, we have
+$$ 
+  C_N = \cases{ N + 1 + \sum_{j=1}^N C_{j-1} & if $N > M$;\cr
+                          {1 \over 4} N \left(N - 1\right) & if $N \le M$. \cr}
+$$
+The usual steps follow for $N > M$ to give
+$$
+  {C_N \over N + 1} = {C_{N - 1} \over N} + {2 \over N + 1}
+$$
+but this time when we telescope we only get down to $C_M$,
+so
+$$
+  {C_N \over N + 1} = {C_M \over M + 1} + 2 \sum_{k = M+2}^N+1 {1 \over k} =
+    {1 \over 4} {M \left(M - 1\right) \over M + 1} + 2 \left(H_{N+1} - H_{M+2}\right)
+$$
+so
+$$
+  C_N = 2 \left(N + 1\right)\left[ {1 \over 8} {M \left(M - 1\right) \over M + 1}
+   + H_{N+1} - H_{M+2}\right] .
+$$
+
+\vskip 0.08in \noindent {\bf Problem 1.18}\hfil\break
+Ignoring the approximation business, just evaluating this
+directly gives a minimum at $M = 6$.
+
+\vskip 0.3in
+\centerline {Week 2}
+\vskip 0.2in
+
+\noindent {\bf Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
+$a_0 = 1$.\hfil\break
+Divide by 
+$$
+ x_n x_{n-1} \ldots x_1 = {n \over n + 1} {n - 1 \over n} \ldots {1 \over 2} = {1 \over n + 1}
+$$
+to get
+$$
+ \left(n + 1\right) a_n = n a_{n-1} + \left(n + 1\right)
+  = \left(n - 1\right) a_{n-2} + \left(n + 1\right) + n = a_0 + \left(n+1\right) + n +
+  \left(n - 1\right) + 2,
+$$
+which, since $a_0 = 1$, is just the sum of integers from 1 to $n+1$, or
+$\left(n + 1\right)\left(n + 2\right) / 2$.  Dividing across,
+$$ 
+ a_n = {n + 2 \over 2}.
+$$
+
+\vskip 0.08in \noindent {\bf Problem 2.17}: Fringe analysis\hfil\break
+There's something rather odd here -- this goes negative.  For example,
+$A_2 = -2$.  If we simply the expression, we see that
+$$
+ A_N = 2 + A_{N-1} {N - 6 \over N}
+$$
+and so odd things will also happen around $N = 6$.  Therefore, it's
+useful to instead define the series $a^{\prime}_n = A_{n-6}$ with
+$a^{\prime}_0 = 2$ (since $A_6 = 2$).  In terms of this recurrance
+$$
+ a^{\prime}_n = 2 + a^{\prime}_{n-1} {n \over n + 6}.
+$$
+So now we divide both sides by $x_n x_{n-1} \ldots x_1$ where
+$x_n = n / \left(n + 6\right)$ as usual.  Writing this out, this is 
+the same as multiplying by $n + 6 \choose n$.  We can drop the $6!$
+and thus it is the same as multiplying by $\left(n + 1\right)\ldots\left(n+6\right)$.
+When we substitute, this becomes
+$$
+ \left(n+1\right)\ldots\left(n+6\right) a^{\prime}_n = 2 \left(n+1\right)\ldots
+ \left(n+6\right) 2 + a^{\prime}_{n-1} n \left(n+1\right)\ldots\left(n+5\right).
+$$
+Iterating this, and taking advantage of $a^{\prime}_0 = 2$ gives
+$$
+\left(n+1\right)\ldots\left(n+6\right) a^{\prime}_n = 2 \sum_{k=1}^{n+1}
+k \left(k + 1\right)\ldots\left(k+5\right).
+$$
+
+So, how do we evaluate a sum like this?  In general say we have
+$$
+ \sum_{k=1}^{n+1} \prod_{j=0}^{\alpha} \left(k + j\right)?
+$$
+(In our example, $\alpha = 5$).  Well, if we multiply both sides by 
+$\left(\alpha + 1\right) !$, we have
+$$
+ \sum_{k=1}^{n+1} \prod_{j=0}^{\alpha} \left(k + j\right) =
+ \left(\alpha + 1\right)! \sum_{k=1}^{n+1} {\left(k + \alpha\right)!
+   \over \left(k - 1\right)! \left(\alpha + 1\right)!} =
+    \left(\alpha + 1\right)! \sum_{k=1}^{n+1} {k + \alpha \choose k - 1}
+     = \left(\alpha + 1\right)! \sum_{k=0}^{n} {k + \alpha + 1 \choose k}
+$$
+Now we take advantage of the relation
+$$
+ \sum_{k=0}^n {r + k \choose k} = {r + n + 1 \choose n}
+$$
+(for example, Knuth vol 1 p. 56, eq.~1.2.6.(10)).  So, $r=\alpha + 1$
+and we have
+$$
+  \sum_{k=1}^{n+1} \prod_{j=0}^{\alpha} \left(k + j\right) =
+  \left(\alpha + 1\right)! {\alpha + n + 2 \choose n} =
+  \left(\alpha + 1\right)! {\left(\alpha + n + 2\right) \over n! \left(\alpha + 2\right)!} =
+  { \left(\alpha + n + 2\right)! \over n! \left(\alpha + 2\right)}
+  = {1 \over \alpha + 2} \prod_{j=1}^{\alpha + 2} \left(n + j\right).
+$$
+As an example, $\sum_{k=1}^{n+1} n \left(n + 1\right) \left(n + 2\right)
+ = {1 \over 4} \left(n + 1\right)\left(n + 2\right) \left(n + 3\right) \left(n + 4\right).$
+ In our case we are left with
+$$
+\left(n+1\right)\ldots\left(n+6\right) a^{\prime}_n = {2 \over 7}
+\left(n + 1\right) \ldots \left(n + 7\right)
+$$
+so
+$$ 
+ a^{\prime}_n = {2 \over 7} \left(n + 7\right),
+$$
+or
+$$
+ A_n = a^{\prime}_{n-6} = {2 \over 7} \left(n + 1\right)
+$$
+for $n \ge 6$ (and values below that being rather odd).
 \end
