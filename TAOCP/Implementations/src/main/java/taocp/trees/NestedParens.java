@@ -1,11 +1,14 @@
-package taocp.bittwiddling;
+package taocp.trees;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * Iterate through nexted parenthesis using bit twiddling techniques.
- * This is problem 7.1.3.23 in Knuth.
+ * Generate all sets of nested parenthesis.
+ * <p>
+ * This is equivalent to generating all forests.  This particular
+ * implementation uses bit twiddling techniques, and is
+ * Knuth 4A problem 7.1.3.23.
  */
 class NestedParens implements Iterable<String> {
   final private static long mu0 = 0x5555555555555555L;
