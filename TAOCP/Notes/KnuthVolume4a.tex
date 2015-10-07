@@ -221,6 +221,10 @@ and both $\bar \lor$ and $\subset$ are decidedly non-normal operators.
 The number of normalized 4-ary functions simply comes from their being
 only 15 free settings for the truth table, since the all 0s one is fixed.
 
+Don responds: by normalized boolean chain he simply meant one
+that only uses normalized operators, not one that computes a normalized
+function.
+
 \vskip 0.05in \noindent [p 100] {\bf Algorithm L} ({\it Find normal lengths}).\hfil\break
 The idea is pretty obvious -- make a vector for all possible truth tables.
 Then set all the trivial 1-element functions (which are just the $x_j$ --
@@ -891,9 +895,21 @@ adding a ring in the middle changes $\left(110^{\,j-1}\right)_2 \rightarrow
 \left(110^{\,j-1}\right)_2$, which injects an extra 1 into all positions
 $i \le j+1$, which is the same as $k \gets k \oplus \left(2^{\,j+1} - 1\right)$.
 
+Note, however, that the ordering for the Gray code 
+is the opposite of the solution to the ring puzzle
+because generates the reversed Gray binary code.  That is,
+we start with $\rho\left(1\right)$, then $\rho\left(2\right)$, etc.,
+and so this, like all of the other Gray generating algorithms
+amounts to computing successive values of $\rho$.  That is,
+if we have ISA support for the ruler function, there is no need
+for these algorithms, but assuming we don't we can in general
+find faster ways than to get successive values of $\rho$, which
+is what Algorithms~G and L are about.
+
+
 \vskip 0.08in \noindent [p 286] {\bf Algorithm G}\hfil\break
-This follows immediately from the ring discussion.  The parity bit
-tells us if we want to make a type (a) move (remove or add the ring
+This follows immediately from the ring discussion.  
+The parity bit tells us if we want to make a type (a) move (remove or add the ring
 at the end), if not G4/G5 find $\rho$ and remove or add that ring.
 
 \vskip 0.08in \noindent [p 288] Recursion relation between $w$:
@@ -926,6 +942,48 @@ r_j\left(x\right)^{a+b}$?  This goes back to 7.1.3.(89):
 $x + y = \left(x \oplus y\right) + \left(\left(x \& y \right) \ll 1\right)$,
 and noting that the $\left(a \& b\right) \ll 1$ part will always be a power
 of 2, and so cancels out because $r_j\left(x\right)^2 = 1$.
+
+\vskip 0.08in \noindent [p 290] {\bf Algorithm L} ({\it Loopless Gray
+binary generation})\hfil\break
+Note that passive somewhat confusingly means the corresponding
+bit being set in $b$, while active means it is zero.  And, indeed,
+considering the example given, the underlined bits in $a$ are
+simply counting $0, 1, 2, 3, \ldots , 8$.  Translating items 1 and 2
+to this language, which I find a bit clearer, item 1 is:
+if $b_j$ is 1 and $b_{j-1}$ is 0, then $f_j$ is the smallest index
+$j^{\prime} > j$ such that $b_{j^{\prime}} = 0$.  So, for example,
+consider $b = 0100$.  Then the quantity of interest is $f_2$,
+which is 3 -- and indeed $b_3 = 0$.  Note there can be more
+than one -- for $b=1010$, we have $f_3 = 4$ and $f_1 = 2$.
+
+If $f_0 = 0$ already -- that is, $b_0$ is not the rightmost 1
+in a block of 1s -- then we simply get $j \gets 0$.  This corresponds
+to odd values of $k$ where $\rho\left(k\right)$ is 0, meaning it's
+time to flip the last bit.  And, of course, the last bit of $a$ gets
+flipped on every other step.  But then we copy the value from $f_1$,
+which means that we point to the left of the block of 1s starting at
+$b_1$.
+
+Consider what happens when we transition from $b=0011$
+to $0100$.  $f_0 = 2$ is the index of the rightmost active (0) element.
+All the other $f_j = j$. Now we set $j \gets 2$, and then flip it in $a$.
+But how does that make $a_0$ and $a_1$ passive?  Well, remember
+the relation between $b$ and $a$: $b_j = a_j \oplus a_{j+1} \oplus \ldots$
+(7.2.1.1.7). Thus, by flipping $a_j$ we are flipping the signs of all $b_{\le j}$,
+while leaving $b_{>j}$ untouched.
+
+For the second part of L3, since $a_j$ and $a_{j-1}$ are both active
+prior to this step, we must have $f_j = j$, $f_{j-1} = j - 1$.  So
+in this step we are making $j+1$ be the rightmost element in a block of 1s,
+which means $j+1$ can't be if it was, and so must have $f_{j+1} = j + 1$.
+
+\vskip 0.08in \noindent {\bf Shift Register Sequences}
+
+\noindent [p 302] Note that the idea in equation (53) is to take five
+numbers sequentially from overlapping sub-sequences -- that is
+00000, then shift the left 0 off and one in from the right to get 00001,
+etc.
+
 
 \vfil\break
 
