@@ -594,6 +594,15 @@ and so the division by $\sqrt{u+1}$ has strange results.  The
 $\nu\!\left(u \& \bar{\mu_0}\right)$ version produces an invalid pattern
 with a one bit beyond the desired positions and more ones than desired.
 
+Also note that this is combinatorically equivalent to generating
+all forests of trees, and hence is considered again in 7.2.1.6.  Because
+of the 1-1 correspondence between binary trees and forests, that
+means that the total number of traces is 
+$$
+  {1 \over m + 1} {2 m \choose m};
+$$
+see volume~1.
+
 \vskip 0.04in \noindent c) This is a straightforward translation of the $\nu\left(u \&
 \bar{\mu_0}\right)$ version:
 {\bf XOR z,x,mu0}; {\bf SUBU u,z,1}; {\bf XOR u,z,u}; {\bf OR v,x,u};
