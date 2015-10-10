@@ -154,6 +154,17 @@ So, it works, although it is obviously rather complicated, Knuth calling it simp
 aside!
 
 \vskip 0.3in
+\centerline{\tt Section 2.3.2: Binary Tree Representations of Trees}
+\vskip 0.2in
+
+\noindent Note that, as explained in the previous section, binary trees are not trees!
+The two binary trees with A at the root and B as alternatively the left and right
+subtree are different, but would be considered the same as trees.  Thus,
+one can't object that there can't be a one-to-one correspondence because
+binary trees are trees, since they aren't.
+
+
+\vskip 0.3in
 \centerline{\tt Section 2.3.4: Basic Mathematical Properties of Trees}
 \vskip 0.2in
 
@@ -162,5 +173,22 @@ The argument is more or less that the last step on the path must end
 at $V$, and that if we exclude the first and last step the arcs must
 all be balanced.  So if we don't have one more arc starting there $V$
 wouldn't be balanced, and the only one left is the first step.
+
+Also note that there are two oriented, but unlablled, forests with two
+subtrees -- the one where the one node tree is second, and one where
+it is first, because even in the absence of the labels the question of
+which tree comes first is important.
+
+\vskip 0.3in
+\centerline{\tt Section 2.3.4.4: Enumeration of Trees}
+\vskip 0.2in
+
+\noindent [p 389] Number of ordered trees: note this isn't the number of forests with $n$
+nodes, but the number of oriented trees.  The number of oriented (but unlabeled) forests
+is just $b_n$, the same as the number of binary trees, because of the 
+natural correspondence between binary trees and forests discussed in
+\S2.3.2.  And since nested parenthesis are a way of representing a forests,
+it's also the number of valid sets of nested parenthesis.
+
 
 \end
