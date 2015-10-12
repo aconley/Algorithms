@@ -205,4 +205,21 @@ $$
  {n - 1/2 \choose n} \sum_{i=0}^{n-1} {1 \over 1/2 + i}.
 $$
 
+\vskip 0.08in \noindent {\bf Problem 5.1} How many bitstrings of
+length $N$ have no 000?\hfil\break
+Such string are either $\epsilon$, a single 0, two 0s, or 1 or 01 or 001 followed
+by a string with no 3 consecutive zero bits.  Figuring out which ones
+don't have to be included is a bit tricky; for example, 010 is just 01 followed
+by a string with no two consecutive 1 bits, but 00 is not just 0 followed
+by any such string.  So
+$$
+ {\cal G} = \epsilon + {\cal Z}_0 + {\cal Z}_0 \times {\cal Z}_0
+   + \left({\cal Z}_1 + {\cal Z}_0 \times {\cal Z}_1 
+   + {\cal Z}_0 \times {\cal Z}_0 \times {\cal Z}_1\right) \times {\cal G}.
+$$
+This is then $G\left(z\right) = 1 + z + z^2 + \left(z + z^2 + z^3\right) G\left(z\right)$,
+or $G\left(z\right) = \left(1 + z + z^2\right) / \left(1 - z - z^2 - z^3\right)$.  I can't
+find any particular way to simplify this -- the first few terms of the expansion
+are $1 + 2z + 4z^2 = 7z^3 + 13z^4 + 24z^5 + \ldots$.
+
 \end
