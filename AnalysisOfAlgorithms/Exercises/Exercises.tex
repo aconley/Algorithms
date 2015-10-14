@@ -205,9 +205,32 @@ $$
  {n - 1/2 \choose n} \sum_{i=0}^{n-1} {1 \over 1/2 + i}.
 $$
 
+Can we simplify this further?  Take $\alpha + k - 1 \choose k$ for $\alpha = 1/2$.
+This is by the formula given earlier 
+$$
+ {1 \over k!} \left({1 \over 2} {3 \over 2} \ldots {2k - 1 \over 2}\right) =
+  {\left(2k\right)!! \over 2^k}.
+$$
+But $\left(2k - 1\right)!! 2^n n! = \left(2 n\right)!$ if written out,
+so
+$$
+ {1/2 + n - 1 \choose 1/2} = {\left(2 n\right)! \over 2^n 2^n n!} = {1 \over 4^n} {2n \choose n}.
+$$
+Now, the other term:
+$$
+ \sum_{i=0}^{n-1} {1 \over 1/2 + i} = \sum_{i=0}^{n-1} {2 \over 2 i + 1}
+  = \left(2 + {2 \over 3} + {2 \over 5} + \ldots + {2 \over 2 n - 1}\right)
+  = 2 \left(H_{2n} - {1 \over 2} H_n\right)
+$$
+and so
+$$
+ \left[z^n\right] {1 \over \sqrt{1 - z}} \log {1 \over 1 - z} =
+  {1 \over 2^{2n-1}} {2n \choose n} \left(H_{2n} - {1 \over 2} H_n\right).
+$$
+
 \vskip 0.08in \noindent {\bf Problem 5.1} How many bitstrings of
 length $N$ have no 000?\hfil\break
-Such string are either $\epsilon$, a single 0, two 0s, or 1 or 01 or 001 followed
+Such strings are either $\epsilon$, a single 0, two 0s, or 1 or 01 or 001 followed
 by a string with no 3 consecutive zero bits.  Figuring out which ones
 don't have to be included is a bit tricky; for example, 010 is just 01 followed
 by a string with no two consecutive 1 bits, but 00 is not just 0 followed
@@ -222,4 +245,17 @@ or $G\left(z\right) = \left(1 + z + z^2\right) / \left(1 - z - z^2 - z^3\right)$
 find any particular way to simplify this -- the first few terms of the expansion
 are $1 + 2z + 4z^2 = 7z^3 + 13z^4 + 24z^5 + \ldots$.
 
+\vskip 0.08in \noindent {\bf Problem 5.1} How many bitstrings of
+length $N$ have no 01?\hfil\break
+Such strings are either $\epsilon$, a 1 followed by a sequence with no 01,
+or a sequence of 0s.  However, $\epsilon$ is counted as a sequence of 0s. That is:
+$$
+ {\cal G} = {\cal Z}_1 \times {\cal G} + {\cal SEQ}\left({\cal Z_0}\right)
+$$
+or $G\left(z\right) = z G\left(z\right) + 1 /\left( 1 - z \right) $, so that
+$G\left(z\right) = 1 / \left(1 - z\right)^2$ and $\left[z^n\right] G\left(z\right) =
+{n + 1 \choose n} = n + 1$.  For $n=3$, for example, these are
+$000, 100, 110, 111$.  Alternatively, we could just say that
+${\cal G} = {\cal SEQ}\left({\cal Z}_1\right) \times {\cal SEQ}\left({\cal Z}_0\right)$,
+a sequence of 1s followed by a sequence of 0s, which gives the same result.
 \end
