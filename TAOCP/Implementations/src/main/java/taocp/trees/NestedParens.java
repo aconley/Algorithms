@@ -17,14 +17,18 @@ class NestedParens implements Iterable<String> {
   final private long endmask;
 
   /**
-   * @param nparens Number of open (or close) parenthesis.  Must be even
+   * @param nparens Number of open (or close) parenthesis.
    */
-  public NestedParens(int nparens) {
+  public NestedParens(byte nparens) {
     if (nparens > 32) {
       throw new IllegalArgumentException("Too many parentheses; <= 32 required");
     }
     this.nparens = nparens;
     endmask = ~(-1L >>> (64 - 2 * nparens));
+  }
+
+  public NestedParens(int nParens) {
+    this((byte) nParens);
   }
 
   public Iterator<String> iterator() {
@@ -77,7 +81,7 @@ class NestedParens implements Iterable<String> {
 
   public static void main(String[] args) {
     for (String arg : args) {
-      int nparens = Integer.parseInt(arg);
+      byte nparens = Byte.parseByte(arg);
       System.out.println("For nparens: " + nparens);
       NestedParens pars = new NestedParens(nparens);
       for (String par : pars) {
