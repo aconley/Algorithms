@@ -258,4 +258,40 @@ $G\left(z\right) = 1 / \left(1 - z\right)^2$ and $\left[z^n\right] G\left(z\righ
 $000, 100, 110, 111$.  Alternatively, we could just say that
 ${\cal G} = {\cal SEQ}\left({\cal Z}_1\right) \times {\cal SEQ}\left({\cal Z}_0\right)$,
 a sequence of 1s followed by a sequence of 0s, which gives the same result.
+
+\vskip 0.08in \noindent {\bf Problem 5.3} Get an explicit expression for the 
+generating function for the size of trees counting both internal and external nodes.
+This is pretty straightforward: 
+$$
+ {\cal T} = {\cal Z}_{\circ} + {\cal Z}_{\bullet} \times {\cal T} \times {\cal T}.
+$$
+For this problem we count external ($\circ$) and internal ($\bullet$) nodes,
+so this becomes $T = z + z T^2$, or
+$$
+ T\left(z\right) = {1 \pm \sqrt{1 - 4 z^2} \over 2 z}.
+$$
+where the boundary condition $T\left(0\right) = 0$ suggests we take the negative branch.
+
+\vskip 0.08in \noindent {\bf Problem 5.7} Sets of cycles of odd length:
+immediately we are lead to 
+$$
+{\cal D} = {\rm SET} \left(
+{\rm CYC}_1\left({\cal Z}\right) + {\rm CYC}_3 \left({\cal Z}\right) +
+ {\rm CYC}_5 \left({\cal Z}\right) + \ldots \right)
+ $$
+ so that we have the EGF
+ $$
+ P^{\star}_{\rm odd} = \exp \left( \ln {1 \over 1 - z } - z^2/2 - z^4/4 - \ldots\right)
+  = { e^{-z^2/2 - z^4/4 - \ldots} \over 1 - z }
+$$
+
+\vskip 0.08in \noindent {\bf Problem 5.8} Sequences of cycles are (immediately
+$$
+  S = {1 \over {1 - \ln {1 \over 1 - z}}} = {1 \over 1 + \ln \left(1 - z\right)}.
+$$
+
+\vskip 0.08in \noindent {\bf Problem 5.9} Cycles of sequences are
+$$
+ C = \ln {1 \over {1 - {1 \over 1 - z}}} = \ln {z - 1 \over z}
+$$
 \end
