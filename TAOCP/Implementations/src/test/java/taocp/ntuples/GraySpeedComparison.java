@@ -14,9 +14,19 @@ public class GraySpeedComparison {
 
   public static void main(String[] args) {
     Iterator<Integer> binaryGray = new GrayCode(NTEST).iterator();
-    Iterator<Integer> looplessGray = new GrayCode(NTEST).iterator();
+    Iterator<Integer> looplessGray = new LooplessGrayCode(NTEST).iterator();
 
+    // Do them both once first to trigger the JIT
     int value;
+    while (binaryGray.hasNext()) {
+      value = binaryGray.next();
+    }
+    while (looplessGray.hasNext()) {
+      value = looplessGray.next();
+    }
+
+    binaryGray = new GrayCode(NTEST).iterator();
+    looplessGray = new LooplessGrayCode(NTEST).iterator();
     long startTime = System.nanoTime();
     while (binaryGray.hasNext()) {
       value = binaryGray.next();

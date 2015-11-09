@@ -55,19 +55,18 @@ public class LooplessGrayCode implements Iterable<Integer> {
         throw new NoSuchElementException();
       }
 
-      int result = state;
       byte j = focus[0];
-      focus[0] = 0;
-
       if (j == n) {
         done = true;
+        return state;
       } else {
+        int result = state;
+        focus[0] = 0;
         focus[j] = focus[j + 1];
         focus[j + 1] = (byte) (j + 1);
         state ^= (1 << j);
+        return result;
       }
-
-      return result;
     }
   }
 }
