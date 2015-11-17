@@ -1,0 +1,17 @@
+F-A    16
+G-A     5
+    A-B     1
+    B-C    12
+    B-G     6
+    D-C    15
+    C-H    13
+    G-C     7
+    D-J    11
+    D-E     8
+    H-D     3
+    D-I     2
+    J-E    10
+    F-G    17
+    G-H     9
+    H-I     4
+    J-I    14
