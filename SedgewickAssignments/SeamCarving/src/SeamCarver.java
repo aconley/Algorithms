@@ -239,12 +239,12 @@ public class SeamCarver {
       int seamFullIdx = i * this.logicalHeight + seamIdx;
       if (seamIdx < this.height - 1) {
         System.arraycopy(image, seamFullIdx + 1, image, seamFullIdx,
-            height - seamIdx);
+            height - seamIdx - 1);
       }
     }
     // Energy.  Only elements +- 1 in y need to be adjusted
     //  which, after removal, means the element and the one below it
-    // Note: we need to do this in a seperate loop
+    // Note: we need to do this in a separate loop
     for (int i = 1; i < this.width-1; ++i) {
       int seamIdx = seam[i];
       int seamFullIdx = i * this.logicalHeight + seamIdx;
@@ -353,6 +353,64 @@ public class SeamCarver {
       result[j] = fullIdx / this.logicalHeight;
     }
     return result;
+  }
+
+  public void removeVerticalSeam(int[] seam) {
+    if (seam == null) {
+      throw new NullPointerException("Seam is null");
+    }
+    if (seam.length != height) {
+      throw new IllegalArgumentException("Seam is not correct length");
+    }
+    if (width == 0) {
+      throw new IllegalArgumentException("Tried to remove seam from empty image");
+    }
+
+    // Adjust the picture and energy
+    for (int j = 0; j < this.height; ++j) {
+      int seamIdx = seam[j];
+      if (seamIdx < 0 || seamIdx >= this.width) {
+        throw new IndexOutOfBoundsException("Seam value: " + seamIdx
+            + " out of bounds");
+      }
+      // Picture
+      for (int i = seamIdx; i < this.width - 1; ++i) {
+        int baseIdx = i * this.logicalHeight + j;
+        image[baseIdx] = image[baseIdx + this.logicalHeight];
+      }
+
+    }
+    // Energy.  Only elements +- 1 in x need to be adjusted
+    //  which, after removal, means the element and the one below it
+    // Note: we need to do this in a separate loop
+    for (int j = 1; j < this.height-1; ++j) {
+      int seamIdx = seam[j];
+
+      // Do the seam position
+      int seamFullIdx = seamIdx * this.logicalHeight + j;
+      if (seamIdx == 0) {
+        energy[seamFullIdx] = ENERGY_BOUNDARY;
+      } else if (seamIdx < this.width - 1) {
+        int energySquared =
+            getDeltaSqVals(image[seamFullIdx + logicalHeight],
+                image[seamFullIdx - logicalHeight])
+                + getDeltaSqVals(image[seamFullIdx + 1],
+                image[seamFullIdx - 1]);
+        energy[seamFullIdx] = Math.sqrt((double) energySquared);
+      }
+      // And the one to the left
+      if (seamIdx > 1) {
+        int baseIdx = seamFullIdx - this.logicalHeight;
+        int energySquared =
+            getDeltaSqVals(image[baseIdx + logicalHeight],
+                image[baseIdx - logicalHeight])
+                + getDeltaSqVals(image[baseIdx + 1],
+                image[baseIdx - 1]);
+        energy[baseIdx-1] = Math.sqrt((double) energySquared);
+      }
+    }
+
+    this.width -= 1;
   }
 
 }
