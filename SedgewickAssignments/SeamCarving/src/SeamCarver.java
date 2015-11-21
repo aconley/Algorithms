@@ -1,5 +1,4 @@
 import edu.princeton.cs.algs4.Picture;
-import edu.princeton.cs.algs4.StdOut;
 
 import java.awt.*;
 
@@ -21,16 +20,12 @@ public class SeamCarver {
   private final int logicalWidth;
   private final int[] image;
 
-  // Energy array
+  // Energy array; 32 bits should be enough
   private final double[] energy;
 
   // Current height/width
   private int height;
   private int width;
-
-  // Distance and from arrays
-  private final double[] distTo;
-  private final int[] edgeTo;
 
   private static int getRed(int value) {
     return (value & RED_MASK) >> 16;
@@ -46,7 +41,7 @@ public class SeamCarver {
 
   private static int packColor(int r, int g, int b) {
     return b | (g << 8) | (r << 16);
-  };
+  }
 
   public SeamCarver(Picture picture) {
     if (picture == null) {
@@ -66,32 +61,32 @@ public class SeamCarver {
       }
     }
 
-    // Pre-compute energy^2
+    // Pre-compute energy
     energy = new double[this.logicalHeight * this.logicalWidth];
-    for (int j = 0; j < this.logicalHeight; ++j) {
+    recalcFullEnergy();
+  }
+
+  private void recalcFullEnergy() {
+    for (int j = 0; j < this.height; ++j) {
       energy[j] = ENERGY_BOUNDARY;
     }
-    for (int i = 1; i < this.logicalWidth - 1; ++i) {
+    for (int i = 1; i < this.width - 1; ++i) {
       int baseIdx = i * this.logicalHeight;
       energy[baseIdx] = ENERGY_BOUNDARY;
-      for (int j = 1; j < this.logicalHeight - 1; ++j) {
+      for (int j = 1; j < this.height - 1; ++j) {
         int centIdx = baseIdx + j;
         int energySquared =
             getDeltaSqVals(image[centIdx + logicalHeight],
-                           image[centIdx - logicalHeight])
-            + getDeltaSqVals(image[centIdx + 1], image[centIdx - 1]);
+                image[centIdx - logicalHeight])
+                + getDeltaSqVals(image[centIdx + 1], image[centIdx - 1]);
         energy[centIdx] = Math.sqrt((double) energySquared);
-
       }
-      energy[baseIdx + this.logicalHeight - 1] = ENERGY_BOUNDARY;
+      energy[baseIdx + this.height - 1] = ENERGY_BOUNDARY;
     }
-    int baseIdx = (this.logicalWidth - 1) * this.logicalHeight;
-    for (int j = 0; j < this.logicalHeight; ++j) {
+    int baseIdx = (this.width - 1) * this.logicalHeight;
+    for (int j = 0; j < this.height; ++j) {
       energy[baseIdx + j] = ENERGY_BOUNDARY;
     }
-
-    distTo = new double[this.logicalWidth * this.logicalHeight];
-    edgeTo = new int[this.logicalWidth * this.logicalHeight];
   }
 
   public int width() {
@@ -130,10 +125,22 @@ public class SeamCarver {
   }
 
   public int[] findHorizontalSeam() {
-    // Initialize distances, etc.
+    if (this.height == 1) {
+      int[] retval = new int[this.width];
+      return retval;
+    } else if (this.width == 1) {
+      int[] retval = new int[1];
+      retval[0] = 0;
+      return retval;
+    }
 
+    // Initialize distances, etc.
+    //  For speed we would like to keep these in memory, but
+    //  the memory requirements forbid.
+    double[] distTo = new double[this.logicalWidth * this.logicalHeight];
+    int[] edgeTo = new int[this.logicalWidth * this.logicalHeight];
     // Just point straight back for first column
-    for (int j = this.logicalHeight; j <this.logicalHeight + this.height; ++j) {
+    for (int j = this.logicalHeight; j < this.logicalHeight + this.height; ++j) {
       edgeTo[j] = j - this.logicalHeight;
     }
 
@@ -161,29 +168,29 @@ public class SeamCarver {
       //  since we can ignore going down/up from there
       currBase = baseIdx + 1;
       currNext = nextRowIdx + 1;
-      relax(currBase, currNext + 1);
-      relax(currBase, currNext);
+      relax(currBase, currNext + 1, distTo, edgeTo);
+      relax(currBase, currNext, distTo, edgeTo);
       for (int j = 2; j < this.height - 2; ++j) {
         currBase = baseIdx + j;
         currNext = nextRowIdx + j;
-        relax(currBase, currNext + 1);
-        relax(currBase, currNext);
-        relax(currBase, currNext - 1);
+        relax(currBase, currNext + 1, distTo, edgeTo);
+        relax(currBase, currNext, distTo, edgeTo);
+        relax(currBase, currNext - 1, distTo, edgeTo);
       }
       currBase = baseIdx + this.height - 2;
       currNext = nextRowIdx + this.height - 2;
-      relax(currBase, currNext);
-      relax(currBase, currNext - 1);
+      relax(currBase, currNext, distTo, edgeTo);
+      relax(currBase, currNext - 1, distTo, edgeTo);
     }
 
     // Now find the best one
-    int endOfSeam = getBestHorizontalSeam();
+    int endOfSeam = getBestHorizontalSeam(distTo);
 
     // Extract the seam from that
-    return getHorizontalSeam(endOfSeam);
+    return getHorizontalSeam(endOfSeam, edgeTo);
   }
 
-  private void relax(int from, int to) {
+  private void relax(int from, int to, double[] distTo, int[] edgeTo) {
     double thisEnergy = distTo[from] + energy[to];
     if (distTo[to] > thisEnergy) {
       distTo[to] = thisEnergy;
@@ -191,7 +198,7 @@ public class SeamCarver {
     }
   }
 
-  private int getBestHorizontalSeam() {
+  private int getBestHorizontalSeam(double[] distTo) {
     int basePtr = (this.logicalWidth - 1) * this.logicalHeight;
     int endIdx = 1;
     double bestCost = distTo[basePtr + endIdx];
@@ -206,7 +213,7 @@ public class SeamCarver {
     return endIdx;
   }
 
-  private int[] getHorizontalSeam(int end) {
+  private int[] getHorizontalSeam(int end, int[] edgeTo) {
     int[] result = new int[width];
     result[width - 1] = end;
     int fullIdx = (this.width - 1) * this.logicalHeight + end;
@@ -218,15 +225,13 @@ public class SeamCarver {
   }
 
   public void removeHorizontalSeam(int[] seam) {
-    if (seam == null) {
-      throw new NullPointerException("Seam is null");
-    }
-    if (seam.length != width) {
-      throw new IllegalArgumentException("Seam is not correct length");
-    }
     if (height == 0) {
       throw new IllegalArgumentException("Tried to remove seam from empty image");
     }
+    if (height == 1) {
+      throw new IllegalArgumentException("Removing seam would result in empty image");
+    }
+    validateSeam(seam, width, height - 1);
 
     // Adjust the picture and energy
     for (int i = 0; i < this.width; ++i) {
@@ -235,24 +240,29 @@ public class SeamCarver {
         throw new IndexOutOfBoundsException("Seam value: " + seamIdx
             + " out of bounds");
       }
-      // Picture
+      // Picture and energy
       int seamFullIdx = i * this.logicalHeight + seamIdx;
       if (seamIdx < this.height - 1) {
         System.arraycopy(image, seamFullIdx + 1, image, seamFullIdx,
+            height - seamIdx - 1);
+        System.arraycopy(energy, seamFullIdx + 1, energy, seamFullIdx,
             height - seamIdx - 1);
       }
     }
     // Energy.  Only elements +- 1 in y need to be adjusted
     //  which, after removal, means the element and the one below it
     // Note: we need to do this in a separate loop
+    this.height -= 1;
+    recalcFullEnergy();
+    /*
     for (int i = 1; i < this.width-1; ++i) {
       int seamIdx = seam[i];
       int seamFullIdx = i * this.logicalHeight + seamIdx;
 
       // Do the seam position
-      if (seamIdx == 0) {
+      if (seamIdx == 0 || seamIdx >= this.height - 2) {
         energy[seamFullIdx] = ENERGY_BOUNDARY;
-      } else if (seamIdx < this.height - 1) {
+      } else {
         int energySquared =
             getDeltaSqVals(image[seamFullIdx + logicalHeight],
                 image[seamFullIdx - logicalHeight])
@@ -266,15 +276,26 @@ public class SeamCarver {
             getDeltaSqVals(image[seamFullIdx-1 + logicalHeight],
                 image[seamFullIdx-1 - logicalHeight])
                 + getDeltaSqVals(image[seamFullIdx],
-                image[seamFullIdx - 2]);
+                  image[seamFullIdx - 2]);
         energy[seamFullIdx-1] = Math.sqrt((double) energySquared);
       }
-    }
+    }*/
 
-    this.height -= 1;
+    //this.height -= 1;
   }
 
   public int[] findVerticalSeam() {
+    if (this.width == 1) {
+      int[] retval = new int[this.height];
+      return retval;
+    } else if (this.height == 1) {
+      int[] retval = new int[1];
+      retval[0] = 0;
+      return retval;
+    }
+
+    double[] distTo = new double[this.logicalWidth * this.logicalHeight];
+    int[] edgeTo = new int[this.logicalWidth * this.logicalHeight];
     // Just point straight up for first row
     int prod;
     for (int i = 0; i < this.width; ++i) {
@@ -303,32 +324,32 @@ public class SeamCarver {
       baseIdx = this.logicalHeight + j;
       nextRowIdx = baseIdx + this.logicalHeight;
       prevRowIdx = baseIdx - this.logicalHeight;
-      relax(baseIdx, baseIdx + 1);
-      relax(baseIdx, nextRowIdx + 1);
+      relax(baseIdx, baseIdx + 1, distTo, edgeTo);
+      relax(baseIdx, nextRowIdx + 1, distTo, edgeTo);
       // core
       for (int i = 2; i < this.width - 2; ++i) {
         baseIdx += this.logicalHeight;
         nextRowIdx += this.logicalHeight;
         prevRowIdx += this.logicalHeight;
-        relax(baseIdx, prevRowIdx + 1);
-        relax(baseIdx, baseIdx + 1);
-        relax(baseIdx, nextRowIdx + 1);
+        relax(baseIdx, prevRowIdx + 1, distTo, edgeTo);
+        relax(baseIdx, baseIdx + 1, distTo, edgeTo);
+        relax(baseIdx, nextRowIdx + 1, distTo, edgeTo);
       }
       // i = this.width - 1
       baseIdx += this.logicalHeight;
       prevRowIdx += this.logicalHeight;
-      relax(baseIdx, prevRowIdx + 1);
-      relax(baseIdx, baseIdx + 1);
+      relax(baseIdx, prevRowIdx + 1, distTo, edgeTo);
+      relax(baseIdx, baseIdx + 1, distTo, edgeTo);
     }
 
     // Now find the best one
-    int endOfSeam = getBestVerticalSeam();
+    int endOfSeam = getBestVerticalSeam(distTo);
 
     // Extract the seam from that
-    return getVerticalSeam(endOfSeam);
+    return getVerticalSeam(endOfSeam, edgeTo);
   }
 
-  private int getBestVerticalSeam() {
+  private int getBestVerticalSeam(double[] distTo) {
     int endIdx = 1;
     int baseIdx = 2 * this.logicalHeight - 1;
     double bestCost = distTo[baseIdx];
@@ -344,7 +365,7 @@ public class SeamCarver {
     return endIdx;
   }
 
-  private int[] getVerticalSeam(int end) {
+  private int[] getVerticalSeam(int end, int[] edgeTo) {
     int[] result = new int[height];
     result[height - 1] = end;
     int fullIdx = end * this.logicalHeight + this.height - 1; // [end, height-1]
@@ -356,15 +377,13 @@ public class SeamCarver {
   }
 
   public void removeVerticalSeam(int[] seam) {
-    if (seam == null) {
-      throw new NullPointerException("Seam is null");
-    }
-    if (seam.length != height) {
-      throw new IllegalArgumentException("Seam is not correct length");
-    }
     if (width == 0) {
       throw new IllegalArgumentException("Tried to remove seam from empty image");
     }
+    if (width == 1) {
+      throw new IllegalArgumentException("Removing seam would result in empty image");
+    }
+    validateSeam(seam, height, width - 1);
 
     // Adjust the picture and energy
     for (int j = 0; j < this.height; ++j) {
@@ -377,25 +396,27 @@ public class SeamCarver {
       for (int i = seamIdx; i < this.width - 1; ++i) {
         int baseIdx = i * this.logicalHeight + j;
         image[baseIdx] = image[baseIdx + this.logicalHeight];
+        energy[baseIdx] = energy[baseIdx + this.logicalHeight];
       }
-
     }
-    // Energy.  Only elements +- 1 in x need to be adjusted
-    //  which, after removal, means the element and the one below it
+    // Adjust the parts of the energy that need to be adjusted
     // Note: we need to do this in a separate loop
+    this.width -= 1;
+    recalcFullEnergy();
+    /*
     for (int j = 1; j < this.height-1; ++j) {
       int seamIdx = seam[j];
 
       // Do the seam position
       int seamFullIdx = seamIdx * this.logicalHeight + j;
-      if (seamIdx == 0) {
+      if (seamIdx == 0 || seamIdx >= this.width - 2) {
         energy[seamFullIdx] = ENERGY_BOUNDARY;
-      } else if (seamIdx < this.width - 1) {
+      } else {
         int energySquared =
             getDeltaSqVals(image[seamFullIdx + logicalHeight],
                 image[seamFullIdx - logicalHeight])
                 + getDeltaSqVals(image[seamFullIdx + 1],
-                image[seamFullIdx - 1]);
+                  image[seamFullIdx - 1]);
         energy[seamFullIdx] = Math.sqrt((double) energySquared);
       }
       // And the one to the left
@@ -405,12 +426,40 @@ public class SeamCarver {
             getDeltaSqVals(image[baseIdx + logicalHeight],
                 image[baseIdx - logicalHeight])
                 + getDeltaSqVals(image[baseIdx + 1],
-                image[baseIdx - 1]);
-        energy[baseIdx-1] = Math.sqrt((double) energySquared);
+                    image[baseIdx - 1]);
+        energy[baseIdx] = Math.sqrt((double) energySquared);
       }
     }
+    */
 
-    this.width -= 1;
+    //this.width -= 1;
   }
 
+  private void validateSeam(int[] seam, int expectedLength,
+      int maxValAllowed) {
+    if (seam == null) {
+      throw new NullPointerException("Null seam");
+    }
+    if (seam.length == 0) {
+      throw new IllegalArgumentException("Empty seam");
+    }
+    if (seam.length != expectedLength) {
+      throw new IllegalArgumentException("Seam wrong length: "
+          + seam.length + " but expected " + expectedLength);
+    }
+    int prevSeam = seam[0];
+    if (prevSeam < 0 || prevSeam > maxValAllowed) {
+      throw new IllegalArgumentException("Invalid seam index");
+    }
+    for (int i = 1; i < seam.length; ++i) {
+      int thisSeam = seam[i];
+      if (thisSeam < 0 || thisSeam > maxValAllowed) {
+        throw new IllegalArgumentException("Invalid seam index");
+      }
+      if (Math.abs(thisSeam - prevSeam) > 1) {
+        throw new IllegalArgumentException("Seam jumps more than 1 index");
+      }
+      prevSeam = thisSeam;
+    }
+  }
 }
