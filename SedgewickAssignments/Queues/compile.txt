@@ -1,2 +1,0 @@
-javac -cp stdlib.jar:. Deque.java RandomizedQueue.java Subset.java
-echo A B C D E F G H I | java -cp stdlib.jar:. Subset 3

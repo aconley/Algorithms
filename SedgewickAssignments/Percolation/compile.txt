@@ -1,2 +1,0 @@
-javac -cp algs4.jar:stdlib.jar:. PercolationStats.java Percolation.java
-java -cp algs4.jar:stdlib.jar:. PercolationStats 2 100000
