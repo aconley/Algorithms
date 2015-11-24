@@ -1,10 +1,37 @@
 \topglue 0.5in
 \centerline {\tt Analysis of Algorithms}
 \vskip 0.3in
-\centerline {Week 1}
+\centerline {Chapter 1}
 \vskip 0.2in
 
-\noindent {\bf Problem 1.14}: Evaluate $A_N = 1 + 2 / N \sum_{1 \le j \le N} A_{j-1}$.
+\noindent {\bf Problem 1.4} Evaluating for $N$ even,
+$C_N = 2 C_{N/2} + 1$ and $C_{N+1} = C_{N/2 + 1} + C_{N/2} + 1$,
+so $C_{N+1} - C_N = C_{N/2 + 1} - C_{N/2} + 1$.
+For $N$ odd this is $C_{N+1} - C_N = C_{N/2 + 1/2} - C_{N/2 - 1/2} + 1$.
+Note that these are actually the same for successive values of $N$ --
+that is, $C_6 - C_5 = C_5 - C_4 = C_3 - C_2 + 1$.  So the first
+step always reduces to $N$ even, and we only have to consider
+that case.  Telescoping, we are dividing by 2 at every step, ending
+up with $C_2 - C_1 = 2$, so $C_{N+1} - C_{N} = \lfloor {\rm lg} N
+\rfloor + 2$.  Telescoping that in turn gives the desired result:
+$$
+ C_N = \sum_{1 \le k < N} \left(\lfloor {\rm lg} \rfloor + 2\right).
+$$
+
+\vskip 0.08in \noindent {\bf Problem 1.7} Substituting we get
+$t_{2N} = 2 c N {\rm lg}\, 2 N + 2 d N = 2 c N {\lg} N 
++ 2 d N + 2 c N = 2 t_N + 2 c N$.  Next, note that
+$2 t_N / {\rm lg} N = 2 c N + 2 d N / {\rm lg} N$, so this
+is 
+$$
+ t_{2N} = 2 t_{N} \left(1 + {1 \over {\rm lg} N}\right) - {2 d N \over {\rm lg} N},
+$$
+which doesn't quite match the problem statement.  But the
+error term is ${\rm O} N / {\rm lg} N$, so it's not a terrible approximation
+unless $d$ is rather large and $N$ small.
+
+\vskip 0.08in \noindent {\bf Problem 1.14}: Evaluate 
+$A_N = 1 + 2 / N \sum_{1 \le j \le N} A_{j-1}$.
 Multiply by $N$ to get $N A_N = N + 2 \sum_{1 \le j \le N} A_{j-1}$,
 then write the same equation for $N-1$: ($\left(N - 1\right) 
 A_{N-1} = N  - 1 + 2 \sum_{1 \le j \le N-1} A_{j-1}$) and subtract the two
@@ -75,10 +102,33 @@ Ignoring the approximation business, just evaluating this
 directly gives a minimum at $M = 6$.
 
 \vskip 0.3in
-\centerline {Week 2}
+\centerline {Chapter 2}
 \vskip 0.2in
 
-\noindent {\bf Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
+\noindent {\bf Problem 2.6}: Solve the recurrence $a_n = a_{n-1} + a_{n-2}$
+with $a_0 = p$ and $a_1 = q.$\hfil\break
+This is the Fibonnaci recursion but with different initial coefficients.
+The solution is therefore $a_0 u_n + a_1 v_n = p u_n + q v_n$
+where $u_n = u_{n-1} + u_{n-2}$ with $u_0 = 1$ and $u_1 = 0$,
+and $v_n = v_{n-1} + v_{n-2}$ with $u_0 = 0$ and $u_1 = 1$.
+The second is just the usual, so $v_n = F_n$.  $u_n$ written out is
+$1, 0, 1, 1, 2, \ldots = F_{n-1}$ except for $u_0$.  Therefore,
+$a_n = p F_{n-1} + q F_n$ for $n > 1$.
+
+\vskip 0.08in \noindent {\bf Problem 2.7} Guess that the solution
+to the inhomogeneous part is a constant $c_0$.  Combining with
+the previous solution we have $a_n = p F_{n-1} + q F_n + c_0$,
+and substituting into the defining equation:
+$$
+ p F_{n-1} + q F_n + c_0 = p \left(F_{n-2} + F_{n - 3}\right)
+  + q \left(F_{n-1} + F_{n-2}\right) + \left(p + q\right) c_0 + r.
+$$
+Since $F_{n-1} + F_{n-2} = F_n$, this becomes
+$c_0 = \left(p + q\right) c_0 + r$, so 
+$a_n = p F_{n-1} + q F_n + r / \left(1 - p - q\right)$ for $n>1$.
+
+
+\vskip 0.08in \noindent {\bf Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
 $a_0 = 1$.\hfil\break
 Divide by 
 $$
