@@ -127,6 +127,58 @@ Since $F_{n-1} + F_{n-2} = F_n$, this becomes
 $c_0 = \left(p + q\right) c_0 + r$, so 
 $a_n = p F_{n-1} + q F_n + r / \left(1 - p - q\right)$ for $n>1$.
 
+\vskip 0.08in \noindent {\bf Problem 2.9}: 
+$$
+a_n = {n \over n + 2} a_{n - 1} = {n \over n + 2} {n - 1 \over n + 1}
+{n - 2 \over n} \ldots {3 \over 5} {2 \over 4} {1 \over 3} = 
+{2 \over \left(n + 2\right) \left(n + 1\right)}
+$$
+
+\vskip 0.08in \noindent {\bf Problem 2.10} $a_n = a_{n-1} + \left(-1\right)^n n$
+with $a_0 = 1$.\hfil\break
+Immediately, we see that
+$$
+ a_n = \sum_{0 \le k \le n} \left(-1\right)^k + 1 = 
+ \sum_{0 \le k \le n, k \, {\rm even}} k \, - \sum_{0 \le k \le n, k \, {\rm odd}} k + 1 .
+$$
+Now
+$$
+ \sum_{0 \le k \le n, \, k {\rm even}} = 
+ \cases{
+   {n \over 2} \left( {n \over 2} - 1 \right), & if $n$ is even;\cr
+   \left({n - 1 \over 2}\right) \left({n + 1 \over 2}\right) & if $n$ is odd .\cr}
+$$
+We can then write even - odd as 2 times odd minus all, so
+$$
+a_n = \cases{
+ n \left(n / 2 + 1\right) - n \left(n + 1\right) / 2 + 1, & if $n$ is even\cr
+ \left(n + 1\right) \left({n - 1 \over 2}\right) - n \left(n + 1\right) / 2 + 1 & if $n$ is odd.\cr
+}
+$$
+
+\vskip 0.08in \noindent {\bf Problem 2.11}: Solve $n a_n = \left(n - 2\right) a_{n-1} + 2$
+with $a_1 = 1$\hfil\break
+Multiply both sides by $n-1$: 
+$$
+n \left(n - 1\right) a_n = 
+\left(n - 1 \right) \left(n - 2\right) a_{n-1} + 2 \left(n - 1\right) =
+\left(n - 2 \right) \left(n - 3\right) a_{n-2} + 2 \left(n - 1\right) + 2 \left(n - 2\right).
+$$
+Continuing to telescope, this becomes $2 a_2 + 2 \left(\left(n - 1\right) + \ldots + 2\right)
+= 2 a_2 + 2 \left(n - 1 + n - 2 + \ldots + 1\right) - 2$, which simplifies to
+$2 a_2 + n \left(n - 1\right) - 2$, but $2 a_2 = 0 a_1 + 2 = 2$, so finally
+$n \left(n - 1\right) a_n = n \left(n - 1\right)$, and $a_n = 1$.
+
+\vskip 0.08in \noindent {\bf Problem 2.12}: $a_n = 2 a_{n-1} + 1$.\hfil\break
+Divide both sides by $2^n$ and telescope:
+$$
+{a_n \over 2^n} = {a_{n-1} \over 2^{n-1}} + {1 \over 2^n} =
+{a_{n-2} \over 2^{n-2}} + {1 \over 2^n} + {1 \over 2^{n-1}} = {1 \over 2}
++ {1 \over 4} + \ldots {1 \over 2^n}.
+$$
+This is a geometric series $\sum \left(1/2\right)^k = \left(1 - \left(1/2\right)^{n+1}\right) /
+\left(1 - 1/2\right) = 2 \left(1 - \left(1 / 2\right)^{n+1}\right)$, and so
+$a_n = 2^{n+1} - 1$.
 
 \vskip 0.08in \noindent {\bf Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
 $a_0 = 1$.\hfil\break
@@ -145,6 +197,17 @@ $\left(n + 1\right)\left(n + 2\right) / 2$.  Dividing across,
 $$ 
  a_n = {n + 2 \over 2}.
 $$
+
+\vskip 0.08in \noindent {\bf Problem 2.15}: $n a_n = \left(n + 1\right) a_{n-1} + 2 n$.
+\hfil\break Start by dividing by $n$ to get $a_n = \left(n + 1\right) / n a_{n-1} + 2$.
+Now divide by $n+1$ and telescope:
+$$
+ {a_n \over n + 1} = {a_{n-1} \over n} + {2 \over n + 1} =
+ {a_{n-2} \over n - 1} + {2 \over n + 1} + {2 \over n} =
+ {a_{n-3} \over n - 2} + {2 \over n + 1} + {2 \over n} + {2 \over n - 1} =
+ a_0 + 2 \sum_{1 \le k \le n + 1} {1 \over k}.
+$$
+Since $a_0 = 0$ (boundary condition), this is just $a_n = 2 \left(n + 1\right) H_{n + 1}$.
 
 \vskip 0.08in \noindent {\bf Problem 2.17}: Fringe analysis\hfil\break
 There's something rather odd here -- this goes negative.  For example,
