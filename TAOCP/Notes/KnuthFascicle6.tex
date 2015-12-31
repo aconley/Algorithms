@@ -1,0 +1,204 @@
+\topglue 0.5in
+\centerline{Notes on Knuth Fascicle 6: Satisfiability}
+\vskip 0.3in
+
+\noindent {Satisfiability}
+
+\noindent [p 1] Equation~2 is shorter, at 5 clauses, than the 'shortest
+interesting unsatisfiable formula in 3CNF', 7.1.1-(32), simply because it isn't
+interesting -- it achieves unsatisfiability by simply adding the
+same clause negated so it amount to $a \wedge \bar a$.
+
+\vskip 0.1in \noindent {\bf Exact Covering}
+
+\noindent [p. 5] Langford pairs: recall that the way the exact cover
+formulation works is that there is one row for each allowable subset
+(so: 1 in positions 1 and 3, 1 in positions 2 and 4, etc.), and one
+column for each element.  Each element is 1 if that element
+is included in the subset, and 0 otherwise.  So:
+$$
+ \bordermatrix{
+  ~                   & d_1 & d_2 & d_3 & s_1 & s_2 & s_3 & s_4 & s_5 & s_6 \cr
+   d_1 s_1 s_3 & 1    & 0     & 0     & 1     & 0     & 1     & 0     & 0     & 0    \cr
+   d_1 s_2 s_4 & 1    & 0     & 0     & 0     & 1     & 0     & 1     & 0     & 0    \cr
+   d_1 s_3 s_5 & 1    & 0     & 0     & 0     & 0     & 1     & 0     & 1     & 0    \cr
+   d_1 s_4 s_6 & 1    & 0     & 0     & 0     & 0     & 0     & 1     & 0     & 1    \cr
+   d_2 s_1 s_4 & 0    & 1     & 0     & 1     & 0     & 0     & 1     & 0     & 0    \cr
+   d_2 s_2 s_5 & 0    & 1     & 0     & 0     & 1     & 0     & 0     & 1     & 0    \cr
+   d_2 s_3 s_6 & 0    & 1     & 0     & 0     & 0     & 1     & 0     & 0     & 1    \cr
+   d_3 s_1 s_5 & 0    & 0     & 1     & 1     & 0     & 0     & 0     & 1     & 0    \cr
+ } 
+$$
+
+\vskip 0.1in \noindent {\bf Algorithm A}
+
+\noindent [p28] The use of the doubly linked list is presumably more
+natural in light of the discussion of Dancing links associated with the
+previous sections (but not yet published).  The idea of Dancing Links
+is that we want to be able to both remove things but also re-add them
+easily.  It is based on the idea that, if $x$ is a node in a doubly
+linked circular list, with left and right pointers $l, r$, then
+$x.l.r \gets x.r$, $x.r.l \gets x.l$ removes $x$, but if you leave
+the links in $x$ alone you can add it back in efficiently by doing
+$x.l.r \gets x$, $x.r.l \gets x$.
+
+Thus, Algorithm~A, which isn't really intended to be that efficient,
+works by keeping doubly linked circular lists of where each literal
+is kept so that they can be removed when trying a setting, but
+quickly re-added if it doesn't work.  Recall that shrinking any individual
+clause to size 0 means the expression is false, while eliminating
+all clauses means success.  There are therefore two techniques involved
+in setting a literal $l$: first, $\bar l$ is removed from all clauses, and
+second all the other variables in a clause containing $l$ are removed
+from the linked lists.  The first is because there is no way to satisfy
+$\bar l$ once $l$ is set, the second corresponds to removing that clause.
+
+Exploring the linked representation of $R^{\prime}$ given as an example in the book,
+1 appears in the clauses 1 and 3, and corresponds to $l = 2$.  Thus, 
+${\tt C}\left(2\right) = 2$
+(there are two clauses), and ${\tt F}\left(2\right)$ points to elements 30
+and then 24, both of which have ${\tt L} = 2$ (meaning the represent
+1), and which have ${\tt L} = 1, 3$ for the first and third clause, respectively.
+The literals are written in reverse order in the memory block in order to
+make removing $\bar l$ easy, which depends on the fact that we iterate
+through the literals in order (1, then 2, then 3, etc.).  When we set $l$,
+we must have that $\bar l$ is at the front of every clause it appears in, so
+all we have to do is reduce the size of the clause by one.  Row $2 n + 2$
+is the boundary between the initial variable entries and the representation
+of the clauses.
+
+Note that positions 0 and 1 are not used at all -- so things could be
+simplified by starting with $x_0$ rather than $x_1$.
+
+In any case, it's useful to try a simple case -- simpler than the 8 block
+unsatisfiable version discussed in the text.  However, we still want something
+complicated enough that the algorithm will have to backtrack.
+Here's one:  ${\bar 1 2, \bar 1 \bar 2, 1 \bar 2 3, 123}$, which has
+the solution 011.  Writing in the same manner:
+$$
+\matrix{
+p =       & 2  &  3 &  4 &  5 &  6  & 7 &  8 &  9 & 10 & 11 & 12 & 13 & 14 & 15 & 16 & 17 \cr
+{\tt L} = & -  &  - &  - &  - &  -  & - &  6 &  4 &  2 &  6 &  5 &  2 &  5 &  3 &  4 &  3 \cr
+{\tt F} = & 13 & 17 & 16 & 14 & 11  & 7 &  6 &  4 &  2 &  8 &  5 & 10 & 12 &  3 &  9 & 15 \cr
+{\tt B} = & 10 & 15 &  9 & 12 &  8  & 7 & 11 & 16 & 13 &  6 & 14 &  2 &  5 & 17 &  4 &  3 \cr
+{\tt C} = &  2 &  2 &  2 &  2 &  2  & 0 &  4 &  4 &  4 &  3 &  3 &  3 &  2 &  2 &  1 &  1 \cr
+}
+$$
+with ${\tt SIZE} = 2, 2, 3, 3$ and ${\tt START} = 8, 11, 14, 16$.
+
+Here we use the books solution to exercise 121 (which fills out the link
+manipulation).\hfil\break
+{\bf A1}: $a \gets 4$ (4 active clauses), $d \gets 1$ (variables up to $x_0$ are set --
+that is, none).\hfil\break
+{\bf A2}: $l \gets 2$, and ${\tt C}\left(2\right) = {\tt C}\left(3\right)$ so it is not
+  set to 3. (We start by setting $x_1 = 1$).\hfil\break
+{\bf A3}: Remove $\bar 1$ from all clauses.  $p \gets {\tt F}\left(l \oplus 1\right) =
+{\tt F}\left(3\right) = 17$ ($p$ points to the first clause containing $\bar 1$).
+$j \gets {\tt C}\left(p\right) = {\tt C}\left(17\right) = 1$, $i \gets {\tt SIZE}
+\left(1\right) = 2$, which we now reduce by one ({\tt SIZE} = 1, 2, 3, 3).
+This removes $\bar 1$ from $C_1$.  Next $p \gets {\tt F}\left(p\right) = 15$,
+which is the next clause containing $\bar 1$ ($C_2$).  Repeating, we end up
+with ${\tt SIZE} = 1, 1, 3, 3$.\hfil\break
+{\bf A4}: Remove all clauses containing 1 by unlinking all other variables
+in those clauses. $p \gets {\tt F}\left(l\right) = {\tt F}\left(2\right) = 13$ ($p$ is
+first appearance of $x_1$), $j \gets 3$ (which is in $C_1$), $i \gets
+11$ (which starts in position 16), $p \gets {\tt F}\left(p\right) = {\tt F}
+\left(13\right) = 10$ (and now $p$
+points at the {\it next} appearance, which is in $C_4$). 
+Now, for
+$11 \le s < 11 + 3 - 1$, or $s = 11, 12$ (we will remove the other variables
+$\bar 2,3$ from $C_3$ from all the linked lists), $q \gets {\tt F}\left(11\right) = 8$,
+$r \gets 6$, ${\tt B}\left(q\right) = {\tt B}\left(8\right) \gets r = 6$,
+${\tt F}\left(r\right) = {\tt F}\left(6\right) \gets q = 8$ (so $3$ is unlinked
+for $C_3$).  Repeating for $s = 12$, which is $\bar 2$, we end up
+with $q \gets 5$, $r \gets 14$, ${\tt B}\left(5\right) \gets 14$, 
+${\tt F}\left(14\right) \gets 5$.  Also we change ${\tt C}\left(6\right) \gets 1$,
+and ${\tt C}\left(5\right) \gets 1$.     
+
+Then we have to repeat the same process for $C_4$ starting from $p = 10$.
+$j \gets 4$, $i \gets 8$, $p \gets 2$ (which will terminate this process on the
+next iteration, since we've done all clauses -- p now points to the literal
+part of the array), and $8 \le s < 10$, so $s = 8, 9$ (which are literals $3, 2$).
+For $s=8$, $q \gets 6$, $r \gets 6$ (since 3 was already removed from $C_3$),
+${\tt B}\left(6\right) \gets 6$, ${\tt F}\left(6\right) \gets 6$, and 
+${\tt C}\left(6\right) \gets 0$ (3 has been removed from all clauses).
+Then for $s=9$, $q \gets 4$, $r \gets 16$, ${\tt B}\left(4\right) \gets 16$,
+${\tt F}\left(16\right) \gets 4$, and ${\tt C}\left(4\right) \gets 1$.
+
+This leaves us in the state:
+$$
+\matrix{
+p =       & 2  &  3 &  4 &  5 &  6  & 7 &  8 &  9 & 10 & 11 & 12 & 13 & 14 & 15 & 16 & 17 \cr
+{\tt L} = & -  &  - &  - &  - &  -  & - &  6 &  4 &  2 &  6 &  5 &  2 &  5 &  3 &  4 &  3 \cr
+{\tt F} = & 13 & 17 & 16 & 14 &  6  & 7 &  6 &  4 &  2 &  8 &  5 & 10 &  5 &  3 &  4 & 15 \cr
+{\tt B} = & 10 & 15 &  16 & 14 &  6  & 7 &  6 & 16 & 13 &  6 & 14 &  2 &  5 & 17 &  4 &  3 \cr
+{\tt C} = &  2 &   2 &  1 &  1 &  0  & 0 &  4 &  4 &  4 &  3 &  3 &  3 &  2 &  2 &  1 &  1 \cr
+}
+$$
+with ${\tt SIZE} = 1, 1, 3, 3$.  Finally, $a \gets a - {\tt C}\left(2\right) = 2$ and $d \gets
+d + 1 = 2$ (we have now set $x_1$).  The remaining equation is 
+${2, \bar 2}$, which we can easily see is not satisfiable! \hfil\break
+{\bf A2}: $l \gets 4$, and ${\tt C}\left(4\right) = {\tt C}\left(5\right)$ so
+we leave it there -- we are trying $2$ -- and $m_2 \gets 2$.\hfil\break
+{\bf A3}: Deactivate $\bar 2$ -- which will result in an empty clause.
+$p \gets {\tt F}\left(\bar l\right) = 14$, $j \gets 2$ (this is the $\bar 2$ in $C_2$),
+$i \gets 1$.  This triggers the abort, which sets $p \gets {\tt B}\left(14\right) = 5$,
+but that's less than 8 so we immediately jump to\hfil\break
+{\bf A5}: Try $\bar 2$ instead.  $m_2 \gets 3$ (trying $x_2 = 0$ after $x_2 = 1$
+failed), $l \gets 5$.\hfil\break
+{\bf A3}: Deactivate 2, which again results in an empty clause, which again
+triggers the quick exit.\hfil\break
+{\bf A5}: $m_2 > 2$, so no action.\hfil\break
+{\bf A6}: Backtrack. $d \gets 1$, and $l \gets 2$ (fixing 1).\hfil\break
+{\bf A7}: Reactivate $1$.  $a \gets 4$, $p \gets {\tt B}\left(l\right) = 10$,
+$j \gets {\tt C}\left(p\right) = 4$, $i \gets 8$. $p \gets {\tt B}\left(p\right) = 13$,
+and $8 \le s < 10$ (reactivating 2, 3).  For $s = 8$, $q \gets 6$, $r \gets 6$,
+${\tt B}\left(q\right) \gets {\tt F}\left(r\right) \gets 8$, or ${\tt F}\left(6\right) \gets 
+{\tt F}\left(6\right) \gets 8$, and ${\tt C}\left(6\right) \gets 1$
+(the 3 has been reactivated from $C_4$).  Then for $s = 9$,
+$q \gets 4$, $r \gets 16$, ${\tt B}\left(4\right) \gets {\tt F}\left(16\right) \gets 9$,
+and ${\tt C}\left(4\right) \gets 2$.\hfil\break
+{\bf A8}: Unremove $\bar 1$. $p \gets {\tt F}\left(3\right) = 17$. $j \gets 
+{\tt C}\left(17\right) = 1$ ($C_1$), ${\tt SIZE}\left(1\right) \gets 2$, $p \gets 15$.
+Then ${\tt SIZE}\left(2\right) \gets 2$.  So we have restored the initial state
+at the top of the page.\hfil\break
+{\tt A5}: Now set $m_1 \gets 3$ (trying $\bar 1$ after 1 failed), $l \gets 3$.\hfil\break
+{\tt A3}: Remove $1$ from all clauses ($C_3$ and $C_4$) by setting
+${\tt SIZE} = 2, 2, 2, 2$.\hfil\break
+{\tt A4}: Deactivate $\bar 1$s clauses through link manipulation.  That means
+removing the links to $2$ from $C_1$ and $\bar 2$ from $C_2$.
+The net result is:
+$$
+\matrix{
+p =       & 2  &  3 &  4 &  5 &  6  & 7 &  8 &  9 & 10 & 11 & 12 & 13 & 14 & 15 & 16 & 17 \cr
+{\tt L} = & -  &  - &  - &  - &  -  & - &  6 &  4 &  2 &  6 &  5 &  2 &  5 &  3 &  4 &  3 \cr
+{\tt F} = & 13 & 17 & 9 & 12 & 11  & 7 &  6 &  4 &  2 &  8 &  5 & 10 & 12 &  3 &  9 & 15 \cr
+{\tt B} = & 10 & 15 &  9 & 12 &  8  & 7 & 11 & 16 & 13 &  6 & 14 &  2 &  5 & 17 &  4 &  3 \cr
+{\tt C} = &  2 &  2 &  1 &  1 &  2  & 0 &  4 &  4 &  4 &  3 &  3 &  3 &  2 &  2 &  1 &  1 \cr
+}
+$$
+and $a \gets 2$, which is ${\bar 2 3, 2 3}$, $d \gets 2$.\hfil\break
+{\tt A2}: $l \gets 4$, $m_2 \gets 0$
+(trying 2).
+{\tt A3}: Remove $\bar 2$ from all clauses ($C_3$), which results in
+${\tt SIZE} = 2, 2, 1, 2$.\hfil\break
+{\tt A4}: Deactivate the $3$ in $C_4$, and set $a \gets 1$, $d \gets 3$.
+The state is now:
+$$
+\matrix{
+p =       & 2  &  3 &  4 &  5 &  6  & 7 &  8 &  9 & 10 & 11 & 12 & 13 & 14 & 15 & 16 & 17 \cr
+{\tt L} = & -  &  - &  - &  - &  -  & - &  6 &  4 &  2 &  6 &  5 &  2 &  5 &  3 &  4 &  3 \cr
+{\tt F} = & 13 & 17 & 9 & 12 & 11  & 7 &  6 &  4 &  2 &  8 &  5 & 10 & 12 &  3 &  9 & 15 \cr
+{\tt B} = & 10 & 15 &  9 & 12 & 11  & 7 & 11 & 16 & 13 &  6 & 14 &  2 &  5 & 17 &  4 &  3 \cr
+{\tt C} = &  2 &  2 &  1 &  1 &  1  & 0 &  4 &  4 &  4 &  3 &  3 &  3 &  2 &  2 &  1 &  1 \cr
+}
+$$
+representing $3$.
+\hfil\break
+{\tt A2}: $l \gets 6$, $m_3 \gets 0$.  And now ${\tt C}\left(6\right) = a$ (the
+only active clause has a 3, which is what we are trying).  So we exit with
+$m = 300$.  Using $x_j \gets 1 \oplus \left(m_j \& 1\right)$
+gives $x = 011$.
+
+The thing we didn't explore was unit clauses $m = 4, 5$.
+\bye
