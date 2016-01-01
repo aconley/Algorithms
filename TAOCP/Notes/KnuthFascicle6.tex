@@ -8,6 +8,7 @@
 interesting unsatisfiable formula in 3CNF', 7.1.1-(32), simply because it isn't
 interesting -- it achieves unsatisfiability by simply adding the
 same clause negated so it amount to $a \wedge \bar a$.
+Which is boring.
 
 \vskip 0.1in \noindent {\bf Exact Covering}
 
@@ -63,7 +64,8 @@ The literals are written in reverse order in the memory block in order to
 make removing $\bar l$ easy, which depends on the fact that we iterate
 through the literals in order (1, then 2, then 3, etc.).  When we set $l$,
 we must have that $\bar l$ is at the front of every clause it appears in, so
-all we have to do is reduce the size of the clause by one.  Row $2 n + 2$
+all we have to do is reduce the size of the clause by one.  Thus, it's
+important that the literals appear in sorted order in each clause.  Row $2 n + 2$
 is the boundary between the initial variable entries and the representation
 of the clauses.
 
@@ -73,7 +75,7 @@ simplified by starting with $x_0$ rather than $x_1$.
 In any case, it's useful to try a simple case -- simpler than the 8 block
 unsatisfiable version discussed in the text.  However, we still want something
 complicated enough that the algorithm will have to backtrack.
-Here's one:  ${\bar 1 2, \bar 1 \bar 2, 1 \bar 2 3, 123}$, which has
+Here's one:  $\{\bar 1 2, \bar 1 \bar 2, 1 \bar 2 3, 123 \}$, which has
 the solution 011.  Writing in the same manner:
 $$
 \matrix{
@@ -137,7 +139,7 @@ p =       & 2  &  3 &  4 &  5 &  6  & 7 &  8 &  9 & 10 & 11 & 12 & 13 & 14 & 15 
 $$
 with ${\tt SIZE} = 1, 1, 3, 3$.  Finally, $a \gets a - {\tt C}\left(2\right) = 2$ and $d \gets
 d + 1 = 2$ (we have now set $x_1$).  The remaining equation is 
-${2, \bar 2}$, which we can easily see is not satisfiable! \hfil\break
+$\{2, \bar 2\}$, which we can easily see is not satisfiable! \hfil\break
 {\bf A2}: $l \gets 4$, and ${\tt C}\left(4\right) = {\tt C}\left(5\right)$ so
 we leave it there -- we are trying $2$ -- and $m_2 \gets 2$.\hfil\break
 {\bf A3}: Deactivate $\bar 2$ -- which will result in an empty clause.
@@ -201,4 +203,39 @@ $m = 300$.  Using $x_j \gets 1 \oplus \left(m_j \& 1\right)$
 gives $x = 011$.
 
 The thing we didn't explore was unit clauses $m = 4, 5$.
+
+\vskip 0.1in \noindent {\bf Algorithm B}
+
+\noindent [p 31] Again, it's helpful to explore the data structures
+using the same formula: $\{\bar 1 2, \bar 1 \bar 2, 1 \bar 2 3, 123\}$.
+The clause setup is very simple -- just list the clauses and literals
+in reversed order under the same scheme (where $\bar 2$ is 5, etc.)
+$$
+\matrix{
+p =       & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \cr
+{\tt L} = & 6 & 4 & 2 & 6 & 5 & 2 & 5 & 3 & 4 & 2 \cr
+}
+$$
+with ${\tt START} = \{ 10, 8, 6, 3, 0 \}$ (note that 
+{\tt START} starts at index 0) so that the last literal
+of, say, $C_3 = {\tt START}\left(3-1\right) - 1 = 5$.  
+The watched literals are the first in each clause in memory,
+so the last one when written out in the original representation:
+$2, \bar 2, 3, 3$ respectively for $C_1, C_2, C_3, C_4$.
+Thus, $W_2 = 1$, $W_{\bar 2} = 2$, $W_3 = 4, 5$, which
+we represent using ${\tt LINK} = \{0, 0, 4, 0\}$.  Alternatively,
+in the language of the literals we've been using,
+$W_4 = 1$, $W_5 = 2$, $W_6 = 4, 5$, with the rest 0.  Note that,
+unlike Algorithm~A, we don't need the literals written in any order
+within each clause, although that would change which literals
+we watched.
+
+\noindent {\bf B1} $d \gets 1$\hfil\break
+{\bf B2} $m_1 \gets 0$, $l \gets 2$ (trying 1).\hfil\break
+{\bf B3} No literal is watching $2 \oplus 1 = 3$.\hfil\break
+{\bf B4} $W_3 \gets 0$ (which it already was), $d \gets 2$.
+{\bf B2} $W_4 = 1$ and $W_5 = 2$, so $m_2 = 1$ (trying $\bar 2$).
+  $l \gets 5$.\hfil\break
+
+
 \bye
