@@ -210,17 +210,21 @@ $$
 Since $a_0 = 0$ (boundary condition), this is just $a_n = 2 \left(n + 1\right) H_{n + 1}$.
 
 \vskip 0.08in \noindent {\bf Problem 2.17}: Fringe analysis\hfil\break
+The simplified expression is
+$$
+ A_N = 2 + A_{N-1} {N - 6 \over N}, N > 0, A_0 = 1
+$$
 There's something rather odd here -- this goes negative.  For example,
-$A_2 = -2$.  If we simply the expression, we see that
+$A_2 = -3$.   Okay, this is because of a typo in the book -- we should have
+$A_0 = 1$, not $A_0 = 0$.  The first few terms are:
+$A_0 = 1, A_1 = -3, A_2 =  8, A_4=-6, A_5=5, A_5 = 1, A_6 = 2$.
+
+So, it makes sense to work with the shifted series $A^{\prime}_n = A_{n-6}$
+with
 $$
- A_N = 2 + A_{N-1} {N - 6 \over N}
+ A^{\prime} = 2 + A^{\prime}_{N-1} {N \over N + 6}, A_1 = 2 .
 $$
-and so odd things will also happen around $N = 6$.  Therefore, it's
-useful to instead define the series $a^{\prime}_n = A_{n-6}$ with
-$a^{\prime}_0 = 2$ (since $A_6 = 2$).  In terms of this recurrance
-$$
- a^{\prime}_n = 2 + a^{\prime}_{n-1} {n \over n + 6}.
-$$
+and so odd things will also happen around $N = 6$.  
 So now we divide both sides by $x_n x_{n-1} \ldots x_1$ where
 $x_n = n / \left(n + 6\right)$ as usual.  Writing this out, this is 
 the same as multiplying by $n + 6 \choose n$.  We can drop the $6!$
@@ -273,9 +277,9 @@ so
 $$ 
  a^{\prime}_n = {2 \over 7} \left(n + 7\right),
 $$
-or
+or, in terms of the original series,
 $$
- A_n = a^{\prime}_{n-6} = {2 \over 7} \left(n + 1\right)
+ A_n  = 2 + {2 \over 7} \left(n - 6\right)
 $$
 for $n \ge 6$ (and values below that being rather odd).
 
@@ -431,13 +435,39 @@ $T = 1 - z \left(1 - u\right) + 2 z \left(1 - u\right) T + z u T^2$.
 Recall from Theorem 3.8 we want to evaluate $\partial T \left(z, u\right) / \partial u |_{u=1} /
 T\left(z, 1\right)$.  Substituting and evaluating gives
 $$
- {\partial T \left(z, 1\right) \over \partial u} {\Big \vert}_{u=1} =
-  {z - 2 z T + z T^2 \over 1 - 2 z T} = {z \left(1 - T\right)^2 \over 1 - 2 z T}.
+ {\partial T \left(z, u\right) \over \partial u} {\Big \vert}_{u=1} =
+  {z - 2 z T + z T^2 \over 1 - 2 z T} = {z \left(1 - T\left(z, 1\right)\right)^2 
+  \over 1 - 2 z T\left(z,1\right)}.
 $$
-Substituting and expanding
+and
 $$
- {\partial T \left(z, 1\right) \over \partial u} {\Big \vert}_{u=1}  =
-  {2 z \left(1 - 4z + 2 z^2\right) \over \sqrt{1 - 4 z}} + 2 z \left(2 z - 1\right).
+ T\left(z, 1\right) = 1 + z T^2\left(z, 1\right).
 $$
-
+We can solve the latter to find $2 z T = 1 - \sqrt{1 - 4 z}$
+so that $1 - 2 z T\left(z, 1\right) = \sqrt{1 - 4 z}$ and expand the top
+to get
+$$
+ { \partial T\left(z, u\right) / \partial u {\vert}_{u=1} \over T\left(z, 1\right) }
+  = {z / \sqrt{1 - 4 z} \over T\left(z, 1\right)} - {2 z \over \sqrt{1 - 4 z}}
+   + {z T \over \sqrt{1 - 4 z}}.
+$$
+Now we want to extract the coefficients.
+The first term is just the one from the leaves calculation in the book:
+$$
+ {{\left[ z^n \right] z \over \sqrt{1 - 4z}} \over {1 \over n + 1} {2n \choose n}} =
+ {\left(n+1\right) n \over 2 \left(2 n - 1\right)}.
+$$
+The second is just twice the top part of the calculation:
+$$
+ \left[ z^n \right] {2 z \over \sqrt{1 - 4 z}} = 2 { 2 n - 2 \choose n - 1 }.
+$$
+The final term can be expanded using $z T = 1/2 \left(1 - \sqrt{1 - 4 z}\right)$
+to be
+$$
+ \left[ z^n \right] \left({1 \over 2} {1 \over \sqrt{1 - 4 z} - {1 \over 2}} \right) = {1 \over 2} 4^n
+$$
+(except for $n=0$) and so altogether the coefficient of $z^n$ is
+$$
+  {\left(n+1\right) n \over 2 \left(2 n - 1\right)} - 2 {2 n - 2 \choose n - 1} + 2^{2n - 1}
+$$
 \end
