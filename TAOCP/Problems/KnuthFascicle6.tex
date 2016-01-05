@@ -1,0 +1,38 @@
+\topglue 0.5in
+\centerline{\tt Knuth 7.2.2.2: Satisfiability}
+\vskip 0.3in
+
+\noindent {\bf Problem 1} The shortest unsatisfiable set of clauses is the
+empty clause $\epsilon$, the shortest satisfiable set is the empty set $\emptyset$.
+
+\vskip 0.08in \noindent {\bf Problem 121}: Lower level operations in Algorithm~A\hfil\break
+Rather than go all the way down to the link manipulations, I'll operate at a slightly
+higher level.\hfil\break
+{\bf A3} [Remove $\bar l$].  Because of the reverse order the variables are
+stored in, and the fact that the algorithm chooses values for $x_1, x_2, \ldots, x_n$
+in order, we can remove $\bar l$ from all clauses that contain it simply by
+reducing the value of {\tt SIZE} for those clauses by one.  We can find the clauses
+by following the circular links until we get back to the head of the list.
+The messy bit is that when a clause would go to size 0 we need to undo
+what we have already done because the set of clauses has become unsatisfiable
+given the current assignments.  Thus: $p \gets {\tt F}\left(l \oplus 1\right)$ 
+(follow the forward links to clauses that contain $\bar l$).  Repeat until
+we come back to the head of the list (so, as long as $p \ge 2 n + 2$):
+i) Get the clause number: $c \gets {\tt C}\left(p\right)$. ii) If ${\tt SIZE}\left(c\right) > 1$,
+ decrease it by 1 and $p \gets {\tt F}\left(p\right)$.  If not, we need to undo what
+ we've already done.  So interrupt the previous
+ loop, set $p = {\tt B}\left(p\right)$ and repeat as long as $p \ge 2 n + 2$:
+ i) Get the clause $c \gets {\tt C}\left(p\right)$. ii) ${\tt SIZE}\left(c\right) += 1$.
+ iii) $p \gets {\tt B}\left(p\right)$ and go to A5.\hfil\break
+{\bf A4} [Remove all clauses that contain $l$].  Here we simply iterate
+over all other literals in each clause that contains $l$ and unlink them from
+the circular lists.  So: set $p \gets {\tt F}\left(l\right)$ and repeat as
+long as $p \ge 2 n + 2$: i) set $c \gets {\tt C}\left(p\right)$ ($c$ is
+the clause number), ii) for ${\tt START}\left(c\right) \le c < {\tt START}\left(c\right)
+ + {\tt SIZE}\left(c\right) - 1$ (loop over all other literals in this clause)
+ remove the literal $k$ using the following procedure, iii) set $p \gets {\tt F}\left(p\right)$.
+ To remove the literal pointed to by $k$ a) set $d \gets {\tt F}\left(k\right)$,
+ $e \gets {\tt B}\left(k\right)$, ${\tt B}\left(d\right) \gets e$, ${\tt F}\left(e\right) \gets d$
+ (the variable is removed from the circular list), b) decrement the counter for that
+ literal: ${\tt C}\left({\tt L}\left(k\right)\right) -= 1$.
+\bye
