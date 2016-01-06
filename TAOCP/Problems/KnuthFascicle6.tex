@@ -6,8 +6,6 @@
 empty clause $\epsilon$, the shortest satisfiable set is the empty set $\emptyset$.
 
 \vskip 0.08in \noindent {\bf Problem 121}: Lower level operations in Algorithm~A\hfil\break
-Rather than go all the way down to the link manipulations, I'll operate at a slightly
-higher level.\hfil\break
 {\bf A3} [Remove $\bar l$].  Because of the reverse order the variables are
 stored in, and the fact that the algorithm chooses values for $x_1, x_2, \ldots, x_n$
 in order, we can remove $\bar l$ from all clauses that contain it simply by
@@ -28,11 +26,26 @@ i) Get the clause number: $c \gets {\tt C}\left(p\right)$. ii) If ${\tt SIZE}\le
 over all other literals in each clause that contains $l$ and unlink them from
 the circular lists.  So: set $p \gets {\tt F}\left(l\right)$ and repeat as
 long as $p \ge 2 n + 2$: i) set $c \gets {\tt C}\left(p\right)$ ($c$ is
-the clause number), ii) for ${\tt START}\left(c\right) \le c < {\tt START}\left(c\right)
+the clause number), ii) for ${\tt START}\left(c\right) \le k < {\tt START}\left(c\right)
  + {\tt SIZE}\left(c\right) - 1$ (loop over all other literals in this clause)
- remove the literal $k$ using the following procedure, iii) set $p \gets {\tt F}\left(p\right)$.
+ remove the literal $k$ using the procedure following below, iii) set $p \gets {\tt F}\left(p\right)$.
  To remove the literal pointed to by $k$ a) set $d \gets {\tt F}\left(k\right)$,
  $e \gets {\tt B}\left(k\right)$, ${\tt B}\left(d\right) \gets e$, ${\tt F}\left(e\right) \gets d$
  (the variable is removed from the circular list), b) decrement the counter for that
- literal: ${\tt C}\left({\tt L}\left(k\right)\right) -= 1$.
+ literal: ${\tt C}\left({\tt L}\left(k\right)\right) -= 1$. The final overall step is
+ to set $a \gets a - {\tt C}\left(l\right)$ (correct the number of active clauses),
+ and $d \gets d + 1$ (we've set another variable).\hfil\break
+ {\bf A7} [Reactivate $l$s clauses] This takes advantage of the Dancing Links
+ procedure.  Because we haven't changed {\tt F} or {\tt B} for the variables
+ we removed in A4, we can put them back in efficiently.  So, $p \gets {\tt B}\left(l\right)$
+ and while $p \ge 2 n + 2$ do: $c \gets {\tt C}\left(p\right)$, and for
+ ${\tt START}\left(c\right) \le k < {\tt START}\left(c\right) + {\tt SIZE}\left(c\right) - 1$
+add the literal $k$ by doing $d \gets {\tt F}\left(k\right)$, $e \gets {\tt B}\left(k\right)$,
+${\tt B}\left(d\right) \gets k$, ${\tt F}\left(e\right) \gets k$, and 
+${\tt C}\left({\tt L}\left(k\right)\right) += 1$, and $p \gets {\tt B}\left(p\right)$.
+Then, finally, $a \gets a + {\tt C}\left(l\right)$.\hfil\break
+{\bf A8} [Unremove $\bar l$] $p \gets {\tt F}\left(l \oplus 1\right)$,
+and repeat until $p \ge 2 n + 2$: $c \gets {\tt C}\left(p\right)$,
+${\tt SIZE}\left(c\right) += 1$, $p \gets {\tt F}\left(p\right)$.  Then go to A5.
+
 \bye
