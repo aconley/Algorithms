@@ -1,12 +1,15 @@
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.08in \noindent {\bf #1}}
+
 \topglue 0.5in
 \centerline{\tt Knuth 7.2.2.2: Satisfiability}
 \vskip 0.3in
 
-\noindent {\bf Problem 1} The shortest unsatisfiable set of clauses is the
+\newprob {Problem 1} The shortest unsatisfiable set of clauses is the
 empty clause $\epsilon$, the shortest satisfiable set is the empty set $\emptyset$.
 
-\vskip 0.08in \noindent {\bf Problem 121}: Lower level operations in Algorithm~A\hfil\break
-{\bf A3} [Remove $\bar l$].  Because of the reverse order the variables are
+\newprob {Problem 121}: Lower level operations in Algorithm~A
+\newstep {A3} [Remove $\bar l$].  Because of the reverse order the variables are
 stored in, and the fact that the algorithm chooses values for $x_1, x_2, \ldots, x_n$
 in order, we can remove $\bar l$ from all clauses that contain it simply by
 reducing the value of {\tt SIZE} for those clauses by one.  We can find the clauses
@@ -21,8 +24,8 @@ i) Get the clause number: $c \gets {\tt C}\left(p\right)$. ii) If ${\tt SIZE}\le
  we've already done.  So interrupt the previous
  loop, set $p = {\tt B}\left(p\right)$ and repeat as long as $p \ge 2 n + 2$:
  i) Get the clause $c \gets {\tt C}\left(p\right)$. ii) ${\tt SIZE}\left(c\right) += 1$.
- iii) $p \gets {\tt B}\left(p\right)$ and go to A5.\hfil\break
-{\bf A4} [Remove all clauses that contain $l$].  Here we simply iterate
+ iii) $p \gets {\tt B}\left(p\right)$ and go to A5.
+\newstep {A4} [Remove all clauses that contain $l$].  Here we simply iterate
 over all other literals in each clause that contains $l$ and unlink them from
 the circular lists.  So: set $p \gets {\tt F}\left(l\right)$ and repeat as
 long as $p \ge 2 n + 2$: i) set $c \gets {\tt C}\left(p\right)$ ($c$ is
@@ -34,18 +37,55 @@ the clause number), ii) for ${\tt START}\left(c\right) \le k < {\tt START}\left(
  (the variable is removed from the circular list), b) decrement the counter for that
  literal: ${\tt C}\left({\tt L}\left(k\right)\right) -= 1$. The final overall step is
  to set $a \gets a - {\tt C}\left(l\right)$ (correct the number of active clauses),
- and $d \gets d + 1$ (we've set another variable).\hfil\break
- {\bf A7} [Reactivate $l$s clauses] This takes advantage of the Dancing Links
- procedure.  Because we haven't changed {\tt F} or {\tt B} for the variables
+ and $d \gets d + 1$ (we've set another variable).
+\newstep {A7} [Reactivate $l$s clauses] This takes advantage of the 
+ Dancing Links procedure.  Because we haven't changed {\tt F} or {\tt B} for the variables
  we removed in A4, we can put them back in efficiently.  So, $p \gets {\tt B}\left(l\right)$
  and while $p \ge 2 n + 2$ do: $c \gets {\tt C}\left(p\right)$, and for
  ${\tt START}\left(c\right) \le k < {\tt START}\left(c\right) + {\tt SIZE}\left(c\right) - 1$
 add the literal $k$ by doing $d \gets {\tt F}\left(k\right)$, $e \gets {\tt B}\left(k\right)$,
 ${\tt B}\left(d\right) \gets k$, ${\tt F}\left(e\right) \gets k$, and 
 ${\tt C}\left({\tt L}\left(k\right)\right) += 1$, and $p \gets {\tt B}\left(p\right)$.
-Then, finally, $a \gets a + {\tt C}\left(l\right)$.\hfil\break
-{\bf A8} [Unremove $\bar l$] $p \gets {\tt F}\left(l \oplus 1\right)$,
+Then, finally, $a \gets a + {\tt C}\left(l\right)$.
+\newstep {A8} [Unremove $\bar l$] $p \gets {\tt F}\left(l \oplus 1\right)$,
 and repeat until $p \ge 2 n + 2$: $c \gets {\tt C}\left(p\right)$,
 ${\tt SIZE}\left(c\right) += 1$, $p \gets {\tt F}\left(p\right)$.  Then go to A5.
 
+\vskip 0.08in \noindent {\bf Problem 109} Find the lexicographically smallest
+solution.\hfil\break
+First, find a solution.  If you can't, terminate unsuccessfully.  Then take your
+solution and find the first 1.  Say it's at position $j$.  Next, try to find a solution
+with $x_1 x_2 \ldots x_j = 0$ by adding additional clauses that force those
+to your problem.  If you do find a solution, repeat.  If not, say that then next
+1 after $j$ is in position $k$.  Now try for a solution with $x_1 \ldots x_{j-1} = 0$
+and $x_k = 0$, repeating until there are no more $k$s to try.
+
+Finding the largest is similar, but somewhat more complicated.
+
+\newprob {Problem 124} Fill in the steps in B2.\hfil\break
+We want to walk the linked list of clauses that watch $\bar l$.  So, set
+$c \gets W_{\bar l}$.  If $c = 0$, there are no clauses watches $\bar l$, so
+terminate successfully.  Otherwise, while $c \ne 0$ do: $i_{min} \gets {\tt START}
+\left(c\right)$, $i_{max} \gets {\tt START}\left(c - 1\right)$, $c^{\prime} \gets 
+{\tt LINK}\left(c\right)$ (this will be the update for the next clause).
+Now, for $i_{min} < k < i_{max}$, set $l^{\prime} \gets {\tt L}\left(k\right)$.
+Now, if the literal represented by $l^{\prime}$ isn't false, we've found
+something else to watch, so we swap it to the front of the clause (meaning we
+watch it): ${\tt L}\left(i_{min}\right) \gets l^{\prime}$, ${\tt L}\left(k\right) \gets \bar l$,
+${\tt LINK}\left(c\right) \gets W_{l^{\prime}}$, $W_{l^{\prime}} \gets c$, $c \gets c^{\prime}$
+and exit the $k$ loop (we now move on to the next clause watching $\bar l$.
+If we reach the end of the $k$ loop without finding such a literal, then the formula
+is unsatisfiable with the current settings, so we go to step B5.
+
+Now, how do we check if a literal is already false?  Well, Algorithm~B steps
+through the literals in order, so the condition for the literal to not be false is
+$| l^{\prime} | > d$ (not set) or $| l^{\prime} | + m_{| l^{\prime} |}$ is even (is set,
+but set to be true.
+
+\newprob {Problem 125} Modify Algorithm~B to find all solutions.
+\newstep {B2}  [Visit or choose] If $d > n$, visit the solution represnted by $m_1 \ldots m_n$
+(recall $x_j \gets 1 \oplus \left( m_j \& 1 \right)$ constructs $x$) and go to B6.
+\newstep {B6} [Backtrack or terminate] Terminate if $d=1$.  Otherwise set $d \gets d - 1$.
+
+\hfil\break
 \bye
