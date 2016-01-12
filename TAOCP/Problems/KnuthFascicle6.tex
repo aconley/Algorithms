@@ -87,5 +87,17 @@ but set to be true.
 (recall $x_j \gets 1 \oplus \left( m_j \& 1 \right)$ constructs $x$) and go to B6.
 \newstep {B6} [Backtrack or terminate] Terminate if $d=1$.  Otherwise set $d \gets d - 1$.
 
-\hfil\break
+\newprob {Problem 126} Find the next step of Algorithm~D on (59)\hfil\break
+The book has a mistake -- the active ring is $\left(6\,9\,7\,8\right)$, since 
+$\bar 5$ was just set.  So, first it looks at 6, but there are no unit clauses forced
+(the possibilities would be $\bar 1 \bar 2 \bar 6$, $\bar 1 \bar 5 \bar 6$, $\bar 2 \bar 5 \bar 6$,
+$346$, none of which are present). So next it tries 9, which {\it does} exist in a unit 
+clause (1 5 9), so this is chosen.  That affects the watch list of $\bar 9 \bar 3 \bar 6$ --
+$39$ are set, so we switch to watching 6 by converting it to $\bar 6 \bar 3 \bar 9$.
+The active ring loses 9, so becomes $\left(6\,7\,8\right)$.
+
+\newprob {Problem 127} Move codes for (59) right before and after backtrack.\hfil\break
+$m = 1 1 4 1 4 5 4 5$; note that we don't need $h$, we can just follow the steps
+in order.  But $h = 1 2 3 4 6 9 7 8$.  After the backtrack, $m = 1 1 4 2$ (we try
+a different setting for 4 after the first one failed.
 \bye
