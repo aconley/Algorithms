@@ -172,4 +172,44 @@ This is enough to see how the algorithm works.  In particular, note that the
 clause re-ordering done by exercise~130 is different than the solution Knuth
 gives for this problem -- which is fine, if perhaps slightly confusing.
 
+Anyways, to spell it out:
+$$
+\matrix{
+{\rm Ring}     & x_1 & x_2 & x_3 & x_4 & {\rm Units} & {\rm Choice} & {\rm Changed} & 
+ {\rm Notes} \cr
+\left(1\,2\,3\,4\right) & - & - & - & - & & \bar 1 & 341 \rightarrow 314 & w_3=7, m_1 = 1\cr
+\left(2\,3\,4\right) & 0 & - & - & - & & \bar 2 & 4 \bar 1 2 \rightarrow 4 2 \bar 1 &
+ w_5 = 8, m_2 = 1\cr
+\left(3\, 4\right) & 0 & 0 & - & - & \bar 3 & \bar 3 & \bar 1 \bar 2 3 \rightarrow \bar 1 3 \bar 2 &
+h = 1\,2\,3\,- , m = 1\,\,1\,5\,- \cr
+\left(4\right) & 0 &  0 & 0 & - & 4, \bar 4 & {\rm Backtrack} & & 
+{\rm State} = \{1 2 \bar3, 2 3 \bar 4, 3 1 4, 4 2 \bar1, \bar1 3 \bar 2, \bar 2 \bar 3 4,
+ \bar 3 \bar 4 \bar 1, \bar 4 1 \bar 2 \}\cr
+\left( 3\, 4 \right) & 0 & - & - & - & & 2 & \bar 1 3 \bar 2 \rightarrow \bar 1 \bar 2 3
+& m = 1\,2\,-\,- \cr
+& & & & & & & \bar 4 1 \bar 2 \rightarrow \bar 2 1 \bar 4 & \cr
+\left(3\,4\right) & 0 & 1 & - & - & \bar 4 & \bar 4 & \bar2 \bar 3 4 \rightarrow \bar 2 4 \bar 3 &
+ h = 1\,2\,4\,-, m = 1\,2\,5\,- \cr
+\left(3\right) & 0 & 1 & - & 0 & \bar 3, 3 & {\rm Backtrack} & & 
+{\rm State} = \{ 1 2 \bar 3, 2 3 \bar 4, 4 1 3, 4 2 \bar 1, \bar 1 \bar 2 3, \bar 2 4 \bar 3,
+\bar 3 \bar 4 \bar 1, \bar 2 1 \bar 4 \} \cr
+\left(4 3 \right) & - & - & - & - & & 1 & \bar 3 \bar 4 \bar 1 \rightarrow \bar 3 \bar 1 \bar 4 &
+ m = 2\,-\,-\,- \cr
+ & & & & & & & 4 2 \bar 1 \rightarrow 4 \bar 1 2 & \cr
+\left( 2 \, 4 \, 3\right) & 1 & - & - & - & & 2 & {\rm None} & m = 2\, 0\, - \, - \cr
+\left(4\, 3\right) & 1 & 1 & - & - & 3 & 3 & 1 2 \bar 3 \rightarrow 1 \bar 3 2 &
+ m = 2\,0\,4\,-\cr
+ & & & & & & & \bar 2 4 \bar 3 \rightarrow \bar 2 \bar 3 4 & \cr
+\left(4 \right) & 1 & 1 & 1 & - & 4, \bar 4 & {\rm Backtrack} & &
+ {\rm State} = \{ 1 \bar 3 2, 2 3 \bar 4, 4 1 3, 4 \bar 1 2, \bar 1 \bar 2 3, \bar 2 \bar 3 4,
+ \bar 3 \bar 1 \bar 4, \bar 2 1 \bar 4 \} \cr
+\left(3\, 4\right) & 1 & - & - & - & & \bar 2 & 1 \bar 3 2 \rightarrow 1 2 \bar 3 & \cr
+ & & & & & & & 4 \bar 1 2 \rightarrow 2 \bar 1 4 & \cr
+\left(3 \, 4 \right) & 1 & 0 & - & - & 4 & 4 & \bar 2 1 \bar 4 \rightarrow \bar 2 \bar 4 1 & \cr
+ & & & & & & & 2 3 \bar 4 \rightarrow 2 \bar 4 3 & \cr
+ & & & & & & & \bar 3 \bar 1 \bar 4 \rightarrow \bar 4 \bar 1 \bar 3 & \cr
+\left(3\right) & 1 & 0 & - & 1 & 3, \bar 3 & {\rm Failure} & \cr
+}
+$$
+
 \bye
