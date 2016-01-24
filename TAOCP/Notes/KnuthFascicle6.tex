@@ -4,9 +4,9 @@
 \centerline{Notes on Knuth Fascicle 6: Satisfiability}
 \vskip 0.3in
 
-\noindent {Satisfiability}
+\noindent {\bf Satisfiability}
 
-\noindent [p 1] Equation~2 is shorter, at 5 clauses, than the 'shortest
+\noindent [p 1] Equation~2 is shorter, at 5 clauses, than the `shortest
 interesting unsatisfiable formula in 3CNF', 7.1.1-(32), simply because it isn't
 interesting -- it achieves unsatisfiability by simply adding the
 same clause negated so it amount to $a \wedge \bar a$.
@@ -312,5 +312,42 @@ $x = 00$.
 
 \smallskip \noindent Note this is a different solution than Algorithm~A found, 
 but it does work.
+
+\vskip 0.1in \noindent {\bf Algorithm~D}
+
+This is only modestly modified from Algorithm~B, although there is quite
+a bit more link manipulation required.  There are a few details worth mentioning.
+First, The active ring is used to look for unit clauses by storing watched variables
+that aren't yet seen.  Why only watched ones?  Well, anything in a unit clause
+must be watched, since we watch a literal in every clause. Second
+the move codes $m$ are really the same as in Algorithms~A and B.
+The only difference is that $m_1$ refers to the variable in $h_1$
+rather than always $x_1$. The implementation is lazy in the sense that, for 
+example, the way unit clauses are found is to iterate through all the variables in 
+each clause looking for unit clauses.  Finally, note that the backtrack step
+will unset any unit clause forced literals when it backtracks, unlike the one
+in Algorithm~A.
+
+I won't repeat the previous example, since there's a step-through in 
+Problem~128.
+
+\vskip 0.01in \noindent {\bf Resolution}
+
+\noindent [p 54] The resolution DAG sounds a lot more complicated than it is.
+You just start with your clauses as axioms, then combine them with resolution
+to form new clauses.  Since each new clause is formed by combining two
+other clauses, every non-axiom vertex has in-degree~2.
+
+\vskip 0.01in \noindent {\bf SAT solving via Resolution}
+
+\noindent [p 60] The key to understanding why the resolution process works
+is that {\it all} the products are formed between clauses containing $x$ and $\bar x$.
+This is what forces the statement that the setting of the other variables must
+satisfy either all the $A$ or all the $A^{\prime}$ (and can satisfy both, of course).
+Consider what would happen if this weren't true -- then there would be at least
+one $A$ and one $A^{\prime}$ that weren't satisfied.  Call them $A_j$ and $A^{\prime}_k$.
+Then the final set of clauses would contain 
+$\left(x \vee A_j\right) \diamond \left(\bar x \vee A^{\prime}_k\right) = A_j \vee A^{\prime}_k$,
+which is false.
 
 \bye
