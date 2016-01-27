@@ -1,6 +1,6 @@
 package taocp.ntuples;
 
-import java.util.Iterator;
+import org.openjdk.jmh.annotations.Benchmark;
 
 /**
  * See which implementation is faster
@@ -12,34 +12,22 @@ import java.util.Iterator;
 public class GraySpeedComparison {
   private static final int NTEST = 16;
 
-  public static void main(String[] args) {
-    Iterator<Integer> binaryGray = new GrayCode(NTEST).iterator();
-    Iterator<Integer> looplessGray = new LooplessGrayCode(NTEST).iterator();
-
-    // Do them both once first to trigger the JIT
-    int value;
-    while (binaryGray.hasNext()) {
-      value = binaryGray.next();
+  @Benchmark
+  public static void binaryGrayTest() {
+    Iterable<Integer> binaryGray = new GrayCode(NTEST);
+    int cnt = 0;
+    for (Integer val : binaryGray) {
+      cnt += 1;
     }
-    while (looplessGray.hasNext()) {
-      value = looplessGray.next();
-    }
+  }
 
-    binaryGray = new GrayCode(NTEST).iterator();
-    looplessGray = new LooplessGrayCode(NTEST).iterator();
-    long startTime = System.nanoTime();
-    while (binaryGray.hasNext()) {
-      value = binaryGray.next();
-    }
-    long elapsedBinary = System.nanoTime() - startTime;
+  @Benchmark
+  public static void looplessGrayTest() {
+    Iterable<Integer> looplessGray = new LooplessGrayCode(NTEST);
 
-    startTime = System.nanoTime();
-    while (looplessGray.hasNext()) {
-      value = looplessGray.next();
+    int cnt = 0;
+    for (Integer val : looplessGray) {
+      cnt += 1;
     }
-    long elapsedLoopless = System.nanoTime() - startTime;
-
-    System.out.println("Binary gray algorithm took   " + elapsedBinary + "ns");
-    System.out.println("Loopless gray algorithm took " + elapsedLoopless + "ns");
   }
 }

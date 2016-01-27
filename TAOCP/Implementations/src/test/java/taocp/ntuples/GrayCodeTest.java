@@ -2,6 +2,8 @@ package taocp.ntuples;
 
 import com.google.common.collect.Iterables;
 import org.junit.Test;
+import org.openjdk.jmh.annotations.Benchmark;
+
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.Arrays;
