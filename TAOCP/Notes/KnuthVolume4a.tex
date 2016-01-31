@@ -174,8 +174,6 @@ In the next step, note that $w \cdot x^{\left(j\right)} \geq t$ for each of the 
 such values. 
 
 \vfil\break
-
-\vskip 0.3in
 \centerline{\tt Section 7.1.2: Boolean Evaluation}
 \vskip0.2in
 
@@ -249,8 +247,6 @@ $
 $
 
 \vfil\break
-
-\vskip 0.3in
 \centerline{\tt Section 7.1.3: Bitwise Tricks and Techniques}
 \vskip0.2in
 
@@ -440,8 +436,6 @@ $z \gets \left(x \, \& \, \mu_2\right) \ll 4 = 0$,
 and $x = 6 = \left(\,0\,0\,0\,0\,0\,1\,1\,0\right)_2$,
 which is indeed the bit reversal of 96.
 
-\break
-
 \vskip 0.1in \noindent {\bf Bit swapping}
 \noindent [p 144] How does (67) work?\hfil\break
 Well, $y$ gets the new j$^{th}$ elements with everything
@@ -577,8 +571,6 @@ Examination of (32) and (34) shows this is equivalent to (37): it extracts the
 rightmost 1, and thus is equivalent to $2^u = 2^{\rho\left(t\right)}$.
 
 \vfil\break
-
-\vskip 0.3in
 \centerline{\tt Section 7.1.4: Binary Decision Diagrams}
 \vskip0.2in
 
@@ -852,7 +844,6 @@ in the third and fourth, but also in the first because.
 
 
 \vfil\break
-\topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.2}
 \vskip 0.3in
 \centerline {\tt Section 7.2.1.1: Generating all $n$-tuples}
@@ -986,9 +977,7 @@ etc.
 
 
 \vfil\break
-
-\vskip 0.3in
-\centerline{\tt Section 7.2.1.2: Generating all permutations}
+\centerline{\tt Section 7.2.1.2: Generating all Permutations}
 \vskip 0.2in
 
 \noindent [p 319] {\bf Algorithm L} The important thing to note here is that
@@ -1027,5 +1016,20 @@ So, step by step:\hfil\break
 {\bf L2} $j$ is 0, so terminate.\hfil\break
 The output is ${246, 264, 426, 462, 624, 642}$, which is in lexicographic
 order.
+
+\vfil\break
+\vskip 0.3in
+\centerline {\tt Section 7.2.1.6: Generating all Trees}
+\vskip 0.2in
+
+\noindent [p 443] {\bf Algorithm P} It is interesting to compare this with the
+bit twiddling solution of Problem~7.1.3.(23).  Which is faster?  Well, naturally
+this depends on the details of the architecture in use -- is there a
+population count intrinsic, for example.  But in practice converting the bit
+form to a string is the expensive part.  If this is not done (so the use case
+for the parens can work with the bit form efficiently), then (based on an
+implementation in Go) the bit twiddling approach is $5-6\times$ faster.  But if
+one really needs the string form, then Algorithm~P is $\sim 2\times$ faster --
+at least in my implementation!
 
 \end
