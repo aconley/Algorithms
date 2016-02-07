@@ -903,6 +903,11 @@ This follows immediately from the ring discussion.
 The parity bit tells us if we want to make a type (a) move (remove or add the ring
 at the end), if not G4/G5 find $\rho$ and remove or add that ring.
 
+Interestingly, in performance comparison tests (in Go), Algorithm~G is faster
+than the apparently simpler method of simply using the relation
+$a_j = b_j \oplus b_{j-1}$ of equation~7.  It also beats the loopless
+generator of Algorithm~L.
+
 \vskip 0.08in \noindent [p 288] Recursion relation between $w$:
 $w_k\left(x\right) = r_{\rho\left(x\right) + 1}\left(x\right) w_{k-1} \left(x\right)$.
 First, some examples: $k = 4 = \left(1 0 0 \right)_2$, $a = k \oplus 
