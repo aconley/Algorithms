@@ -33,9 +33,10 @@ $$
  } 
 $$
 
-\vskip 0.1in \noindent {\bf Algorithm A}
+\vskip 0.1in \noindent {\bf Backtracking for SAT}
 
-\noindent [p28] The use of the doubly linked list is presumably more
+\noindent [p28] {\bf Algorithm A}\hfil\break
+\noindent The use of the doubly linked list is presumably more
 natural in light of the discussion of Dancing links associated with the
 previous sections (but not yet published).  The idea of Dancing Links
 is that we want to be able to both remove things but also re-add them
@@ -207,9 +208,11 @@ gives $x = 011$.
 \smallskip
 \noindent The thing we didn't explore was unit clauses $m = 4, 5$.
 
-\vskip 0.1in \noindent {\bf Algorithm B}
+\vskip 0.1in \noindent {\bf Lazy Data Structures}
 
-\noindent [p 31] The idea with watching is that we are trying
+\noindent [p31] {\bf Algorithm B} \hfil\break
+
+\noindent The idea with watching is that we are trying
 to monitor when a clause becomes unsatisfiable.  So we keep
 tabs on one literal, and when it breaks we see if there's another
 one we could be watching instead.  If not, then the clause has
@@ -313,8 +316,9 @@ $x = 00$.
 \smallskip \noindent Note this is a different solution than Algorithm~A found, 
 but it does work.
 
-\vskip 0.1in \noindent {\bf Algorithm~D}
+\vskip 0.1in \noindent {\bf Forced moves from Unit Clauses}
 
+\noindent [p 33] {\bf Algorithm~D}\hfil\break
 This is only modestly modified from Algorithm~B, although there is quite
 a bit more link manipulation required.  There are a few details worth mentioning.
 First, The active ring is used to look for unit clauses by storing watched variables
@@ -329,7 +333,28 @@ will unset any unit clause forced literals when it backtracks, unlike the one
 in Algorithm~A.
 
 I won't repeat the previous example, since there's a step-through in 
-Problem~128.
+Problem~128 of a different problem, and it's rather tedious.
+
+\vskip 0.01in \noindent {\bf Random Satisfiability}
+
+\noindent [p 47] $q_m$: The critical point is that the $q_m$ are defined
+in relation to distinct clauses where no literal is allowed to repeat.  So
+both $11$ and $1 \bar 1$ are disallowed.
+
+\noindent [p 48] $T_m$.  $T_0$ is 32 for five variables because, of course,
+any of the $2^5$ settings will satisfy the case with n clauses.  $T_1 = 28$
+because having one clause of 3 variables specifies 3 variables explicitly,
+but the other two can take $2^2 = 4$ values, so there are $2^5 - 2^2$
+satisfying settings.  For example, $123$ is not satisfied by $00000$,
+$00001$, $00010$, and $00011$.  $T_2$ takes a bit more work, but
+can be counted directly without too much effort.
+
+\noindent [p 48] ${\rm E}\,P$.  As noted, this is by definition $\sum m p_m$,
+but we also have $p_m = q_{m-1} - q_m$, so
+$$
+ {\rm E}\,P = \sum m p_m = \sum m q_{m-1} - \sum m q_m =
+  \sum q_m + \sum \left(m - 1\right) q_{m - 1} - \sum m q_m = \sum q_m .
+$$
 
 \vskip 0.01in \noindent {\bf Resolution}
 
