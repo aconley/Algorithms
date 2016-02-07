@@ -387,7 +387,7 @@ must be in $S \oplus y$.  Swapping the 0/1 in $x$ and $y$ would give the same
 thing with $x \oplus T$, and therefore we conclude that $x \, \oplus \, y$
 must be the smallest thing not in their union, which is the desired result.
 
-\vskip 0.08in {\bf Problem 9} ({\it Nim}) \hfil\break
+\vskip 0.08in \noindent {\bf Problem 9} ({\it Nim}) \hfil\break
 There is more than one way to analyze this.  I find direct
 analysis to be much easier to understand than the Sprague-Grundy
 theorem approach from the previous problem, so lets start with that.
@@ -398,9 +398,9 @@ $s = a_0 \oplus \ldots \oplus a_j \oplus \ldots \oplus a_k$ and
 $t = a_0 \oplus \ldots a^{\prime}_j \oplus \ldots \oplus a_k$ 
 where $a^{\prime}_j < a_j$.  How are $s$ and $t$ related?
 
-$t = s \oplus s \oplus t$, but $s \oplus t = a_j \oplus a^{prime}_j$
+$t = s \oplus s \oplus t$, but $s \oplus t = a_j \oplus a^{\prime}_j$
 (since all the other terms are equal), so
-$t = s \oplus a_j \oplus a^{prime}_j$.  Since $a_j \ne a^{\prime}_j$,
+$t = s \oplus a_j \oplus a^{\prime}_j$.  Since $a_j \ne a^{\prime}_j$,
 $a_j \oplus a^{\prime}_j \ne 0$.
 
 This leads to an important conclusion: if $s = 0$, then $t \ne 0$.
@@ -453,7 +453,8 @@ a $j < y$ such that $x \oplus j < x \oplus y$ pretty much entirely from
 the definition of mex.  Now, if there is no such $k$, that implies the
 player has no legal move from the position $x, y$, and so loses.
 But if there is, then the players winning strategy is to reduce pile $x$ to
-size $i$ or $y$ to $j$ (depending which one exists).  Thus, if the game state is $x \, \oplus \, y = 0$, it is not possible to reduce that
+size $i$ or $y$ to $j$ (depending which one exists).  Thus, if the game state is 
+$x \, \oplus \, y = 0$, it is not possible to reduce that
 value by making any move (since the new game state will either be 
 $i \oplus y$ or $x \oplus j$), and so they must increase it.  But if it
 is, then they can reduce $x \oplus y$, and in fact by the construction
@@ -563,7 +564,7 @@ $$
 $$
 where $a \ge 0$.  Note that we can't have $x = \alpha 0 1^a 1 0 \ldots$
 because we would be opening a brace we never closed;
-that is $k must be even$. 
+that is $k$ must be even. 
 Now, our goal is to fill out the last $a + k$ positions in $w$, but we have to
 preserve the same number of 0s and 1s in the final $1 + a + k$
 positions as we had in those positions in $x$.  Simply counting
@@ -597,9 +598,9 @@ with a one bit beyond the desired positions and more ones than desired.
 Also note that this is combinatorically equivalent to generating
 all forests of trees, and hence is considered again in 7.2.1.6.  Because
 of the 1-1 correspondence between binary trees and forests, that
-means that the total number of traces is 
+means that the total number of traces is the Catalan number
 $$
-  {1 \over m + 1} {2 m \choose m};
+  C_m = {1 \over m + 1} {2 m \choose m} \sim {4^n \over \sqrt{\pi} n^{3/2}};
 $$
 see volume~1.
 
