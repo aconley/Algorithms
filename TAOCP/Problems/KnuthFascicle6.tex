@@ -224,6 +224,16 @@ recalling that $\left| {\tt L}\left(s\right) \right| = {\tt L}\left(s\right) \gg
  set $s \gets s + 1$ and return to {\bf K4}.
 \newstep {K6} [Try next clause] Set $c \gets {\tt LINK}\left(c\right)$ and go to {\bf K2}.
 
+\newprob {Problem~224} Resolution trees.\hfil\break
+The point of this exercise is to prove the statement in the text (p 55) that `we can prove
+the empty clause by resolution from $F | \bar{x}$ if and only if we can prove $x$ by
+resolution from $F$ without resolving on $x$' by converting a resolution tree that
+refutes $F | \bar{x}$ into a resolution tree on $F$.  Well -- that's easy enough.
+Start with the axioms (members of $F | {\bar x}$), and for every such clause that is
+not also a clause of $F$, add $x$ back in to the label.  Then also add $x$ to every
+child of that clause (that is: every vertex reachable from such a clause).  If any
+labels changed, then we will end up converting the empty clause $\epsilon$ into $x$,
+which proves what we set out to prove.
 
 \newprob {Problem~249} Carry out Algorithm~IA on $\{1234, 1 \bar 2, \bar 1 \bar 2 \bar 3,
 \bar 1 3, 2 \bar 3, 3 \bar 4 \}$\hfil\break
@@ -264,5 +274,73 @@ $l \left(3\, \bar 2\right)$), and now $C_5 = 2 \bar 3$ is falsified (so $j \gets
  so we have shown the original clauses are unsatisfiable.  The final set of clauses is
  $\{1234, 1 \bar 2, \bar 1 \bar 2 \bar 3,
 \bar 1 3, 2 \bar 3, 3 \bar 4, \bar 2 \bar 3, \bar 3, 1 2 3, 1 3, 3, \epsilon \}$.
+
+\newprob {Problem 253} Extend the Algorithm~C example on $waerden\left(3;3;9\right)$ \hfil\break
+Starting with the specified decision 5, this becomes
+$$
+\matrix{
+ t & L_t & {\rm Level} & {\rm Reason} \cr
+ 0 & \bar{6} & 1 & \Lambda \cr
+ 1 & 4 & 1 & 46 \cr
+ 2 & 5 & 2 & \Lambda \cr
+ 3 & \bar{3} & 2 & \bar{3} \bar{4} \bar{5} \cr
+ 4 & 9 & 2 & 369 \cr
+ 5 & \bar{1} & 2 & \bar{1}\bar{5}\bar{9}\cr
+ 6 & \bar{7} & 2 & \bar{5}\bar{7}\bar{9}\cr
+ 7 & 2 & 2 & 123 \cr
+ 8 & 8 & 2 & 678 \cr
+ 9 & \bar{2} & 2 & \bar{2} \bar{5} \bar{8} \cr
+}
+$$
+and the last one conflicts with $t=7$.  So we have the conflict clause $\bar{2} \bar{5} \bar{8}$.  
+The rightmost complemented literal of this clause in the trail is $L_7 = 2$, which has reason 123, so we
+resolve it to form $\bar{2} \bar{5} \bar{8} \diamond 1 2 3 \rightarrow 1 3 \bar{5} \bar{8}$.
+This has all it's complemented literals on level 2, so it's still a conflict clause.  The rightmost
+in the trail is now 8 with reason 678, so the next step is 
+$1 3 \bar{5} \bar{8} \diamond 6 7 8 \rightarrow 1 3 \bar{5} 6 7$.  There are still multiple level
+2 complemented literals, the rightmost is $\bar 7$ with reason $\bar{5} \bar{7} \bar{9}$, so
+$1 3 \bar{5} 6 7 \diamond 5 \bar{7} \bar{9} \rightarrow 1 3 \bar{5} 6 \bar{9}$.
+This has $\bar{1} \bar{3} 5 9$ on level 2, the rightmost of which is $\bar{1}$ with reason 
+$\bar{1} \bar{5} \bar{9}$, so $1 3 \bar{5} 6 \bar{9} \diamond \bar{1} \bar{5} \bar{9}
+\rightarrow 3 \bar{5} 6 \bar{9}$, next on 9 with reason 369 to get
+$3 \bar{5} 6 \bar{9} \diamond 3 6 9 \rightarrow \bar{3} 5 6$.  Both 3 and $\bar{5}$ are on level 2,
+so we resolve with the reason for $\bar{3}$, $\bar{3} \bar{4} \bar{5}$ to get
+$3 \bar{5} 6 \diamond \bar{3} \bar{4} \bar{5} \rightarrow \bar{4} \bar{5} 6$.
+This, finally, has only one complemented literal on level 2 (5), so it's done.  We can now discard
+level 2 entirely, and append this new clause.  Note that the order was different than
+in Knuth's solution, but the result was the same.
+
+Exercise~257 points out that $\bar{4} \bar{5} 6$ can be further simplified to $\bar{5} 6$ here,
+but I will ignore that in my solution because it's a later exercise.  So:
+$$
+\matrix{
+ t & L_t & {\rm Level} & {\rm Reason} \cr
+ 0 & \bar{6} & 1 & \Lambda \cr
+ 1 & 4 & 1 & 46 \cr
+ 2 & \bar{5} & 1 & \bar{4} \bar{5} 6 \cr
+ 3 & 7 & 1 & 5 6 7 \cr
+ 4 & \bar{1} 1 & \bar{1} \bar{4} \bar{7} \cr
+ 5 & 3 & 1 & 1 3 5 \cr
+ 6 & 9 & 1 & 1 5 9 \cr
+ 7 & \bar{2} & 1 & \bar{2} \bar{3} \bar{4} \cr
+ 8 & \bar{8} & 1 & \bar{7} \bar{8} \bar{9} \cr
+ 9 & 8 & 1 & 2 5 8 \cr
+}
+$$
+and we have another conflict clause, this time with reason 258.  Now the rightmost
+is $\bar{8}$, so $2 5 8 \diamond \bar{7} \bar{8} \bar{9} \rightarrow 2 5 \bar{7} \bar{9}$.
+Next $\bar{2}$ with reason $\bar{2}\bar{3}\bar{4}$: $2 5 \bar{7} \bar{9} \diamond 
+\bar{2} \bar{3} \bar{4} \rightarrow \bar{3} \bar{4} \bar{7} \bar{9}$.  The rightmost
+is now 9 with reason 159, so $\bar{3} \bar{4} \bar{7} \bar{9} \diamond 1 5 9
+\rightarrow 1 \bar{3} \bar{4} 5 \bar{7}$, next $3 / 1 3 5$ to form
+$1 \bar{3} \bar{4} 5 \bar{7} \diamond 1 3 5 \rightarrow 1 \bar{4} 5 7$.
+Then $\bar{1} / \bar{1} \bar{4} \bar{7}$ to get 
+$1 \bar{4} 5 7 \diamond \bar{1} \bar{4} \bar{7} \rightarrow \bar{4} 5$.
+Almost there! The reason for $\bar{5}$ is our new-ish clause $\bar{4} \bar{5} 6$,
+and when we resolve $\bar{4} 5 \diamond \bar{4} \bar{5} 6 \rightarrow \bar{4} 6$,
+and then finally the reason for 4 to get $\bar{4} 6 \diamond 46 \rightarrow 6$.
+
+This now becomes a new unit clause and we start at level 0 -- clearly no longer
+choosing $\bar{6}$ to start!
 
 \bye
