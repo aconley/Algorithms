@@ -325,8 +325,9 @@ First, The active ring is used to look for unit clauses by storing watched varia
 that aren't yet seen.  Why only watched ones?  Well, anything in a unit clause
 must be watched, since we watch a literal in every clause. Second
 the move codes $m$ are really the same as in Algorithms~A and B.
-The only difference is that $m_1$ refers to the variable in $h_1$
-rather than always $x_1$. The implementation is lazy in the sense that, for 
+The only differences are that $m_1$ refers to the variable in $h_1$
+rather than always $x_1$, and codes 4 and 5 refer to unit clauses rather
+than pure literals. The implementation is lazy in the sense that, for 
 example, the way unit clauses are found is to iterate through all the variables in 
 each clause looking for unit clauses.  Finally, note that the backtrack step
 will unset any unit clause forced literals when it backtracks, unlike the one
@@ -335,7 +336,7 @@ in Algorithm~A.
 I won't repeat the previous example, since there's a step-through in 
 Problem~128 of a different problem, and it's rather tedious.
 
-\vskip 0.01in \noindent {\bf Random Satisfiability}
+\vskip 0.1in \noindent {\bf Random Satisfiability}
 
 \noindent [p 47] $q_m$: The critical point is that the $q_m$ are defined
 in relation to distinct clauses where no literal is allowed to repeat.  So
@@ -356,14 +357,22 @@ $$
   \sum q_m + \sum \left(m - 1\right) q_{m - 1} - \sum m q_m = \sum q_m .
 $$
 
-\vskip 0.01in \noindent {\bf Resolution}
+\vskip 0.1in \noindent {\bf Resolution}
 
 \noindent [p 54] The resolution DAG sounds a lot more complicated than it is.
 You just start with your clauses as axioms, then combine them with resolution
 to form new clauses.  Since each new clause is formed by combining two
-other clauses, every non-axiom vertex has in-degree~2.
+other clauses, every non-axiom vertex has in-degree~2.  An important piece is
+that the vertex labels are unique.  Note that you aren't required to form all combinations.
+What is meant by a `resolution proof of A' is that if the set of clauses is true then A must
+be true.
 
-\vskip 0.01in \noindent {\bf SAT solving via Resolution}
+\vskip 0.05in \noindent [p 55] Exercise~224 is worth doing, but it's also helpful to discuss it
+less formally.  Another way to say this is that if $F | \bar{x}$ is false (so we
+can prove $\epsilon$) then we must be able to form a resolution proof of $x$ without
+using resolution to eliminate it -- meaning that if $F$ is true, $x$ must be true.
+
+\vskip 0.1in \noindent {\bf SAT solving via Resolution}
 
 \noindent [p 60] The key to understanding why the resolution process works
 is that {\it all} the products are formed between clauses containing $x$ and $\bar x$.
