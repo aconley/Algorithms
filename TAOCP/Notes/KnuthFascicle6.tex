@@ -1,4 +1,5 @@
 \def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newhead#1{\vskip 0.1in \noindent {\bf #1}}
 
 \topglue 0.5in
 \centerline{Notes on Knuth Fascicle 6: Satisfiability}
@@ -12,7 +13,28 @@ interesting -- it achieves unsatisfiability by simply adding the
 same clause negated so it amount to $a \wedge \bar a$.
 Which is boring.
 
-\vskip 0.1in \noindent {\bf Exact Covering}
+\newhead{A simple example}
+
+[p. 4] Manual solution: note that Knuth is proceeding lexicographically,
+which is why he starts with 00, and then extends 001 to 0010011 -- this
+is the lexicographically least extension from 001 that doesn't violate
+the conditions.  This is because 001000 ends with three equally spaced 0s,
+and 0010010 also has three equally spaced 0s.
+
+[p. 5] $W\left(1, k\right)$ and $W\left(2, k\right)$: $W\left(1,k\right)$
+can't contain any 0s, so must consist entirely of 1s.  Thus, the smallest
+string that contains $k$ equally spaced 1s is of length $k$.  
+Similarly, $W\left(2, k\right)$ clearly can only contain one 0 (because
+if it had 2 they would be equally spaced by definition).  If $k$
+is odd, the longest possible string without $k$ equally spaced 1s 
+is $k-1$ 1s, then a 0, then $k-1$ 1s.  For example, for
+$W\left(2, 3\right)$ the longest sequence is 11011, so
+$W\left(2, 3\right) = 6$.  But for $k$ even, this doesn't
+work, since $1110111$ {\it does} have 4 equally spaced 1s.
+So we have to pull one off when it's even, and
+$W\left(2, k\right) = 2 k - \left[ k\, {\rm even} \right]$.
+
+\newhead{Exact Covering}
 
 \noindent [p. 5] Langford pairs: recall that the way the exact cover
 formulation works is that there is one row for each allowable subset
