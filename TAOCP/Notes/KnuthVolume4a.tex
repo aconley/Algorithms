@@ -1,4 +1,7 @@
 \def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newitem#1{\vskip 0.05in \noindent [p #1]}
+\def\subsec#1{\vskip 0.08in \noindent {\bf #1}}
+\def\sec#1 {\vfil\break \centerline{\tt #1} \vskip 0.2in}
 
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.1: Zeroes and Ones}
@@ -16,8 +19,7 @@ but it is commutative and associative. The above is therefore
 equivalent to $y \oplus \left( x \oplus x \right) = y \oplus 0 = y$.
 The same argument shows that $\left( x \oplus y \right) \oplus y = x$.
 
-\vskip 0.05in
-\noindent [p 51] Why are Eq (13)-(15) true? \hfil\break
+\newitem{51} Why are Eq (13)-(15) true? \hfil\break
 I don't see how to derive (13), or (14) besides just writing out the truth table, but (15) is:
 $x \oplus y = \left(x \vee y\right) \wedge \overline x \wedge y$, which
 is true by inspection (either x or y has to be true, but not both).
@@ -31,9 +33,7 @@ $\left(\overline{x} \wedge x\right) \vee \left(\overline{y} \vee x\right) =
 $x \oplus y = \left(x \wedge \overline{y}\right) \vee \left(\overline{x}
 \wedge y\right)$, which is the claimed identity.
 
-\vskip 0.1in
-\noindent
-{\bf Functions of n variables}
+\subsec{Functions of n variables}
 
 \noindent [p51] Why does the functional decomposition
 of eq (16) and (17) work?\hfil\break
@@ -54,15 +54,14 @@ so this is just $f\left(x_1,\ldots,x_{n-1},1\right)$, which is what we want.
 Similarly, for $x_n = 0$, we just get
 $f\left(x_1,\ldots,x_{n-1},0\right) \oplus 0 = f\left(x_1,\ldots,x_{n-1},0\right)$.
 
-\vskip 0.05in
-\noindent [p52] That demonstrates why (16) works -- why does (18), 
+\newitem{52} That demonstrates why (16) works -- why does (18), 
 the ``law of development'', work?\hfil\break
 First, let's say that $x_n = 0$.  Only the first term applies, giving
 $f\left(x_1,\ldots,x_{n-1},0\right) \wedge 1 = f\left(x_1,\ldots,x_{n-1},0\right)$,
 which is indeed the value of $f\left( x_1,\ldots,x_n \right)$ when $x_n = 0$.
 It works the same way for $x_n = 1$.
 
-\vskip 0.05in \noindent [p55] {\bf Theorem Q}\hfil\break 
+\newitem{55} {\bf Theorem Q}\hfil\break 
 A prime implicant corresponds to a 1 in the
 truth table of the function.  Since the function is monotone, the implicant
 can't become false (0) when any of it's values go from 0 to 1.  If one
@@ -70,7 +69,7 @@ of the terms in the prime implicant were, say, $\overline{x_i}$, then
 when that changed from 0 to 1, the implicant would become false.  This
 is not allowed.
 
-\vskip0.1in \noindent {\bf Satisfiability}
+\subsec{Satisfiability}
 
 \noindent [p56] 3SAT\hfil\break
 The text uses problem 39 to explore a fairly general form where the 
@@ -111,7 +110,7 @@ but it has been forced to be 1 by the previous clause.  So therefore
 if the original clause is satisfiable we can satisfy the new one, and
 if it isn't then we can't.
 
-\vskip0.1in \noindent {\bf Simple Special Cases}\hfil\break
+\subsec{Simple Special Cases}
 
 \noindent [p57] {\bf Theorem H} \hfil\break
 The first step in the formula is to use the 
@@ -125,7 +124,7 @@ rightward in the left term.  We then have $\left(x_1 \vee \overline{x}_2
 which is clearly true since the extra terms can either leave the truth value 
 unchanged or increase it from 0 to 1.  The same logic applies to the second term.
 
-\vskip0.05in \noindent [p58] In the example of Horn clauses following theorem H, where 
+\newitem{58} In the example of Horn clauses following theorem H, where 
 do the propositions come from? \hfil\break  
 Well, take the first one: $\bf xE \Rightarrow xT$ states
 that it is allowable for an expression to start with {\bf x} if and only if
@@ -136,9 +135,9 @@ How do these convert into Horn clauses?  Well, recall that $x \Rightarrow y$
 is the same as $\overline{x} \wedge y$ (Table 1).  The Horn clause expression is
 just all of those $\wedge$ed together.
 
-\vskip0.1in \noindent {\bf Medians}
+\subsec{Medians}
 
-\noindent [p63] Self duality: in the discussion after (46), why does a formula
+\newitem{63} Self duality: in the discussion after (46), why does a formula
 need to be indifferent to swapping $\wedge$ and $\vee$?  Recall De Morgan's
 laws (11 and 12): $\bar{x \wedge y} = \bar x \vee \bar y$ and $\bar{x \vee y} =
 \bar x \wedge \bar y$.  So, using (46), when we negate the entire function,
@@ -149,7 +148,7 @@ we get something like $\bar{\left(x_i \wedge \ldots \wedge x_j\right) \vee
 if this is to be equal to the original with the variables negated, then
 indeed we must be able to interchange $\vee$ and $\wedge$.
 
-\vskip0.1in \noindent {\bf Threshold functions}
+\subsec{Threshold functions}
 
 \noindent [p75] Negative weights: to get rid of negative weights,
 the replacements $x_j \gets \bar x_j$ and $w_j \gets -w_j$ seem
@@ -165,7 +164,7 @@ would have to add up to $0, 2$, so the formula are no longer
 equivalent.  If we add $\left|-w_j\right| = 2$ so that $t \gets 4$,
 then they need to be $2, 4$, as before.
 
-\vskip 0.05in \noindent [p 77] {\bf Theorem T} \hfil\break
+\newitem{77} {\bf Theorem T} \hfil\break
 The proof works because the number
 of vectors where we must have $f\left(x^{\left(m\right)}\right) = 
 g\left(x^{\left(m\right)}\right) = 1$ is $N\left(f\right) - k = N\left(g\right) - k$.
@@ -175,19 +174,17 @@ and $g\left(y^{\left(k\right)}\right) = 0$.
 In the next step, note that $w \cdot x^{\left(j\right)} \geq t$ for each of the $k$
 such values. 
 
-\vfil\break
-\centerline{\tt Section 7.1.2: Boolean Evaluation}
-\vskip0.2in
+\sec{Section 7.1.2: Boolean Evaluation}
 
 \noindent [p 97] Different boolean chains with the same diagram: the point
 of the discussion in the paragraph following the one with (4) is that the same
 steps are just being done in a different order.  As long as they don't depend
 on each other, that's fine -- which is equivalent to a different topological sorting.
 
-\vskip 0.05in \noindent [p 98] Note the convention for the truth tables here:
+\newitem{98} Note the convention for the truth tables here:
 the columns are just $\left(x_1 x_2 x_3 x_4\right)_2$ counted up from 0.
 
-\vskip 0.05in \noindent [p 99] The difference between $L\left(f\right)$
+\newitem{99} The difference between $L\left(f\right)$
 and $C\left(f\right)$ is that $C$ is allowed to re-use intermediate results,
 $L$ is not.  So, the reuse of $x_6$ in (7) is fine for $C$, but not for $L$.
 
@@ -201,7 +198,7 @@ be shallower/shorter/cheaper because if we had such a chain for the
 negation we could negate it in the same fashion to get a shallower/shorter/cheaper
 chain for the original function.
 
-\vskip 0.05in \noindent [p 100] {\it Normalized chains:} The idea behind (10),
+\newitem{100} {\it Normalized chains:} The idea behind (10),
 of course, is that it makes a non-normal function normal.  However, the claim
 that a Boolean chain is normal if and only if each of its binary operators is
 normal seems to be wrong -- at least if a chain being normal means what
@@ -234,7 +231,7 @@ combinations of previously computed truth tables with the allowed operators,
 keeping the shortest one -- which is easy since the algorithm always goes
 through them in length order.
 
-\vskip 0.1in \noindent {\bf Multiple Outputs}
+\subsec{Multiple Outputs}
 
 \noindent [p 107] It is simply stated that the cost of the 3-ary median
 operator is 4, but this hasn't been proven.  On the other hand, (23)
@@ -248,9 +245,7 @@ $
 \lor \left(x_1 \land x_2\right).
 $
 
-\vfil\break
-\centerline{\tt Section 7.1.3: Bitwise Tricks and Techniques}
-\vskip0.2in
+\sec{Section 7.1.3: Bitwise Tricks and Techniques}
 
 Most of the stuff in this chapter is covered a little more gently
 in {\it Hackers~Delight} by Henry~S.~Warren,~Jr., also using an imaginary RISC machine,
@@ -258,7 +253,7 @@ but with more extensive discussion about what to do when certain
 operators aren't available, as well as a bunch of other stuff not
 covered here.
 
-\vskip 0.1in \noindent {\bf Enriched arithmetic}
+\subsec{Enriched arithmetic}
 
 \noindent [p 135] Where does (18) come from? \hfil\break Combining (16) and
 (17) we have $\bar x + 1 = \overline{x - 1}$.  Substitute $x-1$ for $x$
@@ -281,7 +276,7 @@ for a signed 64 bit number, $1 \ll 63$ is negative ($-2^{63}$).
 Similar complications can ensue with right shifts because one has to
 be careful to understand what bit gets inserted at the left.
 
-\vskip 0.1in \noindent {\bf Working with the rightmost bits.}
+\subsec{Working with the rightmost bits.}
 
 \noindent [p 140] Equation (32): note that the exceptions 
 are for any non-negative integer $b$ in $-2^b$: -1, -2, -4, etc.,
@@ -386,7 +381,7 @@ results in $t \gets 6$, and {\tt CSZ rho,q,t} leaves {\tt rho} unmodified
 leaves it unmodified).  So, next $q \gets y\, \& \, \mu_0 = 0$,
 $t \gets 5$, and the final instruction sets $\rho \gets 5$.
 
-\vskip 0.1in \noindent {\bf Working with the leftmost bits}
+\subsec{Working with the leftmost bits}
 
 \noindent [p 142] Using the same 8-bit example, the equivalent
 code is {\tt SRU y,x,4}, {\tt ZSNZ lam,y,4;} {\tt ADD t,lam,2},
@@ -401,7 +396,7 @@ $y \gets x \gg 6 = 1$, $\lambda \gets 6$.  After that, $t \gets 7$,
 $y \gets x \gg 7 = 0$, and on this step $\lambda$ doesn't get changed
 because $y = 0$.
 
-\vskip 0.1in \noindent {\bf Sideways addition}
+\subsec{Sideways addition}
 
 \noindent [p 143] Note that {\tt MMIX} has a sideways add intrinsic
 ({\tt SADD}) -- which isn't actually that exotic.  x86 has such an intrinsic,
@@ -411,7 +406,7 @@ is exotic, however, is that {\tt MMIX}s {\bf SADD x,y,z}
 computes $x \gets \nu \! \left(y \& \bar{z}\right)$, which is
 taken advantage of in several of the formulae.
 
-\vskip 0.1in \noindent {\bf Bit reversal}
+\subsec{Bit reversal}
 
 \noindent [p 144] 
 This is actually pretty easy to understand -- the
@@ -445,7 +440,7 @@ else 0, $z$ gets the new i$^{th}$ element, again with
 everything else 0.  Then $x \, \& \, m$ turns off those two
 bits, and the or puts the new ones in.
 
-\vskip 0.08in \noindent [p 145] Now, how about (68)?\hfil\break
+\newitem{145} Now, how about (68)?\hfil\break
 The first step puts $x_i \, \oplus \, x_j$ into position $j$ will all
 other entries 0.  For all positions besides $i$ and $j$, the second
 is $x_k \, \oplus \, 0 \, \oplus \, 0 = x_k$, so it doesn't touch those
@@ -458,7 +453,7 @@ $z \, \oplus \, z = 0$, so this is $0 \, \oplus \, x_j = x_j$.
 Thus, this chain sets $x_i = x_j$.  The same logic applies
 to $x_j$, so this does indeed swap the bits.
 
-\vskip 0.08in \noindent [p 150] Notes on (84): $x^{\prime} = 
+\newitem{150} Notes on (84): $x^{\prime} = 
 \left(x - \chi\right) \, \& \, \chi$\hfil\break
 You know it must be non-obvious when Knuth actually explains
 the derivation...  One note: the replacement of $\left( \bar \chi + 1\right)$
@@ -474,7 +469,7 @@ is discussed in {\it Hackers Delight} -- the issue is more or less
 how to detect overflow so effects can propagate across word
 boundaries.
 
-\vskip 0.08in \noindent [p 150] Subcube generation\hfil\break
+\newitem{150} Subcube generation\hfil\break
 Here $a$ has a 1 at the location of each $*$, and $b$ has
 a 1 at the location of each actual 1, and 0 for actual 0s or
 $*$s.  So, what's going on in this formula?  All that is happening
@@ -486,7 +481,7 @@ $a + b = a \, | \, b$, since $a \, \& \, b$ by construction.
 Then we select only the wildcard bits, leaving the set bits in $b$
 alone, and finally add them back in.
 
-\vskip 0.1in \noindent {\bf Tweaking several bytes at once}
+\subsec{Tweaking several bytes at once}
 
 \noindent [p 151] Byte summing: equation~(87).\hfil\break
 The first line ($z \gets \left(x \, \oplus \, y\right) \, \& \, h$)
@@ -521,7 +516,7 @@ Try $y = 225$, so $x + y \bmod 256 = \left(1\,0\,0\,0\,0\,0\,0\,1\right)_2$.
 Now they both have leading 1s, so the first line sets $z \gets 0$,
 and the second line does the sum just throwing out the leading bit.
 
-\vskip 0.08in \noindent [p 151] Byte averages: equation~(88).\hfil\break
+\newitem{151} Byte averages: equation~(88).\hfil\break
 The first operation ($z \gets \left(\left( x \, \oplus \, y \right) \, \& \, \bar l
 \right) \gg 1$), first finds all the places where the sum will be one,
 then right shifts to divide by 2.  The $\&\,\bar l$ is to remove the
@@ -530,7 +525,7 @@ boundary.  The second line ($z \gets \left(x\,\&\,y\right) + z$)
 deals with the positions where both $x$ and $y$ were 1,
 so the sum is 2, which when divided by 2 is 1 again.
 
-\vskip 0.08in \noindent [p 152] Testing whether all bytes are zero: 
+\newitem{152} Testing whether all bytes are zero: 
 equations~(90) and (91). \hfil\break 
 Recall from 42 that the effects of $\left(x - 1\right) \, \& \, \bar x$
 is to turn all trailing 0s into 1s and zero everything else.  $l$
@@ -553,18 +548,18 @@ added by the $|\,h$ will still be there, and we will get zero.
 But if it is $h$, then we will have $h | \left(h - l\right) = \#ff$,
 and hence $h \, \& \,0 = 0$.
 
-\vskip 0.1in \noindent {\bf An application in directed graphs}
+\subsec{An application in directed graphs}
 
 \noindent [p 159] As a reminder, Algorithm 2.3.5E is more or
 less depth first search specialized for binary trees.
 
-\vskip 0.08in \noindent [p 159] {\bf Algorithm R} ({\it Reachability})\hfil\break
+\newitem{159} {\bf Algorithm R} ({\it Reachability})\hfil\break
 This is, or course, breath first search, very slightly modified from
 the usual implementation to search from a set of starting vertices
 rather than a single one.  The real point, of course, is the bitwise
 operations implementation...
 
-\vskip 0.08in \noindent [p 160] {\bf Program R} ({\it Reachability})\hfil\break
+\newitem{160} {\bf Program R} ({\it Reachability})\hfil\break
 So, how does it work?  It's not really all that tricky; almost the only
 thing worth noting is that $X \subset R$, which is why $\sigma\left(R\right) -
 \sigma\left(X\right)$ works -- the subtraction never causes any carry issues.
@@ -572,9 +567,7 @@ Also, ${\tt ANDN\ tt,t,tt}$, which is ${\tt tt} \gets {\tt t \, \& \, \overline{
 Examination of (32) and (34) shows this is equivalent to (37): it extracts the
 rightmost 1, and thus is equivalent to $2^u = 2^{\rho\left(t\right)}$.
 
-\vfil\break
-\centerline{\tt Section 7.1.4: Binary Decision Diagrams}
-\vskip0.2in
+\sec{Section 7.1.4: Binary Decision Diagrams}
 
 \noindent [p 204] Why (3) gives the truth tables of functions that
 depend on $x_1$: because the first two elements of each truth table
@@ -582,14 +575,14 @@ are $f\left(0, x_2\right)$ (00, 01) and the second two are $f\left(1, x_2\right)
 (10, 11).  If the two halves are the same, then clearly $f$ doesn't
 depend on $x_1$.
 
-\vskip 0.08in \noindent [p205] Correspondence between beads and BDDs.\hfil\break
+\newitem{205}  Correspondence between beads and BDDs.\hfil\break
 Consider diagram (5): the top level is the full truth table before any
 decisions are made.  Chose $x_1 = 0$ and going right restricts
 the truth table to what is shown.  The critical point here is that truth
 tables that are not beads don't show up, because those correspond
 to variables that {\it don't matter}, at least given the previous choices.
 
-\vskip 0.08in \noindent [p 205] Working out the BDD for the ``more-or-less-random''
+\newitem{205} Working out the BDD for the ``more-or-less-random''
 function.\hfil\break
 We only skip a variable when the corresponding truth table isn't a bead.  Since
 the full truth table isn't a bead, therefore the first node is on variable 1, and
@@ -598,7 +591,7 @@ variable 2.  The $x_2 = 0$ branch is also a bead (11001001) so we will
 get 3 nodes for that branch.  But the $x_2 = 1$ branch is not a bead
 (0011), so we don't need $x_3$ and can just hook up true/false sinks, etc.
 
-\vskip 0.08in \noindent {\bf BDD Virtues}
+\subsec{BDD Virtues}
 
 \noindent [p 206] The list of virtues is somewhat meaningless unless there is something
 to compare it to.  So, how about just storing the truth table?  Evaluating
@@ -628,7 +621,7 @@ g\left(x_1, \ldots, x_n\right), \ldots, x_n\right)$) is not so easy, and
 that corresponds to the way that humans, at least, like to build up complicated
 functions.
 
-\vskip 0.08in \noindent [p 207] {\bf Algorithm C} ({\it Count solutions})\hfil\break
+\newitem{207} {\bf Algorithm C} ({\it Count solutions})\hfil\break
 The powers of 2 are all about what happens when you skip unused
 variables -- for example, the right branch in (6) which doesn't depend
 on $x_3$ or $x_4$, or the leftmost pair of 5 boxes in the independent
@@ -636,7 +629,7 @@ sets example (12), where the leftmost one gets 2 for skipping variable 6
 on the LO chain and 1 by not skipping 6 on the HI chain, and the one
 next to that gets 2 from the LO chain connecting to true.
 
-\vskip 0.08in \noindent [p 208] Independent and maximal subset
+\newitem{208} Independent and maximal subset
 examples: recall that the independent subsets are those such that
 no edge is entirely contained in the subset (hence, two 1s in a row
 for the cycle would not be independent).  And a kernel/maximal
@@ -647,7 +640,7 @@ subset.  But note these are {\it maximum} independent subsets --
 they aren't necessarily the largest possible; for example, 001001
 is maximal, but has fewer 1 elements than 010101.
 
-\vskip 0.08in \noindent [p 208] Generating random solutions: note that
+\newitem{208} Generating random solutions: note that
 it's not quite enough to just use the $c_k$ because we have
 to account for skipping variables in the computation.  For example,
 consider the path $x_1 x_2 x_3 \gets 1 0 0$ in the left hand part
@@ -659,8 +652,7 @@ there can be multiple ways into the node.  In the example just given,
 there's also a path from a 5 node for which $c_6$ shouldn't be multiplied
 by 2.
 
-\vskip 0.08in \noindent [p 209] {\bf Algorithm B} ({\it Solutions of 
-Maximum Weight})\hfil\break
+\newitem{209} {\bf Algorithm B} ({\it Solutions of Maximum Weight})\hfil\break
 Working through the example (problem~18) wasn't that helpful, but the
 algorithm isn't that hard to understand if you just think about how to
 combine optimum sub-problems.  The idea is that each node in a diagram,
@@ -675,14 +667,14 @@ in diagram 6 in the rightmost branch).  So step 3 is all about moving up
 the BDD choosing the best sub-branch at each step, then 4 is about
 unwinding that chain back down the globally best one.
 
-\vskip 0.08in \noindent [p 211] Positive weights and independent subsets:
+\newitem{211} Positive weights and independent subsets:
 the kernel of maximum weight and an independent set of maximum weight
 are the same with positive weights because for any independent set that
 was not a kernel, you could always add at least one more element
 and still be independent while increasing the total weight because the
 weights are positive.
 
-\vskip 0.08in \noindent {\bf Friendly functions}
+\subsec{Friendly functions}
 
 \noindent [p 213] Constraint on the maximum size of the BDD for
 a symmetric function: the number of nodes in the `body' is
@@ -690,7 +682,7 @@ $1 + 2 + \ldots + n = n \left(n + 1\right) / 2 = {n + 1 \choose 2}$,
 and we only need one copy each of truth and falsehood, since
 we share in BDDs.  So the maximum size is ${n + 1 \choose 2} + 2$.
 
-\vskip 0.08in \noindent [p 216] {\bf Algorithm R} ({\it Reduction to BDD})\hfil\break
+\newitem{216} {\bf Algorithm R} ({\it Reduction to BDD})\hfil\break
 This is pretty complicated as spelled out, although here doing
 the example (problem~53) was somewhat helpful, if tedious.
 R1 is relatively easy to understand -- it does a depth first search,
@@ -743,7 +735,7 @@ nodes.  This may require another clean up if this caused our current node
 to point at something eliminated.  Finally, check if we've reached the top.
 If not, move up a level, if so, finish (after one final cleanup of the root).
 
-\vskip 0.08in \noindent {\bf Synthesis of BDDs}
+\subsec{Synthesis of BDDs}
 
 \noindent [p 218] What's the idea behind equation (37)?  It's designed
 to match variables.  Only when the two nodes being merged are
@@ -751,7 +743,7 @@ for the same variable can we immediately proceed to merging their
 subtrees.  If they don't, we need to merge the one with the larger
 variable with both subtrees until it reaches its level.
 
-\vskip 0.08in \noindent [p 222] {\bf Algorithm S}
+\newitem{222} {\bf Algorithm S}
 This one is too complicated to make me want to play through, so
 I'll skip the lengthy explanation.  The first stage (43) is easy
 to understand, but the second stage is pretty complicated, although
@@ -770,7 +762,7 @@ but it is a convenient choice.  The idea behind $v$ in (52) follows --
 the join doesn't depend on any variables that neither $f$ nor $g$
 depend on.
 
-\vskip 0.08in \noindent  {\bf Quantifiers}
+\subsec{Quantifiers}
 
 \noindent [p231] Independent sets and Kernels.  The Independent
 set function of (67) is easy to understand (no two points connected
@@ -789,13 +781,13 @@ an edge between them. However, if two kernels differ in {\it only} that
 position there must be an edge essentially because there is no place
 else to put the vertex and not have it ruin the independence property.
 
-\vskip 0.08in \noindent {\bf Functional composition}
+\subsec{Functional composition}
 
 \noindent [p 233] The map 4 coloring relation is one relation
 for each color (00, 01, 10, 11) that just says each submap
 is independent, and hence colors never neighbor themselves.
 
-\vskip 0.08in \noindent {\bf Nasty functions}
+\subsec{Nasty functions}
 
 \noindent [p 234] The upper bound on the BDD size is theoretical,
 and wouldn't quite be met in practice because it assumes you
@@ -803,13 +795,13 @@ can always get exactly the number of bits you need, while
 on a real machine you need some multiple of the word size.
 But you won't be that much worse.
 
-\vskip 0.08in \noindent [p 234] Average BDD size: the usual
+\newitem{234} Average BDD size: the usual
 caveats to the `average' size apply: choosing a random truth
 table is a rather poor model for boolean functions that arise
 in practice (as Knuth commented earlier, and as the examples
 tend to reflect).
 
-\vskip 0.08in \noindent [p 235] Quasi-profiles: $q_k$ is the
+\newitem{235} Quasi-profiles: $q_k$ is the
 number of distinct subtables because the QDD is reduced;
 non-distinct subtables would be reduced to the same node.
 Furthermore, (85)  arises just because if the two relations
@@ -820,7 +812,7 @@ $Q\left(f\right) = \sum q_k =
 \le {1 \over 2} \sum_k \left(B\left(f\right) + 1\right) = \left(n + 1\right)
 \left(B\left(f\right) + 1\right) / 2$.
 
-\vskip 0.08in \noindent {\bf Zero Suppressed BDDs}
+\subsec{Zero Suppressed BDDs}
 
 \noindent [p 250] Zeads: The first rule for zeads is easy to 
 understand: A binary string ending in all 0s corresponds to
@@ -833,7 +825,7 @@ with, which never double the length of an odd number.  But Knuth
 has defined it for arbitrary binary strings for reasons that aren't
 clear.
 
-\vskip 0.08in \noindent [p 251] Exact cover problems: what is
+\newitem{251} Exact cover problems: what is
 the numbering scheme used for the chessboard?  The first
 column is the upper left point, the next is the one next to it, etc.,
 until the last column is the lower right.  The rows seem to be
@@ -856,13 +848,13 @@ in the third and fourth, but also in the first because.
 just starting the value with a 1, as per (5), and the value inside
 $g$ is just working out the reflection.
 
-\vskip 0.08in \noindent [p 284] Inverting the binary formula (6): Note that
+\newitem{284} Inverting the binary formula (6): Note that
 $a_j \oplus a_{j + 1} = b_j \oplus b_{j+1} \oplus b_{j+1} \oplus b_{j+2}
 = b_j \oplus b_{j+2}$.  In other words, the xor chain cancels
 out all the internal variables.  But since $b_k = 0$ for all
 $k$ above some value, the upper term vanishes as well.
 
-\vskip 0.08in \noindent [p 284] Show $g\left(k \oplus k^{\prime}\right) = 
+\newitem{284} Show $g\left(k \oplus k^{\prime}\right) = 
 g\left(k\right) \oplus g\left(k^{\prime}\right)$:
 $\left(k \oplus k^{\prime}\right)_j = k_j \oplus k^{\prime}_j$,
 so $g_j\left(k \oplus k^{\prime}\right) = \left(k \oplus k^{\prime}\right)_j
@@ -871,11 +863,11 @@ k_j \oplus k^{\prime} \oplus k_{j+1} \oplus k^{\prime}_{j+1} =
 \left(k_j \oplus k_{j+1}\right) \oplus \left(k^{\prime}_j \oplus k^{\prime}_{j+1}
 \right) = g\left(k\right)_j \oplus g\left(k^{\prime}\right)_j$.
 
-\vskip 0.08in \noindent [p 284] Reversing a Gray binary code: The equation
+\newitem{284} Reversing a Gray binary code: The equation
 before (12) is really just another way of stating the symmetry
 relation at the top of the page.
 
-\vskip 0.08in \noindent [p 285] Chinese ring puzzle: note that the state
+\newitem{285} Chinese ring puzzle: note that the state
 of the puzzle is the Gray's binary code number.  This makes sense --
 we are removing or adding one ring at a time, which is what
 a Gray's code is designed to do.
@@ -899,8 +891,7 @@ for these algorithms, but assuming we don't we can in general
 find faster ways than to get successive values of $\rho$, which
 is what Algorithms~G and L are about.
 
-
-\vskip 0.08in \noindent [p 286] {\bf Algorithm G}\hfil\break
+\newitem{286} {\bf Algorithm G}\hfil\break
 This follows immediately from the ring discussion.  
 The parity bit tells us if we want to make a type (a) move (remove or add the ring
 at the end), if not G4/G5 find $\rho$ and remove or add that ring.
@@ -910,7 +901,7 @@ than the apparently simpler method of simply using the relation
 $a_j = b_j \oplus b_{j-1}$ of equation~7.  It also beats the loopless
 generator of Algorithm~L.
 
-\vskip 0.08in \noindent [p 288] Recursion relation between $w$:
+\newitem{288} Recursion relation between $w$:
 $w_k\left(x\right) = r_{\rho\left(x\right) + 1}\left(x\right) w_{k-1} \left(x\right)$.
 First, some examples: $k = 4 = \left(1 0 0 \right)_2$, $a = k \oplus 
 \left(k \gg 1\right) = \left(1 1 0 \right)_2$, so from (17)
@@ -935,14 +926,14 @@ both sides by $r_{\rho \left( k \right)+1}$ and again take advantage
 of $r_j^2 = 1$, we get $w_k = r_{\rho\left(k\right) + 1} w_{k-1}$
 as claimed.
 
-\vskip 0.08in \noindent [p 288] Why does $r_j\left(x\right)^{a \oplus b} =
+\newitem{288} Why does $r_j\left(x\right)^{a \oplus b} =
 r_j\left(x\right)^{a+b}$?  This goes back to 7.1.3.(89):  
 $x + y = \left(x \oplus y\right) + \left(\left(x \& y \right) \ll 1\right)$,
 and noting that the $\left(a \& b\right) \ll 1$ part will always be a power
 of 2, and so cancels out because $r_j\left(x\right)^2 = 1$.
 
-\vskip 0.08in \noindent [p 290] {\bf Algorithm L} ({\it Loopless Gray
-binary generation})\hfil\break
+\newitem{290}  {\bf Algorithm L} ({\it Loopless Gray binary 
+generation})\hfil\break
 Note that passive somewhat confusingly means the corresponding
 bit being set in $b$, while active means it is zero.  And, indeed,
 considering the example given, the underlined bits in $a$ are
@@ -975,17 +966,14 @@ prior to this step, we must have $f_j = j$, $f_{j-1} = j - 1$.  So
 in this step we are making $j+1$ be the rightmost element in a block of 1s,
 which means $j+1$ can't be if it was, and so must have $f_{j+1} = j + 1$.
 
-\vskip 0.08in \noindent {\bf Shift Register Sequences}
+\subsec{Shift Register Sequences}
 
 \noindent [p 302] Note that the idea in equation (53) is to take five
 numbers sequentially from overlapping sub-sequences -- that is
 00000, then shift the left 0 off and one in from the right to get 00001,
 etc.
 
-
-\vfil\break
-\centerline{\tt Section 7.2.1.2: Generating all Permutations}
-\vskip 0.2in
+\sec{Section 7.2.1.2: Generating all Permutations}
 
 \noindent [p 319] {\bf Algorithm L} The important thing to note here is that
 this generates only {\it distinct} permutations -- so 1223 has only 12
@@ -1024,10 +1012,57 @@ So, step by step:\hfil\break
 The output is ${246, 264, 426, 462, 624, 642}$, which is in lexicographic
 order.
 
-\vfil\break
-\vskip 0.3in
-\centerline {\tt Section 7.2.1.6: Generating all Trees}
-\vskip 0.2in
+\subsec{A general framework}
+
+\noindent [p 327] Sims tables.\hfil\break
+Knuth's use of commas makes this a little ambiguous, but the Sims table
+does {\it not} contain permutations $\sigma^{\prime}_{kj}$ that send
+$k \mapsto j$ and do {\it not} fix the value of all elements greater than $k$.
+
+\newitem{328} 4-cube example.\hfil\break
+Note that the numbering starts at 0, so $S_{n-1} = S_f$ here.  So $S_f$
+doesn't have to fix anything, and so has exactly one permutation that sends
+$f$ to each other value, and hence 16 values.  $S_e$ has to fix $f$, but
+can only contain permutations that actually preserve symmetry, so has
+fewer entries.
+
+\newitem{328} Generating all elements: the point is that 
+$\sigma\left(a, \cdot\right)$ fixes all elements greater than $a$,
+and since we advance through the permutations at the right end
+the most slowly (e.g., $c_{n-1}$ changes more slowly than $c_{n-2}$,
+etc.
+
+\subsec{Using the general framework}
+
+\noindent [p 328] The point about $\sigma\left(k, j\right)$ not
+necessarily being $\sigma_{kj}$ is just that you can store them in
+the $\sigma\left(\cdot, \cdot\right)$ array in any order as long
+as $\sigma\left(\cdot, 0\right)$ is the identity.
+
+\newitem{329} The example of figure~39: the way that the
+permuations is written backwards makes this moderately confusing.
+The point is that the permutation $c_3 c_2 c_1$ is
+$\sigma\left(1, c_1\right) \sigma\left(2, c_2\right) \sigma\left(3, c_3\right)$.
+Note that we proceed through the bottom row of figure~39 from left
+to right, and when we advance from $121$ we are starting from
+$\sigma\left(1, 1\right) \sigma\left(2, 2\right) \sigma\left(3, 1\right)$.
+Then G4 premultiplies by 
+$$
+ \tau\left(3, 2\right) \omega\left(2\right)^{-} = 
+  \tau\left(3, 2\right) \sigma\left(2, 2\right)^{-} \sigma\left(1, 1\right)^{-} =
+  \sigma\left(3, 2\right) \sigma\left(3, 1\right)^{-} \sigma\left(2, 2\right)^{-} 
+  \sigma\left(1, 1\right)^{-} .
+$$
+and so G4 is doing 
+$$
+\sigma\left(3, 2\right) \sigma\left(3, 1\right)^{-} \sigma\left(2, 2\right)^{-} 
+  \sigma\left(1, 1\right)^{-} \sigma\left(1, 1\right) \sigma\left(2, 2\right) \sigma\left(3, 1\right)
+  = \sigma{3, 2} = \sigma\left(1, 0\right) \sigma\left(2, 0\right) \sigma\left(3, 2\right)
+$$
+which is $200$ since $\sigma\left(k, 0\right)$ is the identity.
+ 
+
+\sec{Section 7.2.1.6: Generating all Trees}
 
 \noindent [p 443] {\bf Algorithm P} \hfil\break
 Try it in action for $n=3$:
