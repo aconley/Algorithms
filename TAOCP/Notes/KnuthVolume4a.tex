@@ -1012,6 +1012,21 @@ So, step by step:\hfil\break
 The output is ${246, 264, 426, 462, 624, 642}$, which is in lexicographic
 order.
 
+<<<<<<< HEAD
+So, how does this algorithm work?  The discussion in the text is helpful, but
+a few notes are in order.  First, because this works lexicographically, the
+changes try to advance from right to left.  That's why the first step looks
+for the {\em rightmost} element that is in order as the place to modify.
+
+Next we try to increase $a_j$ by the smallest amount possible by finding
+the smallest element $a_l$ such that $a_l > a_j$ by scanning from the right,
+and taking advantage of the fact that the elements after $a_j$ are in
+reverse sorted order by L1 (which is what makes it efficient to scan
+in from the right).  Then we take advantage of that again to reverse to find the
+final version.
+
+=======
+>>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
 \subsec{A general framework}
 
 \noindent [p 327] Sims tables.\hfil\break
