@@ -362,12 +362,20 @@ or $G\left(z\right) = \left(1 + z + z^2\right) / \left(1 - z - z^2 - z^3\right)$
 find any particular way to simplify this -- the first few terms of the expansion
 are $1 + 2z + 4z^2 = 7z^3 + 13z^4 + 24z^5 + \ldots$.
 
+<<<<<<< HEAD
+\vskip 0.08in \noindent {\bf Problem 5.2} How many bitstrings of
+=======
 \vskip 0.08in \noindent {\bf Problem 5.1} How many bitstrings of
+>>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
 length $N$ have no 01?\hfil\break
 Such strings are either $\epsilon$, a 1 followed by a sequence with no 01,
 or a sequence of 0s.  However, $\epsilon$ is counted as a sequence of 0s. That is:
 $$
+<<<<<<< HEAD
+ {\cal G} = {\cal Z}_1 \times {\cal G} + {\cal SEQ}\left({\cal Z}_0\right)
+=======
  {\cal G} = {\cal Z}_1 \times {\cal G} + {\cal SEQ}\left({\cal Z_0}\right)
+>>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
 $$
 or $G\left(z\right) = z G\left(z\right) + 1 /\left( 1 - z \right) $, so that
 $G\left(z\right) = 1 / \left(1 - z\right)^2$ and $\left[z^n\right] G\left(z\right) =
@@ -412,6 +420,29 @@ $$
  C = \ln {1 \over {1 - {1 \over 1 - z}}} = \ln {z - 1 \over z}
 $$
 
+<<<<<<< HEAD
+\vskip 0.08in \noindent {\bf Problem 5.12} Average number of 1 bits in a bitstring.\hfil\break
+We have ${\cal B} = {\cal SEQ}\left({\cal Z}_0 + {\cal Z}_1\right)$.  ${\cal Z}_0$
+is $z$ and ${\cal Z}_1$ is $zu$ here (since only ones have, uh, ones).
+Thus 
+$$
+ B = 1 / \left(1 - \left(1 + u\right) z\right),
+$$
+$$
+B_u = z / \left(1 - \left(1 + u\right) z\right)^2 ,
+$$ 
+and
+$$
+ B_u\left(z, 1\right) = {z \over \left(1 - 2 z\right)^2} .
+$$
+To evaluate this, define $z^{\prime} = 2 z$ so that $\left[z^{\prime\,n}\right] B_u\left(z^{prime},1\right) =
+\left[z^{\prime\, n}\right] 1/2 z^{\prime} / \left(1 - z^{\prime}\right)^2 = 1 / 2 {n \choose 1} = n / 2$.
+Clearly $\left[z^n\right] B_u = 2^n \left[z^{\prime\,n}\right] B_u = 2^{n-1} n$.  The
+average number of 1s is $\left[z^n\right] B_u\left(z, 1\right) / \left[z^n\right] B\left(z\right) =
+2^{n-1} n / n = n / 2$, as expected.
+
+=======
+>>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
 \vskip 0.08in \noindent {\bf Problem 5.15} I don't find the exposition in the
 text very useful here, so let's use a different one.  Define the recurrent for
 non-empty binary trees by
