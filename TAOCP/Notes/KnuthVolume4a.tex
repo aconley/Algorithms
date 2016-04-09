@@ -1012,11 +1012,10 @@ So, step by step:\hfil\break
 The output is ${246, 264, 426, 462, 624, 642}$, which is in lexicographic
 order.
 
-<<<<<<< HEAD
 So, how does this algorithm work?  The discussion in the text is helpful, but
 a few notes are in order.  First, because this works lexicographically, the
 changes try to advance from right to left.  That's why the first step looks
-for the {\em rightmost} element that is in order as the place to modify.
+for the {\it rightmost} element that is in order as the place to modify.
 
 Next we try to increase $a_j$ by the smallest amount possible by finding
 the smallest element $a_l$ such that $a_l > a_j$ by scanning from the right,
@@ -1025,8 +1024,29 @@ reverse sorted order by L1 (which is what makes it efficient to scan
 in from the right).  Then we take advantage of that again to reverse to find the
 final version.
 
-=======
->>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
+\vskip 0.08in
+\noindent [p 322] {\bf Algorithm P} ({\it Plain Changes})\hfil\break
+Most of this algorithm is just how to count using a Gray code in the
+mixed radix system $1 2 3 4 \ldots n$.  That part is actually pretty easy --
+first you count up in the last position until you reach $n$, then you advance
+the next position, then you count down in the last position, etc.  As such,
+$o$ just keeps track of which direction you are going in each position of $c$.
+The tricky part is in understanding which elements you should swap when
+changing $c_j$ to $q$.  In most cases this isn't so strange -- you are just
+moving $j$ either one element to the left or right -- so, for example, when 
+$j = 4$ you are exchanging $4$ with the element to either it's left.  
+So what we need to know is: given $j$ and $c_j$, where is $j$ in
+$a$?  This is simple enough: starting from the right, $j$ goes into
+slot $j - c_{j}$ of the {\it remaining} slots.  So, for $c=0122$
+you first put $4$ into $a_2$, then 3 into the 1st remaining slot
+(so $a = 34xx$), then 2 into the 1st remaining one, and 1 into
+the last one to get $a=3421$.  Which is $a_{j - c_j + m}$,
+where $m$ is the number of indices $k > j$ where 
+$k - c_k \le j - c_j$.  The simpler form used in the algorithm
+arises because we don't care about unravelling the entire
+permutation, just the position for the one we want to move,
+and there are rules that stop that process.
+
 \subsec{A general framework}
 
 \noindent [p 327] Sims tables.\hfil\break
