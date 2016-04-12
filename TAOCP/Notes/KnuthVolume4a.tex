@@ -1045,7 +1045,16 @@ where $m$ is the number of indices $k > j$ where
 $k - c_k \le j - c_j$.  The simpler form used in the algorithm
 arises because we don't care about unravelling the entire
 permutation, just the position for the one we want to move,
-and there are rules that stop that process.
+and there are rules that stop that process.  To wit, you can
+only get to $j$ if all indices greater than $j$ are saturated --
+either 0 or $j-1$.
+
+Incidentally, an implementation of Algorithms~L and P
+in golang shows that Algorithm~P is about 4 times faster
+for cheap compares (and does even better relatively
+if comparisons are expensive).  However, the abstraction
+used prevents most of the improvements from exercises
+7.1.2.1.(1) and 7.1.2.1.(16).
 
 \subsec{A general framework}
 

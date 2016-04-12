@@ -1,3 +1,6 @@
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+
 \topglue 0.5in
 \centerline{\tt Knuth 7}
 \vskip 0.3in
@@ -1060,5 +1063,28 @@ which is the desired relation.
 \vskip 0.08in \noindent {\bf Problem 9} The position is 1011000.
 $b_0 = a_0 \oplus a_1 \ldots = 1$ (the number of 1s is odd),
 so $k$ is odd and we want to put the last ring on.
+
+\topglue 0.5in
+\centerline{\tt Knuth 7.2.1.2}
+\vskip 0.3in
+
+\newprob{Problem 1} Make Algorithm~L faster in the case where $j \sim n$.\hfil\break
+It's a matter of experimentation to decide whether to only handle $j = n-1$ or
+expand to $j = n - 2$, $j = n - 3$, etc.  But it should be sufficient for demonstration
+purposes to just handle the first.  Basically, all we do is handle the special case
+where $j = n-1$ explicitly, which simply amounts to swapping $a_{n-1}$ and
+$a_{n-2}$:
+\newstep{L2.1} Set $b \gets a_{n-1}$, $c \gets a_{n}$.  If $b < c$, set
+$a_{n-1} \gets c$, $a_n \gets b$ and return to {\bf L~1}.
+\newstep{L2.2} Set $j \gets n - 2$ and $c \gets a_j$.  While $c \ge b$, set
+$j \gets j - 1$, $b \gets c$, $c \gets a_j$.  Terminate if $j = 0$.
+We can also expand steps 3 and 4 by adding a special case step:
+\newstep{L3.1} If $c < a_n$, set $a_j \gets a_n$, $a_{j+1} \gets c$, $a_n \gets b$
+and go to {\bf L4.2}.
+\newstep{L3.2} Set $l \gets n - 1$.  If $c \ge a_l$, decrease $l$ by 1 until $c < a_l$,
+and set $a_j \gets a_l$, $a_l \gets c$.
+\newstep{L4.1} Set $a_n \gets a_{j+1}$ and $a_{j+1} \gets b$.
+\newstep{L4.2} Set $k \gets j + 2$ and $l \gets n - 1$.  While $k < l$,
+interchange $a_k$ and $a_l$ and set $k \gets k + 1$, $l \gets l - 1$.  Return to {\bf L1}.
 
 \end
