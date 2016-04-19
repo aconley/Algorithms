@@ -1063,12 +1063,20 @@ Knuth's use of commas makes this a little ambiguous, but the Sims table
 does {\it not} contain permutations $\sigma^{\prime}_{kj}$ that send
 $k \mapsto j$ and do {\it not} fix the value of all elements greater than $k$.
 
+Also note that there are no elements $\sigma_{kj}$ where $j > k$
+because such a permutation couldn't fix all elements $> k$.  So
+we only have to worry about $\sigma{k0} \ldots \sigma{kk}$.
+
 \newitem{328} 4-cube example.\hfil\break
 Note that the numbering starts at 0, so $S_{n-1} = S_f$ here.  So $S_f$
 doesn't have to fix anything, and so has exactly one permutation that sends
 $f$ to each other value, and hence 16 values.  $S_e$ has to fix $f$, but
 can only contain permutations that actually preserve symmetry, so has
 fewer entries.
+
+The example membership check halts when $\alpha^{\prime\prime}$
+is actually in $S_e$ because we can go the rest of the way with
+identity permutations which are in each $S$.
 
 \newitem{328} Generating all elements: the point is that 
 $\sigma\left(a, \cdot\right)$ fixes all elements greater than $a$,
@@ -1101,7 +1109,7 @@ and so G4 is doing
 $$
 \sigma\left(3, 2\right) \sigma\left(3, 1\right)^{-} \sigma\left(2, 2\right)^{-} 
   \sigma\left(1, 1\right)^{-} \sigma\left(1, 1\right) \sigma\left(2, 2\right) \sigma\left(3, 1\right)
-  = \sigma{3, 2} = \sigma\left(1, 0\right) \sigma\left(2, 0\right) \sigma\left(3, 2\right)
+  = \sigma\left(3, 2\right) = \sigma\left(1, 0\right) \sigma\left(2, 0\right) \sigma\left(3, 2\right)
 $$
 which is $200$ since $\sigma\left(k, 0\right)$ is the identity.
  
