@@ -1049,12 +1049,6 @@ and there are rules that stop that process.  To wit, you can
 only get to $j$ if all indices greater than $j$ are saturated --
 either 0 or $j-1$.
 
-Incidentally, an implementation of Algorithms~L and P
-in golang shows that Algorithm~P is about 4 times faster
-for cheap compares (and does even better relatively
-if comparisons are expensive).  However, the abstraction
-used prevents most of the improvements from exercises
-7.1.2.1.(1) and 7.1.2.1.(16).
 
 \subsec{A general framework}
 
@@ -1113,6 +1107,14 @@ $$
 $$
 which is $200$ since $\sigma\left(k, 0\right)$ is the identity.
  
+\subsec{Faster, Faster}\hfil\break
+Incidentally, an implementation of Algorithms~L and P
+in golang shows that Algorithm~P is about 4 times faster
+for cheap compares (and does even better relatively
+if comparisons are expensive).  However, the abstraction
+used prevents most of the improvements from exercises
+7.1.2.1.(1) and 7.1.2.1.(16).  Algorithm~G using Heap's
+approach of 7.1.2.1.(40) is about 10\% faster still.
 
 \sec{Section 7.2.1.6: Generating all Trees}
 
