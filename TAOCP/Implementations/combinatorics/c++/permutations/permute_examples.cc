@@ -26,11 +26,17 @@ class CountingVisitor {
 };
 
 int main() {
+
   std::vector<int> testVec = {1, 2, 2, 4};
   CountingVisitor v;
 
-  lexicographic(testVec.begin(), testVec.end(), v);
+  permutations::lexicographic(testVec.begin(), testVec.end(), v);
+  std::cout << "There were " << v.getN() << " lexicographic permutations\n";
 
-  std::cout << "There were " << v.getN() << " permutations\n";
+  v.reset();
+  permutations::plain(testVec.begin(), testVec.end(), v);
+  std::cout << "There were " << v.getN() << " plain permutations\n";
+
+
   return 0;
 }
