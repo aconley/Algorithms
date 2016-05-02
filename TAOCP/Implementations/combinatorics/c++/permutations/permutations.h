@@ -11,14 +11,19 @@ template<class Iterator> bool iter_lt(const Iterator& a, const Iterator& b) {
 }
 
 // Visit all the permutations lexicographically
+//
 //  Visitor must implement a method
 //     bool visit(const RandomIt& start, const RandomIt& end)
 //  where RandomIt satisfies RandomAccessIterator
-//  and ValueSwappable
+//  and ValueSwappable.
+//
+//  Note that exchanges of identical elements do not count
+//  as distinct.  So, for example, {2, 2} has only one
+//  permutation.
 template<class RandomIt, class Visitor>
   void lexicographic(RandomIt start, RandomIt end, Visitor& vis) {
 
-    int n = std::distance(start, end);
+    auto n = std::distance(start, end);
     if (n == 0) {
       return;
     }
@@ -57,14 +62,17 @@ template<class RandomIt, class Visitor>
 }
 
 // Visit all the permutations using plain changes
-//  Visitor must implement a method
+//
+// That is, only swap adjacent elements to permute.
+//
+// Visitor must implement a method
 //     bool visit(const RandomIt& start, const RandomIt& end)
 //  where RandomIt satisfies RandomAccessIterator
 //  and ValueSwappable
 template<class RandomIt, class Visitor>
 void plain(RandomIt start, RandomIt end, Visitor& vis) {
 
-  int n = std::distance(start, end);
+  auto n = std::distance(start, end);
   if (n == 0) {
     return;
   }
@@ -100,7 +108,7 @@ void plain(RandomIt start, RandomIt end, Visitor& vis) {
         o[j] = -o[j];
         --j;
       } else {
-        std::swap(start[j - c[j] + s], start[j - q + s]);
+        std::iter_swap(start + j - c[j] + s, start + j - q + s);
         if (!vis.visit(start, end)) {
           delete[] o;
           delete[] c;
