@@ -1,7 +1,7 @@
 #include<vector>
 
 #include "benchmark/benchmark.h"
-#include "permutations/permutations.h"
+#include "permutations.h"
 
 typedef std::vector<int>::iterator vecIt;
 
