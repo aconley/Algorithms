@@ -60,7 +60,17 @@ template<class T, std::size_t N> class RecordingVisitor {
 ////////////////////////////////////////
 // Tests of the lexicographic generator
 ////////////////////////////////////////
-TEST(LexicographicTest, CountWithNoRepeats) {
+TEST(LexicographicTest, CountWithNoRepeats4) {
+  std::vector<int> testVec = {0, 1, 2, 3};
+
+  CountingVisitor v;
+
+  permutations::lexicographic(testVec.begin(), testVec.end(), v);
+  EXPECT_EQ(v.getN(), 24)
+    << "Got unexpected number of permutations for 4 elements";
+}
+
+TEST(LexicographicTest, CountWithNoRepeats7) {
   std::vector<int> testVec = {-1, 0, 1, 2, 3, 5, 6};
 
   CountingVisitor v;
@@ -80,7 +90,24 @@ TEST(LexicographicTest, CountWithRepeats) {
     << "Got unexpected number of permutations for {1, 2, 2, 4}";
 }
 
-TEST(LexicographicTest, CheckOrderWithRepeats) {
+TEST(LexicographicTest, CheckOrderWithNoRepeats3) {
+  std::vector<std::array<int, 3>> expected =
+    {{{1, 2, 3}}, {{1, 3, 2}}, {{2, 1, 3}},
+		 {{2, 3, 1}}, {{3, 1, 2}}, {{3, 2, 1}} };
+  std::vector<int> testArr{{1, 2, 3}};
+
+  RecordingVisitor<int, 3> v;
+
+  permutations::lexicographic(testArr.begin(), testArr.end(), v);
+  EXPECT_EQ(v.getN(), expected.size())
+    << "Got unexpected number of permutations for {1, 2, 3}";
+  for (int i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(v.getNth(i), expected[i])
+      << "Got unexpected permutation at position " << i;
+  }
+}
+
+TEST(LexicographicTest, CheckOrderWithRepeats4) {
   std::vector<std::array<int, 4>> expected =
     {{{1, 2, 2, 3}}, {{1, 2, 3, 2}}, {{1, 3, 2, 2}},
 		 {{2, 1, 2, 3}}, {{2, 1, 3, 2}}, {{2, 2, 1, 3}}, {{2, 2, 3, 1}},

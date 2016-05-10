@@ -24,40 +24,62 @@ template<class RandomIt, class Visitor>
   void lexicographic(RandomIt start, RandomIt end, Visitor& vis) {
 
     auto n = std::distance(start, end);
+    // Quick return cases
     if (n == 0) {
       return;
     }
-
     if (n == 1) {
       vis.visit(start, end);
       return;
     }
+    if (n == 2) {
+      if (vis.visit(start, end) && iter_lt(start, start+1)) {
+         std::iter_swap(start, start+1);
+         vis.visit(start, end);
+      }
+      return;
+    }
 
-    RandomIt j, l;
+    // Now we know n >= 3, and can use the optimized version
+    //  of problem 7.2.1.2.(1)
+    RandomIt x, y, z;
     while (true) {
       if (!vis.visit(start, end)) {
         return;
       }
 
-      l = end - 1;
-      j = end - 2;
-      // Easy case
-      if (iter_lt(j, l)) {
-        std::iter_swap(j, l);
+      // Easiest case
+      z = end - 1;
+      y = z - 1;
+      if (iter_lt(y, z)) {
+        std::iter_swap(y, z);
         continue;
       }
 
-      for (; j >= start && !iter_lt(j, j + 1); --j) {}
+      // Next easiest case
+      x = y - 1;
+      if (iter_lt(x, y)) {
+        if (iter_lt(x, z)) {
+          std::iter_swap(x, z);
+          std::iter_swap(y, z);
+        } else {
+          std::iter_swap(x, z);
+          std::iter_swap(x, y);
+        }
+        continue;
+      }
+
+      for (; y >= start && !iter_lt(y, y + 1); --y) {}
 
       // termination test
-      if (j < start) {
+      if (y < start) {
         return;
       }
 
-      for (l = end - 1; !iter_lt(j, l); --l) {}
-      std::iter_swap(j, l);
+      for (z = end - 1; !iter_lt(y, z); --z) {}
+      std::iter_swap(y, z);
 
-      std::reverse(j+1, end);
+      std::reverse(y+1, end);
     }
 }
 
@@ -76,8 +98,15 @@ void plain(RandomIt start, RandomIt end, Visitor& vis) {
   if (n == 0) {
     return;
   }
-
-  if (!vis.visit(start, end) || n == 1) {
+  if (n == 1) {
+      vis.visit(start, end);
+      return;
+  }
+  if (vis.visit(start, end) && n == 2) {
+    if (vis.visit(start, end)) {
+      std::iter_swap(start, start+1);
+      vis.visit(start, end);
+    }
     return;
   }
 
