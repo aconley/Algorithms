@@ -19,4 +19,4 @@ set(GBENCH_INCLUDE_DIRS ${source_dir}/include PARENT_SCOPE)
 
 # Specify MainTest's link libraries
 ExternalProject_Get_Property(googlebench binary_dir)
-set(GBENCH_LIBS_DIR ${binary_dir}/benchmark/benchmark PARENT_SCOPE)
+set(GBENCH_LIBS_DIR ${binary_dir}/src PARENT_SCOPE)
