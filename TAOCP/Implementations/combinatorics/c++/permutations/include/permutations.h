@@ -148,7 +148,59 @@ void plain(RandomIt start, RandomIt end, Visitor& vis) {
       }
     }
   }
+}
 
+// Visit all the permutations using Heaps method
+//
+// This is Algorithm G of Knuth Volum 4A 7.2.1.2
+//  using the permutation of 7.2.1.2.(27)
+//
+// Visitor must implement a method
+//     bool visit(const RandomIt& start, const RandomIt& end)
+//  where RandomIt satisfies RandomAccessIterator
+//  and ValueSwappable
+template<class RandomIt, class Visitor>
+void heap(RandomIt start, RandomIt end, Visitor& vis) {
+  auto n = std::distance(start, end);
+  if (n == 0) {
+    return;
+  }
+  if (n == 1) {
+      vis.visit(start, end);
+      return;
+  }
+  if (vis.visit(start, end) && n == 2) {
+    if (vis.visit(start, end)) {
+      std::iter_swap(start, start+1);
+      vis.visit(start, end);
+    }
+    return;
+  }
+
+  int* c = new int[n + 1];
+  int k;
+  for (k = 1; k < n; ++k)
+    c[k] = 0;
+
+  while (true) {
+    k = 1;
+    while (c[k] == k)
+      c[k++] = 0;
+    if (k == n) {
+      delete[] c;
+      return;
+    }
+    ++c[k];
+    if ((k & 1) == 0) {
+      std::iter_swap(start, start + k);
+    } else {
+      std::iter_swap(start + k, start + c[k] - 1);
+    }
+    if (!vis.visit(start, end)) {
+      delete[] c;
+      return;
+    }
+  }
 
 }
 

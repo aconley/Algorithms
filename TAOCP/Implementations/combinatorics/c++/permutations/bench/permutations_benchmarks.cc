@@ -34,4 +34,14 @@ static void BM_Plain(benchmark::State& state) {
 }
 BENCHMARK(BM_Plain);
 
+static void BM_Heap(benchmark::State& state) {
+  std::vector<int> testCopy(testVec.size());
+  NoActionVisitor v;
+  while (state.KeepRunning()) {
+    testCopy = testVec;
+    permutations::heap(testCopy.begin(), testCopy.end(), v);
+  }
+}
+BENCHMARK(BM_Heap);
+
 BENCHMARK_MAIN();

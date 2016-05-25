@@ -127,7 +127,7 @@ TEST(LexicographicTest, CheckOrderWithRepeats4) {
 }
 
 ////////////////////////////////////////
-// Tests of the permutations generator
+// Tests of the plain permutations generator
 ////////////////////////////////////////
 TEST(PlainChangesTest, CountWithNoRepeats) {
   std::vector<int> testVec = {-1, 0, 1, 2, 3, 5, 6};
@@ -163,6 +163,52 @@ TEST(PlainChangesTest, CheckOrderWithNoRepeats) {
   RecordingVisitor<int, 4> v;
 
   permutations::plain(testArr.begin(), testArr.end(), v);
+  EXPECT_EQ(v.getN(), expected.size())
+    << "Got unexpected number of permutations for {1, 2, 3, 4}";
+
+  for (int i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(v.getNth(i), expected[i])
+      << "Got unexpected permutation at position " << i;
+  }
+}
+
+////////////////////////////////////////
+// Tests of the heap permutations generator
+////////////////////////////////////////
+TEST(HeapTest, CountWithNoRepeats) {
+  std::vector<int> testVec = {-1, 0, 1, 2, 3, 5, 6};
+
+  CountingVisitor v;
+
+  permutations::heap(testVec.begin(), testVec.end(), v);
+  EXPECT_EQ(v.getN(), 5040)
+    << "Got unexpected number of permutations for 7 elements";
+}
+
+TEST(HeapTest, CountWithRepeats) {
+  std::vector<int> testVec = {-1, 0, 2, 2, 2, 5, 6};
+
+  CountingVisitor v;
+
+  permutations::heap(testVec.begin(), testVec.end(), v);
+  EXPECT_EQ(v.getN(), 5040)
+    << "Got unexpected number of permutations for 7 elements";
+}
+
+TEST(HeapTest, CheckOrderWithNoRepeats) {
+  std::vector<std::array<int, 4>> expected =
+  {{{1, 2, 3, 4}}, {{2, 1, 3, 4}}, {{3, 1, 2, 4}}, {{1, 3, 2, 4}},
+   {{2, 3, 1, 4}}, {{3, 2, 1, 4}}, {{4, 2, 1, 3}}, {{2, 4, 1, 3}},
+   {{1, 4, 2, 3}}, {{4, 1, 2, 3}}, {{2, 1, 4, 3}}, {{1, 2, 4, 3}},
+   {{1, 3, 4, 2}}, {{3, 1, 4, 2}}, {{4, 1, 3, 2}}, {{1, 4, 3, 2}},
+   {{3, 4, 1, 2}}, {{4, 3, 1, 2}}, {{4, 3, 2, 1}}, {{3, 4, 2, 1}},
+   {{2, 4, 3, 1}}, {{4, 2, 3, 1}}, {{3, 2, 4, 1}}, {{2, 3, 4, 1}}};
+
+  std::vector<int> testArr{{1, 2, 3, 4}};
+
+  RecordingVisitor<int, 4> v;
+
+  permutations::heap(testArr.begin(), testArr.end(), v);
   EXPECT_EQ(v.getN(), expected.size())
     << "Got unexpected number of permutations for {1, 2, 3, 4}";
 

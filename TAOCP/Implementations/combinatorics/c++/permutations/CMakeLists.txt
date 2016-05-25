@@ -13,6 +13,8 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 
+project (permutations CXX)
+
 #-------------------
 # set common include folder for module
 #-------------------
