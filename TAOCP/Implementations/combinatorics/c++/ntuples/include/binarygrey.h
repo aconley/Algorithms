@@ -1,5 +1,5 @@
-#ifndef __binarygreyiterator__
-#define __binarygreyiterator__
+#ifndef __binarygrey__
+#define __binarygrey__
 
 #include<iterator>
 #include<cstdint>
@@ -8,6 +8,9 @@ namespace ntuples {
 
 class BinaryGreyIterator;
 
+/**
+  Generates Grey code values using bit twiddling.
+*/
 class BinaryGrey {
   public:
     explicit BinaryGrey(int nbits);
