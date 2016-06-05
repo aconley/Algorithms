@@ -2,6 +2,7 @@
 \def\newitem#1{\vskip 0.05in \noindent [p #1]}
 \def\subsec#1{\vskip 0.08in \noindent {\bf #1}}
 \def\sec#1 {\vfil\break \centerline{\tt #1} \vskip 0.2in}
+\def\CC{\hbox{C++}}
 
 \topglue 0.5in
 \centerline{Notes on Knuth Chapter 7.1: Zeroes and Ones}
@@ -899,7 +900,8 @@ at the end), if not G4/G5 find $\rho$ and remove or add that ring.
 Interestingly, in performance comparison tests (in Go), Algorithm~G is faster
 than the apparently simpler method of simply using the relation
 $a_j = b_j \oplus b_{j-1}$ of equation~7.  It also beats the loopless
-generator of Algorithm~L.
+generator of Algorithm~L.  However, in \CC\ the bit twiddling soluition
+is faster.
 
 \newitem{288} Recursion relation between $w$:
 $w_k\left(x\right) = r_{\rho\left(x\right) + 1}\left(x\right) w_{k-1} \left(x\right)$.
