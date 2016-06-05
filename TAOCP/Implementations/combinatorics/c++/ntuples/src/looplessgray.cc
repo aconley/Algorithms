@@ -1,32 +1,32 @@
 #include<stdexcept>
 
-#include "looplessgrey.h"
+#include "looplessgray.h"
 
 using namespace ntuples;
 
-////////// LooplessGrey //////////////
+////////// LooplessGray //////////////
 
-LooplessGrey::LooplessGrey(int nbits) {
+LooplessGray::LooplessGray(int nbits) {
   if (nbits > 31 || nbits <= 0)
     throw std::invalid_argument("Invalid nbits -- must be [1, 31]");
   _nbits = nbits;
 }
 
-int LooplessGrey::getNBits() const {
+int LooplessGray::getNBits() const {
   return _nbits;
 }
 
-LooplessGreyIterator LooplessGrey::begin() const {
-  return LooplessGreyIterator::begin(_nbits);
+LooplessGrayIterator LooplessGray::begin() const {
+  return LooplessGrayIterator::begin(_nbits);
 }
 
-LooplessGreyIterator LooplessGrey::end() const {
-  return LooplessGreyIterator::end(_nbits);
+LooplessGrayIterator LooplessGray::end() const {
+  return LooplessGrayIterator::end(_nbits);
 }
 
-////////// LooplessGreyIterator //////////////
+////////// LooplessGrayIterator //////////////
 
-LooplessGreyIterator::LooplessGreyIterator(int nbits) {
+LooplessGrayIterator::LooplessGrayIterator(int nbits) {
   if (nbits > 31 || nbits <= 0)
     throw std::invalid_argument("Invalid nbits -- must be [1, 31]");
   _nbits = static_cast<std::uint8_t>(nbits);
@@ -37,7 +37,7 @@ LooplessGreyIterator::LooplessGreyIterator(int nbits) {
     _focus[i] = i;
 }
 
-LooplessGreyIterator::LooplessGreyIterator(const LooplessGreyIterator& other) {
+LooplessGrayIterator::LooplessGrayIterator(const LooplessGrayIterator& other) {
   _nbits = other._nbits;
   _state = other._state;
   _done = other._done;
@@ -46,18 +46,18 @@ LooplessGreyIterator::LooplessGreyIterator(const LooplessGreyIterator& other) {
     _focus[i] = other._focus[i];
 }
 
-LooplessGreyIterator::LooplessGreyIterator(LooplessGreyIterator&& other) {
+LooplessGrayIterator::LooplessGrayIterator(LooplessGrayIterator&& other) {
   _nbits = other._nbits;
   _state = other._state;
   _done = other._done;
   _focus = std::move(other._focus);
 }
 
-LooplessGreyIterator::~LooplessGreyIterator() {
+LooplessGrayIterator::~LooplessGrayIterator() {
   delete[] _focus;
 }
 
-LooplessGreyIterator& LooplessGreyIterator::operator++() {
+LooplessGrayIterator& LooplessGrayIterator::operator++() {
   if (_done) return *this;
   std::uint8_t j = _focus[0];
   if (j < _nbits) {
@@ -71,30 +71,30 @@ LooplessGreyIterator& LooplessGreyIterator::operator++() {
   return *this;
 }
 
-LooplessGreyIterator LooplessGreyIterator::operator++(int) {
-  LooplessGreyIterator tmp(*this);
+LooplessGrayIterator LooplessGrayIterator::operator++(int) {
+  LooplessGrayIterator tmp(*this);
   operator++();
   return tmp;
 }
 
-bool LooplessGreyIterator::operator==(const LooplessGreyIterator& rhs) const {
+bool LooplessGrayIterator::operator==(const LooplessGrayIterator& rhs) const {
   return _done == rhs._done && _nbits == rhs._nbits && _state == rhs._state;
 }
 
-bool LooplessGreyIterator::operator!=(const LooplessGreyIterator& rhs) const {
+bool LooplessGrayIterator::operator!=(const LooplessGrayIterator& rhs) const {
   return _done != rhs._done || _nbits != rhs._nbits || _state != rhs._state;
 }
 
-std::uint32_t LooplessGreyIterator::operator*() const {
+std::uint32_t LooplessGrayIterator::operator*() const {
   return _state;
 }
 
-LooplessGreyIterator LooplessGreyIterator::begin(int nbits) {
-  return LooplessGreyIterator(nbits);
+LooplessGrayIterator LooplessGrayIterator::begin(int nbits) {
+  return LooplessGrayIterator(nbits);
 }
 
-LooplessGreyIterator LooplessGreyIterator::end(int nbits) {
-  LooplessGreyIterator tmp(nbits);
+LooplessGrayIterator LooplessGrayIterator::end(int nbits) {
+  LooplessGrayIterator tmp(nbits);
   tmp._done = true;
   tmp._state = 1u << (nbits - 1);
   return tmp;

@@ -1,6 +1,7 @@
 #include "benchmark/benchmark.h"
-#include "binarygrey.h"
-#include "looplessgrey.h"
+#include "gray.h"
+#include "binarygray.h"
+#include "looplessgray.h"
 
 using namespace ntuples;
 
@@ -19,28 +20,40 @@ static void BM_PureCount(benchmark::State& state) {
 }
 BENCHMARK(BM_PureCount);
 
-static void BM_BinaryGrey(benchmark::State& state) {
-  BinaryGrey grey(n);
+static void BM_Gray(benchmark::State& state) {
+  Gray gray(n);
 
   unsigned int nfound;
   while (state.KeepRunning()) {
     nfound = 0;
-    for (auto g : grey)
+    for (auto g : gray)
       benchmark::DoNotOptimize(++nfound);
   }
 }
-BENCHMARK(BM_BinaryGrey);
+BENCHMARK(BM_Gray);
 
-static void BM_LooplessGrey(benchmark::State& state) {
-  LooplessGrey grey(n);
+static void BM_BinaryGray(benchmark::State& state) {
+  BinaryGray gray(n);
 
   unsigned int nfound;
   while (state.KeepRunning()) {
     nfound = 0;
-    for (auto g : grey)
+    for (auto g : gray)
       benchmark::DoNotOptimize(++nfound);
   }
 }
-BENCHMARK(BM_LooplessGrey);
+BENCHMARK(BM_BinaryGray);
+
+static void BM_LooplessGray(benchmark::State& state) {
+  LooplessGray gray(n);
+
+  unsigned int nfound;
+  while (state.KeepRunning()) {
+    nfound = 0;
+    for (auto g : gray)
+      benchmark::DoNotOptimize(++nfound);
+  }
+}
+BENCHMARK(BM_LooplessGray);
 
 BENCHMARK_MAIN();

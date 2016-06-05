@@ -27,8 +27,9 @@ set(PROJECT_LIB_NAME ${PROJECT_NAME_STR}_impl)
 
 include_directories(${COMMON_INCLUDES})
 set(SRC_FILES
-    ${PROJECT_SOURCE_DIR}/src/binarygrey.cc
-    ${PROJECT_SOURCE_DIR}/src/looplessgrey.cc )
+    ${PROJECT_SOURCE_DIR}/src/gray.cc
+    ${PROJECT_SOURCE_DIR}/src/binarygray.cc
+    ${PROJECT_SOURCE_DIR}/src/looplessgray.cc )
 add_library(${PROJECT_LIB_NAME} ${SRC_FILES})
 
 add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
