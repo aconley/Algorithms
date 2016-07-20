@@ -88,7 +88,7 @@ $$
 but this time when we telescope we only get down to $C_M$,
 so
 $$
-  {C_N \over N + 1} = {C_M \over M + 1} + 2 \sum_{k = M+2}^N+1 {1 \over k} =
+  {C_N \over N + 1} = {C_M \over M + 1} + 2 \sum_{k = M+2}^{N+1} {1 \over k} =
     {1 \over 4} {M \left(M - 1\right) \over M + 1} + 2 \left(H_{N+1} - H_{M+2}\right)
 $$
 so
@@ -178,7 +178,7 @@ $$
 $$
 This is a geometric series $\sum \left(1/2\right)^k = \left(1 - \left(1/2\right)^{n+1}\right) /
 \left(1 - 1/2\right) = 2 \left(1 - \left(1 / 2\right)^{n+1}\right)$, and so
-$a_n = 2^{n+1} - 1$.
+$a_n = 2^{n+1} - 1$.  This is the recurrence for the Towers of Hanoi.
 
 \vskip 0.08in \noindent {\bf Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
 $a_0 = 1$.\hfil\break
@@ -190,7 +190,7 @@ to get
 $$
  \left(n + 1\right) a_n = n a_{n-1} + \left(n + 1\right)
   = \left(n - 1\right) a_{n-2} + \left(n + 1\right) + n = a_0 + \left(n+1\right) + n +
-  \left(n - 1\right) + 2,
+  \left(n - 1\right) + \ldots + 2,
 $$
 which, since $a_0 = 1$, is just the sum of integers from 1 to $n+1$, or
 $\left(n + 1\right)\left(n + 2\right) / 2$.  Dividing across,
@@ -282,6 +282,40 @@ $$
  A_n  = 2 + {2 \over 7} \left(n - 6\right)
 $$
 for $n \ge 6$ (and values below that being rather odd).
+
+\vskip 0.08in \noindent {\bf Problem 2.25}: Give a recurrence
+that has the solution $a_n = 4^n - 3^n + 2^n$.\hfil\break
+We're looking for an equation of the form $\left(1 - 4 x\right)
+\left(1 - 3 x\right) \left(1 - 2 x\right)$ plus the appropriate boundary
+conditions.  Multiplied out, this is $-24 x^2 + 26 x^2 - 9 x + 1$,
+which corresponds to $a_n = 9 a_{n-1} - 26 a_{n-2} - 24 a_{n-3}$
+with the boundary conditions simply from substitution: $a_0 = 1$,
+$a_1 = 3$, $a_2 = 11$.
+
+\vskip 0.08in \noindent {\bf Problem 2.27} Give initial conditions $a_0, a_1$
+for which the solution to $a_n = 5 a_{n-1} - 6 a_{n-2}$ is $2^n$.\hfil\break
+The characteristic polynomial is $1 - 5 x + 6 x^2 = \left(1 - 3 x\right)
+\left(1 - 2 x \right)$, so the solution is $a_n = c_0 3^n + c_1 2^n$.
+So we need $c_0 = 0$, $c_1 = 1$.  We have $a_0 = c_0 + c_1$,
+$a_1 = 3 c_0 + 2 c_1$, so $a_0 = 1$, $a_1 = 2$ works.
+There is no set of initial conditions that gives $a_n = 2^n - 1$.
+
+\vskip 0.08in \noindent {\bf Problem 2.29} Solve $a_n = 2 a_{n-1}  + 4 a_{n-2}$
+for $n > 1$ with $a_1=2$ and $a_0 = 1$.\hfil\break
+We have $n \ge 2$, so the characteristic polynomial is $z^2 - 2 z + 4 = 0$,
+or $\left(z -2\right)^2 = 0$.  Thus, we have degenerate root, and the solutions
+are of the form $a_n = c_0 2^n + c_1 n 2^n$.  The initial conditions give us
+$1 = a_0 = c_0$, and $2 = a_1 = 2 c_0 + 2 c_1$, or $c_0 + c_1 = 1$.
+Together, we have $c_0 = 1$, $c_2 = 0$, and $a_n = 2^n$.
+
+\vskip 0.08in \noindent {\bf Problem 2.30} Solve $a_n = 2 a_{n-1} + 4 a_{n-2}$
+for $n > 1$ with $a_0 = 0$ and $a_1 = 1$.\hfil\break
+Here the characteristic polynomial is $z^2 - 2 z + 1 = \left(z - 1\right)^2 = 0$.
+So $a_n = c_0 + c_1 n$.  $a_0 = 0$ implies that $c_0 = 0$, so
+$a_n = n$.  
+
+Changing the initial conditions to $a_0 = a_1 = 1$ gives us
+$c_0 = 1$, $c_1 = 0$, so $a_n = 1$.
 
 \vskip 0.08in \noindent {\bf Problem 3.20}: Evaluate the
 recurrence $a_n = 3 a_{n-1} - 3 a_{n-2} + a_{n-3}$ for $n > 2$.\hfil\break
