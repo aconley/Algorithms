@@ -1,10 +1,12 @@
+\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+
 \topglue 0.5in
 \centerline {\tt Analysis of Algorithms}
 \vskip 0.3in
 \centerline {Chapter 1}
 \vskip 0.2in
 
-\noindent {\bf Problem 1.4} Evaluating for $N$ even,
+\newprob{Problem 1.4} Evaluating for $N$ even,
 $C_N = 2 C_{N/2} + 1$ and $C_{N+1} = C_{N/2 + 1} + C_{N/2} + 1$,
 so $C_{N+1} - C_N = C_{N/2 + 1} - C_{N/2} + 1$.
 For $N$ odd this is $C_{N+1} - C_N = C_{N/2 + 1/2} - C_{N/2 - 1/2} + 1$.
@@ -18,7 +20,7 @@ $$
  C_N = \sum_{1 \le k < N} \left(\lfloor {\rm lg} \rfloor + 2\right).
 $$
 
-\vskip 0.08in \noindent {\bf Problem 1.7} Substituting we get
+\newprob{ Problem 1.7} Substituting we get
 $t_{2N} = 2 c N {\rm lg}\, 2 N + 2 d N = 2 c N {\lg} N 
 + 2 d N + 2 c N = 2 t_N + 2 c N$.  Next, note that
 $2 t_N / {\rm lg} N = 2 c N + 2 d N / {\rm lg} N$, so this
@@ -30,7 +32,7 @@ which doesn't quite match the problem statement.  But the
 error term is ${\rm O} N / {\rm lg} N$, so it's not a terrible approximation
 unless $d$ is rather large and $N$ small.
 
-\vskip 0.08in \noindent {\bf Problem 1.14}: Evaluate 
+\newprob{Problem 1.14}: Evaluate 
 $A_N = 1 + 2 / N \sum_{1 \le j \le N} A_{j-1}$.
 Multiply by $N$ to get $N A_N = N + 2 \sum_{1 \le j \le N} A_{j-1}$,
 then write the same equation for $N-1$: ($\left(N - 1\right) 
@@ -51,7 +53,7 @@ $$
  A_N = \left(N + 1\right) A_1 / 2 + N .
 $$
 
-\vskip 0.08in \noindent {\bf Problem 1.15}: Say that the partition
+\newprob{Problem 1.15}: Say that the partition
 element belongs in position $j$ (where $0 \le j < N$, so 0 based
 numbering).  The chance of this happening is $1/N$, independent
 of $j$.  There are $N - j - 1$ elements to the right, and $j$ to the left.
@@ -75,7 +77,7 @@ $$
 $$
 as advertised.
 
-\vskip 0.08in \noindent {\bf Problem 1.17}\hfil\break
+\newprob{Problem 1.17}\hfil\break
 Symmetrizing the sum, we have
 $$ 
   C_N = \cases{ N + 1 + \sum_{j=1}^N C_{j-1} & if $N > M$;\cr
@@ -97,7 +99,7 @@ $$
    + H_{N+1} - H_{M+2}\right] .
 $$
 
-\vskip 0.08in \noindent {\bf Problem 1.18}\hfil\break
+\newprob{Problem 1.18}\hfil\break
 Ignoring the approximation business, just evaluating this
 directly gives a minimum at $M = 6$.
 
@@ -105,7 +107,7 @@ directly gives a minimum at $M = 6$.
 \centerline {Chapter 2}
 \vskip 0.2in
 
-\noindent {\bf Problem 2.6}: Solve the recurrence $a_n = a_{n-1} + a_{n-2}$
+\newprob{Problem 2.6}: Solve the recurrence $a_n = a_{n-1} + a_{n-2}$
 with $a_0 = p$ and $a_1 = q.$\hfil\break
 This is the Fibonnaci recursion but with different initial coefficients.
 The solution is therefore $a_0 u_n + a_1 v_n = p u_n + q v_n$
@@ -115,7 +117,7 @@ The second is just the usual, so $v_n = F_n$.  $u_n$ written out is
 $1, 0, 1, 1, 2, \ldots = F_{n-1}$ except for $u_0$.  Therefore,
 $a_n = p F_{n-1} + q F_n$ for $n > 1$.
 
-\vskip 0.08in \noindent {\bf Problem 2.7} Guess that the solution
+\newprob{Problem 2.7} Guess that the solution
 to the inhomogeneous part is a constant $c_0$.  Combining with
 the previous solution we have $a_n = p F_{n-1} + q F_n + c_0$,
 and substituting into the defining equation:
@@ -127,14 +129,14 @@ Since $F_{n-1} + F_{n-2} = F_n$, this becomes
 $c_0 = \left(p + q\right) c_0 + r$, so 
 $a_n = p F_{n-1} + q F_n + r / \left(1 - p - q\right)$ for $n>1$.
 
-\vskip 0.08in \noindent {\bf Problem 2.9}: 
+\newprob{Problem 2.9}: 
 $$
 a_n = {n \over n + 2} a_{n - 1} = {n \over n + 2} {n - 1 \over n + 1}
 {n - 2 \over n} \ldots {3 \over 5} {2 \over 4} {1 \over 3} = 
 {2 \over \left(n + 2\right) \left(n + 1\right)}
 $$
 
-\vskip 0.08in \noindent {\bf Problem 2.10} $a_n = a_{n-1} + \left(-1\right)^n n$
+\newprob{Problem 2.10} $a_n = a_{n-1} + \left(-1\right)^n n$
 with $a_0 = 1$.\hfil\break
 Immediately, we see that
 $$
@@ -156,7 +158,7 @@ a_n = \cases{
 }
 $$
 
-\vskip 0.08in \noindent {\bf Problem 2.11}: Solve $n a_n = \left(n - 2\right) a_{n-1} + 2$
+\newprob{Problem 2.11}: Solve $n a_n = \left(n - 2\right) a_{n-1} + 2$
 with $a_1 = 1$\hfil\break
 Multiply both sides by $n-1$: 
 $$
@@ -169,7 +171,7 @@ Continuing to telescope, this becomes $2 a_2 + 2 \left(\left(n - 1\right) + \ldo
 $2 a_2 + n \left(n - 1\right) - 2$, but $2 a_2 = 0 a_1 + 2 = 2$, so finally
 $n \left(n - 1\right) a_n = n \left(n - 1\right)$, and $a_n = 1$.
 
-\vskip 0.08in \noindent {\bf Problem 2.12}: $a_n = 2 a_{n-1} + 1$.\hfil\break
+\newprob{Problem 2.12}: $a_n = 2 a_{n-1} + 1$.\hfil\break
 Divide both sides by $2^n$ and telescope:
 $$
 {a_n \over 2^n} = {a_{n-1} \over 2^{n-1}} + {1 \over 2^n} =
@@ -180,7 +182,7 @@ This is a geometric series $\sum \left(1/2\right)^k = \left(1 - \left(1/2\right)
 \left(1 - 1/2\right) = 2 \left(1 - \left(1 / 2\right)^{n+1}\right)$, and so
 $a_n = 2^{n+1} - 1$.  This is the recurrence for the Towers of Hanoi.
 
-\vskip 0.08in \noindent {\bf Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
+\newprob{Problem 2.13}: Solve $a_n = n / \left(n+1\right) a_{n-1} + 1$ with 
 $a_0 = 1$.\hfil\break
 Divide by 
 $$
@@ -198,7 +200,7 @@ $$
  a_n = {n + 2 \over 2}.
 $$
 
-\vskip 0.08in \noindent {\bf Problem 2.15}: $n a_n = \left(n + 1\right) a_{n-1} + 2 n$.
+\newprob{Problem 2.15}: $n a_n = \left(n + 1\right) a_{n-1} + 2 n$.
 \hfil\break Start by dividing by $n$ to get $a_n = \left(n + 1\right) / n a_{n-1} + 2$.
 Now divide by $n+1$ and telescope:
 $$
@@ -209,7 +211,7 @@ $$
 $$
 Since $a_0 = 0$ (boundary condition), this is just $a_n = 2 \left(n + 1\right) H_{n + 1}$.
 
-\vskip 0.08in \noindent {\bf Problem 2.17}: Fringe analysis\hfil\break
+\newprob{Problem 2.17}: Fringe analysis\hfil\break
 The simplified expression is
 $$
  A_N = 2 + A_{N-1} {N - 6 \over N}, N > 0, A_0 = 1
@@ -283,7 +285,7 @@ $$
 $$
 for $n \ge 6$ (and values below that being rather odd).
 
-\vskip 0.08in \noindent {\bf Problem 2.25}: Give a recurrence
+\newprob{Problem 2.25}: Give a recurrence
 that has the solution $a_n = 4^n - 3^n + 2^n$.\hfil\break
 We're looking for an equation of the form $\left(1 - 4 x\right)
 \left(1 - 3 x\right) \left(1 - 2 x\right)$ plus the appropriate boundary
@@ -292,7 +294,7 @@ which corresponds to $a_n = 9 a_{n-1} - 26 a_{n-2} - 24 a_{n-3}$
 with the boundary conditions simply from substitution: $a_0 = 1$,
 $a_1 = 3$, $a_2 = 11$.
 
-\vskip 0.08in \noindent {\bf Problem 2.27} Give initial conditions $a_0, a_1$
+\newprob{Problem 2.27} Give initial conditions $a_0, a_1$
 for which the solution to $a_n = 5 a_{n-1} - 6 a_{n-2}$ is $2^n$.\hfil\break
 The characteristic polynomial is $1 - 5 x + 6 x^2 = \left(1 - 3 x\right)
 \left(1 - 2 x \right)$, so the solution is $a_n = c_0 3^n + c_1 2^n$.
@@ -300,7 +302,7 @@ So we need $c_0 = 0$, $c_1 = 1$.  We have $a_0 = c_0 + c_1$,
 $a_1 = 3 c_0 + 2 c_1$, so $a_0 = 1$, $a_1 = 2$ works.
 There is no set of initial conditions that gives $a_n = 2^n - 1$.
 
-\vskip 0.08in \noindent {\bf Problem 2.29} Solve $a_n = 2 a_{n-1}  + 4 a_{n-2}$
+\newprob{Problem 2.29} Solve $a_n = 2 a_{n-1}  + 4 a_{n-2}$
 for $n > 1$ with $a_1=2$ and $a_0 = 1$.\hfil\break
 We have $n \ge 2$, so the characteristic polynomial is $z^2 - 2 z + 4 = 0$,
 or $\left(z -2\right)^2 = 0$.  Thus, we have degenerate root, and the solutions
@@ -308,7 +310,7 @@ are of the form $a_n = c_0 2^n + c_1 n 2^n$.  The initial conditions give us
 $1 = a_0 = c_0$, and $2 = a_1 = 2 c_0 + 2 c_1$, or $c_0 + c_1 = 1$.
 Together, we have $c_0 = 1$, $c_2 = 0$, and $a_n = 2^n$.
 
-\vskip 0.08in \noindent {\bf Problem 2.30} Solve $a_n = 2 a_{n-1} + 4 a_{n-2}$
+\newprob{Problem 2.30} Solve $a_n = 2 a_{n-1} + 4 a_{n-2}$
 for $n > 1$ with $a_0 = 0$ and $a_1 = 1$.\hfil\break
 Here the characteristic polynomial is $z^2 - 2 z + 1 = \left(z - 1\right)^2 = 0$.
 So $a_n = c_0 + c_1 n$.  $a_0 = 0$ implies that $c_0 = 0$, so
@@ -317,7 +319,32 @@ $a_n = n$.
 Changing the initial conditions to $a_0 = a_1 = 1$ gives us
 $c_0 = 1$, $c_1 = 0$, so $a_n = 1$.
 
-\vskip 0.08in \noindent {\bf Problem 3.20}: Evaluate the
+\vskip 0.3in
+\centerline {Chapter 3}
+\vskip 0.2in
+
+\newprob{Problem 3.1}\hfil\break
+a) The OGF for $\{ 2^k \}$ is $1 / 1 - 2z$, so we just need to multiply
+this by 2 to get $2 / 1 - 2 z$. \hfil\break
+b) The sequence we are looking for is $0, 1 \cdot 4, 2 \cdot 8, 3 \cdot 16, \ldots$.
+Consider $z / \left(1 - z\right)^2 = 0, 1, 2, 3, \ldots$.  If we substitute $z \leftarrow 2 z$
+this is $2 z / \left( 1 - 2 z\right)^2 = 0, 1 \cdot 2, 2 \cdot 4, 3 \cdot 8, \ldots$.
+So we can multiply by 2: $4 z / \left( 1 - 2 z \right)^2$.\hfil\break
+c) We have $1 / \left(1 - z \right) \, {\ln} \, 1 / \left(1 - z\right) = \sum H_n z^n$,
+and so if we take the derivative we get $\{H_1, 2 H_2, 3 H_3, \ldots \}$.
+We need to shift in a 0, so the generating function is
+$z \, \partial / \partial z \left( 1 / \left(1 - z\right) \, \ln \, 1 / \left(1 - z \right) \right) =
+z / \left(1 - z \right)^2 + z / \left(1 - z \right)^2 \, \ln \, 1 / \left(1 - z \right).$\hfil\break
+d) Start with $1 / 1 - z$ and apply the $z \, \partial / \partial z$ operator 3 times
+to get $\left(z + 4 z^2 + z^3\right) / \left(1 - z\right)^5.$
+
+\newprob{Problem 3.4}: This isn't as nasty as it looks.  It takes
+advantage of the fact that, labeling the generating function for
+the $H_k$ by $G\left(z\right)$, $\partial G / \partial z = G / \left(1 - z\right) + 1 / \left(1 - z\right)^2$.
+Writing this out we have $\{ H_1, 2 H_2, 3 H_3, \ldots \} = \{ \sum_0^n H_k \} + \{1, 2, 3, \ldots \}$,
+or $n H_n = \sum_{k=0}^{n-1} H_k + n$, which is the same as the problem statement.
+
+\newprob{Problem 3.20}: Evaluate the
 recurrence $a_n = 3 a_{n-1} - 3 a_{n-2} + a_{n-3}$ for $n > 2$.\hfil\break
 The characteristic polymonial is $z^3 - 3 z^2 + 3 z - 1 = \left(z - 1\right)^3$.
 Thus, it has root 1 with multiplicity 3, and the solution is of the form
@@ -327,7 +354,7 @@ and $2 c_1 + 4 c_2 = 1$, which, when solved, give $a_n = -n / 2 + n^2/2$.
 For $a_0 = 0$, $a_1 = a_2 = 1$, we find $c_0 = 0$, $c_2 = 1 - c_1$,
 and $2 c_1 + 4 c_2 = 1$, giving $a_n = 3/2 n - 1/2 n^2$.
 
-\vskip 0.08in \noindent {\bf Problem 3.28} Find
+\newprob{Problem 3.28} Find
 $$
  \left[z^n\right] {1 \over \sqrt{1 - z}} \log {1 \over 1 - z}.
 $$
@@ -362,7 +389,7 @@ $$
  {1 \over k!} \left({1 \over 2} {3 \over 2} \ldots {2k - 1 \over 2}\right) =
   {\left(2k\right)!! \over 2^k}.
 $$
-But $\left(2k - 1\right)!! 2^n n! = \left(2 n\right)!$ if written out,
+But $\left(2k - 1\right)!! \, 2^n n! = \left(2 n\right)!$ if written out,
 so
 $$
  {1/2 + n - 1 \choose 1/2} = {\left(2 n\right)! \over 2^n 2^n n!} = {1 \over 4^n} {2n \choose n}.
@@ -379,7 +406,11 @@ $$
   {1 \over 2^{2n-1}} {2n \choose n} \left(H_{2n} - {1 \over 2} H_n\right).
 $$
 
-\vskip 0.08in \noindent {\bf Problem 5.1} How many bitstrings of
+\vskip 0.3in
+\centerline {Chapter 5}
+\vskip 0.2in
+
+\newprob{Problem 5.1} How many bitstrings of
 length $N$ have no 000?\hfil\break
 Such strings are either $\epsilon$, a single 0, two 0s, or 1 or 01 or 001 followed
 by a string with no 3 consecutive zero bits.  Figuring out which ones
@@ -396,20 +427,12 @@ or $G\left(z\right) = \left(1 + z + z^2\right) / \left(1 - z - z^2 - z^3\right)$
 find any particular way to simplify this -- the first few terms of the expansion
 are $1 + 2z + 4z^2 = 7z^3 + 13z^4 + 24z^5 + \ldots$.
 
-<<<<<<< HEAD
-\vskip 0.08in \noindent {\bf Problem 5.2} How many bitstrings of
-=======
-\vskip 0.08in \noindent {\bf Problem 5.1} How many bitstrings of
->>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
+\newprob{Problem 5.2} How many bitstrings of
 length $N$ have no 01?\hfil\break
 Such strings are either $\epsilon$, a 1 followed by a sequence with no 01,
 or a sequence of 0s.  However, $\epsilon$ is counted as a sequence of 0s. That is:
 $$
-<<<<<<< HEAD
  {\cal G} = {\cal Z}_1 \times {\cal G} + {\cal SEQ}\left({\cal Z}_0\right)
-=======
- {\cal G} = {\cal Z}_1 \times {\cal G} + {\cal SEQ}\left({\cal Z_0}\right)
->>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
 $$
 or $G\left(z\right) = z G\left(z\right) + 1 /\left( 1 - z \right) $, so that
 $G\left(z\right) = 1 / \left(1 - z\right)^2$ and $\left[z^n\right] G\left(z\right) =
@@ -418,7 +441,7 @@ $000, 100, 110, 111$.  Alternatively, we could just say that
 ${\cal G} = {\cal SEQ}\left({\cal Z}_1\right) \times {\cal SEQ}\left({\cal Z}_0\right)$,
 a sequence of 1s followed by a sequence of 0s, which gives the same result.
 
-\vskip 0.08in \noindent {\bf Problem 5.3} Get an explicit expression for the 
+\newprob{Problem 5.3} Get an explicit expression for the 
 generating function for the size of trees counting both internal and external nodes.
 This is pretty straightforward: 
 $$
@@ -431,7 +454,7 @@ $$
 $$
 where the boundary condition $T\left(0\right) = 0$ suggests we take the negative branch.
 
-\vskip 0.08in \noindent {\bf Problem 5.7} Sets of cycles of odd length:
+\newprob{Problem 5.7} Sets of cycles of odd length:
 immediately we are lead to 
 $$
 {\cal D} = {\rm SET} \left(
@@ -444,7 +467,7 @@ $$
   = { e^{-z^2/2 - z^4/4 - \ldots} \over 1 - z }
 $$
 
-\vskip 0.08in \noindent {\bf Problem 5.8} Sequences of cycles are (immediately
+\newprob{Problem 5.8} Sequences of cycles are (immediately
 $$
   S = {1 \over {1 - \ln {1 \over 1 - z}}} = {1 \over 1 + \ln \left(1 - z\right)}.
 $$
@@ -454,8 +477,7 @@ $$
  C = \ln {1 \over {1 - {1 \over 1 - z}}} = \ln {z - 1 \over z}
 $$
 
-<<<<<<< HEAD
-\vskip 0.08in \noindent {\bf Problem 5.12} Average number of 1 bits in a bitstring.\hfil\break
+\newprob{Problem 5.12} Average number of 1 bits in a bitstring.\hfil\break
 We have ${\cal B} = {\cal SEQ}\left({\cal Z}_0 + {\cal Z}_1\right)$.  ${\cal Z}_0$
 is $z$ and ${\cal Z}_1$ is $zu$ here (since only ones have, uh, ones).
 Thus 
@@ -475,9 +497,7 @@ Clearly $\left[z^n\right] B_u = 2^n \left[z^{\prime\,n}\right] B_u = 2^{n-1} n$.
 average number of 1s is $\left[z^n\right] B_u\left(z, 1\right) / \left[z^n\right] B\left(z\right) =
 2^{n-1} n / n = n / 2$, as expected.
 
-=======
->>>>>>> 54f0c39bbd1f0670e0baa2dfd2cbbb018269c283
-\vskip 0.08in \noindent {\bf Problem 5.15} I don't find the exposition in the
+\newprob{Problem 5.15} I don't find the exposition in the
 text very useful here, so let's use a different one.  Define the recurrent for
 non-empty binary trees by
 $$
