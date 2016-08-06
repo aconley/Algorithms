@@ -344,6 +344,33 @@ the $H_k$ by $G\left(z\right)$, $\partial G / \partial z = G / \left(1 - z\right
 Writing this out we have $\{ H_1, 2 H_2, 3 H_3, \ldots \} = \{ \sum_0^n H_k \} + \{1, 2, 3, \ldots \}$,
 or $n H_n = \sum_{k=0}^{n-1} H_k + n$, which is the same as the problem statement.
 
+\newprob{Problem 3.7}: Find the OGF for $\{H_k / k\}$.\hfil\break
+Start with $1 / \left(1 - z\right)\, \ln \, 1 / \left(1 - z \right)$ which has the
+sequence $H_0, H_1, H_2, \ldots$.  Subtract off $H_0 = 0$ and divide
+by z to get $1 / z \left(1 - z\right)\, \ln \, 1 / \left(1 - z \right)$ with
+sequence $H_1, H_2, \ldots$.  The integrate to get the sequence
+$0, H_1, H_2 / 2, H_3 / 3, \ldots$.  But we do need to evaluate
+$$
+  \int_0^z {1 \over t \left(1 - t\right)} \, \ln {1 \over 1 - t}  .
+$$
+Unfortunately, I don't know how to do that integral.
+
+\newprob{Problem 3.9}\hfil\break
+a) The EGF for $\{2^k\}$ is $e^{2z}$, so for $2^{k+1}$ it is just $2 e^{2z}$.\hfil\break
+b) The same logic as in 3.1, but the base sequence is $z e^z$ here, so
+$4 z e^{2 z}$.\hfil\break
+
+\newprob {Problem 3.17} Solve $a_n = 5 a_{n-1}  - 8 a_{n-2} + 4 a_{n-3}$ with
+$a_0 = 1, a_1 = 2, a_3 = 4$.\hfil\break
+Similar to the previous example, except that
+$$
+ f\left(z \right) = \left(1 + 2 z + 4 z^2\right) \left(1 - 5 z + 8 z^2 - 4 z^3 \right) 
+\left( {\rm mod}\, z^3 \right)
+$$
+or $f\left(z\right) = 1 - 3 z + 2 z^2 = \left(1 - z\right) \left(1 - 2 z\right)$.
+Dividing, $a = f\left(z\right) / g\left(z \right) = \left(1 - z\right) \left( 1 - 2 z \right) /
+\left(1 - z\right) \left(1 - 2 z \right)^2 = 1 / \left(1 - 2 z\right)$, so $a_n = 2^k$.
+
 \newprob{Problem 3.20}: Evaluate the
 recurrence $a_n = 3 a_{n-1} - 3 a_{n-2} + a_{n-3}$ for $n > 2$.\hfil\break
 The characteristic polymonial is $z^3 - 3 z^2 + 3 z - 1 = \left(z - 1\right)^3$.
