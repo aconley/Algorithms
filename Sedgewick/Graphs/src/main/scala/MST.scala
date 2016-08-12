@@ -24,24 +24,23 @@ object MST {
   def LazyPrimMST(G: WeightedGraph): (Double, WeightedGraph) = {
     require(G.V > 0, "G has no vertices")
 
-    def visit(G: WeightedGraph, u: Int, m: Array[Boolean],
-              pq: MPQueue[WeightedEdge]): Unit = {
-      m(u) = true
-      for (e <- G.adj(u))
-        if (!m(e.v)) pq += e
-    }
-
     val edges = new MPQueue[WeightedEdge]()(ord)
     val marked = Array.fill[Boolean](G.V)(false)
     val mst = new ListBuffer[(Int, Int, Double)]()
 
-    visit(G, 0, marked, edges)
+    def visit(u: Int): Unit = {
+      marked(u) = true
+      for (e <- G.adj(u))
+        if (!marked(e.v)) edges += e
+    }
+
+    visit(0)
     while (!edges.isEmpty) {
       val e = edges.dequeue
       if (!(marked(e.u) && marked(e.v))) {
         mst += ((e.u, e.v, e.weight))
-        if (!marked(e.u)) visit(G, e.u, marked, edges)
-        if (!marked(e.v)) visit(G, e.v, marked, edges)
+        if (!marked(e.u)) visit(e.u)
+        if (!marked(e.v)) visit(e.v)
       }
     }
 
