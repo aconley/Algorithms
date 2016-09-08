@@ -70,12 +70,33 @@ TEST(NQueensBasicTest, CountN2) {
 }
 
 TEST(NQueensBasicTest, CountN4) {
-
   CountingVisitor<4> vis;
   backtracking::nqueens_basic(vis);
 
   EXPECT_EQ(vis.getN(), 2)
     << "Got unexpected number of permutations for 4 queens";
+}
+
+TEST(NQueensBasicTest, VisitN4) {
+  RecordingVisitor<4> vis;
+  backtracking::nqueens_basic(vis);
+
+  EXPECT_EQ(vis.getN(), 2)
+    << "Got unexpected number of permutations for 4 queens";
+
+  std::vector<std::array<int, 4>> expected = {{1, 3, 0, 2}, {2, 0, 3, 1}};
+  for (int i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(vis.get(i), expected[i])
+      << "Got unexpected permutation at position for 4 queens " << i;
+  }
+}
+
+TEST(NQueensBasicTest, CountN8) {
+  CountingVisitor<8> vis;
+  backtracking::nqueens_basic(vis);
+
+  EXPECT_EQ(vis.getN(), 92)
+    << "Got unexpected number of permutations for 8 queens";
 }
 
 int main(int argc, char **argv) {

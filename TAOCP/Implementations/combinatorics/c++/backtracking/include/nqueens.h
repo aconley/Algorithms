@@ -18,6 +18,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
 
   if (n == 0) return;
   int int_n = static_cast<int>(n);
+  int nm1 = int_n - 1;
 
   // Holds current solution
   std::array<int, n> rows;
@@ -32,7 +33,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
   bool isSafe = true;
 
   B2: // Enter level l
-  if (l >= n) {
+  if (l > nm1) {
     vis.visit(rows);
     goto B5;
   }
@@ -56,14 +57,17 @@ template<std::size_t n, template<std::size_t> class Visitor>
   }
 
   B4: // Try again
-  if (x_l < n) {
+  if (x_l < nm1) {
     ++x_l;
     goto B3;
   }
 
   B5: // backtrack
   --l;
-  if (l >= 0) goto B4;
+  if (l >= 0) {
+    x_l = rows[l];
+    goto B4;
+  }
 
   // Otherwise we're done
 }
