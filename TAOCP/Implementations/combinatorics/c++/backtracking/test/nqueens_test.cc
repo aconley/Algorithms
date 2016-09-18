@@ -183,6 +183,48 @@ TEST(NQueensBitwiseTest, CountN8) {
     << "Got unexpected number of permutations for 8 queens";
 }
 
+//////////////////////
+// Exact same tests but walkers method
+TEST(NQueensWalkerTest, CountN1) {
+  CountingVisitor<1> vis;
+  backtracking::nqueens_walker(vis);
+  EXPECT_EQ(vis.getN(), 1)
+    << "Got unexpected number of permutations for 1 queens";
+}
+
+TEST(NQueensWalkerTest, CountN2) {
+  CountingVisitor<2> vis;
+  backtracking::nqueens_walker(vis);
+  EXPECT_EQ(vis.getN(), 0)
+    << "Got unexpected number of permutations for 2 queens";
+}
+
+TEST(NQueensWalkerTest, CountN4) {
+  CountingVisitor<4> vis;
+  backtracking::nqueens_walker(vis);
+  EXPECT_EQ(vis.getN(), 2)
+    << "Got unexpected number of permutations for 4 queens";
+}
+
+TEST(NQueensWalkerTest, VisitN4) {
+  RecordingVisitor<4> vis;
+  backtracking::nqueens_walker(vis);
+  EXPECT_EQ(vis.getN(), 2)
+    << "Got unexpected number of permutations for 4 queens";
+  std::vector<std::array<int, 4>> expected = {{1, 3, 0, 2}, {2, 0, 3, 1}};
+  for (int i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(vis.get(i), expected[i])
+      << "Got unexpected permutation at position for 4 queens " << i;
+  }
+}
+
+TEST(NQueensWalkerTest, CountN8) {
+  CountingVisitor<8> vis;
+  backtracking::nqueens_walker(vis);
+  EXPECT_EQ(vis.getN(), 92)
+    << "Got unexpected number of permutations for 8 queens";
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

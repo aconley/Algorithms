@@ -89,4 +89,29 @@ static void BM_Nqueens_Bitwise13(benchmark::State& state) {
 }
 BENCHMARK(BM_Nqueens_Bitwise13);
 
+// Walker
+static void BM_Nqueens_Walker8(benchmark::State& state) {
+  CountingVisitor<8> v;
+  while (state.KeepRunning()) {
+    backtracking::nqueens_walker(v);
+  }
+}
+BENCHMARK(BM_Nqueens_Walker8);
+
+static void BM_Nqueens_Walker10(benchmark::State& state) {
+  CountingVisitor<10> v;
+  while (state.KeepRunning()) {
+    backtracking::nqueens_walker(v);
+  }
+}
+BENCHMARK(BM_Nqueens_Walker10);
+
+static void BM_Nqueens_Walker13(benchmark::State& state) {
+  CountingVisitor<13> v;
+  while (state.KeepRunning()) {
+    backtracking::nqueens_walker(v);
+  }
+}
+BENCHMARK(BM_Nqueens_Walker13);
+
 BENCHMARK_MAIN();
