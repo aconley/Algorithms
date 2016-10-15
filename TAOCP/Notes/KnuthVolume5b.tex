@@ -1,0 +1,19 @@
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+
+\topglue 0.5in
+\centerline{Notes on Knuth Fascicle 5b: Basic Backtracking}
+\vskip 0.3in
+
+\noindent {\bf Timing tests}
+
+I implemented the N-Queens algorithms, including the optimizations
+discussed in the problems, in c++ and timed their performance using
+Google Benchmark.  The four methods were a  unoptimized
+version, the array version of the basic algorithm~B, the
+same version modified to use bit twiddling instead of arrays,
+and Walkers version.  The execution time runs in the ratio
+22:6.3:6.6:1.  So bit twiddling is not helpful, but, unsurprisingly,
+Walkers method is by far the fastest.
+
+\bye
