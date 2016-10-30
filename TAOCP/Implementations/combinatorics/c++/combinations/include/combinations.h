@@ -7,9 +7,12 @@
 
 // Visitor must implement a method
 //   bool visit(const array<int, t>& values)
-// where the t elements are in values[0], ..., values[t-1].
+// where the t elements are identified in values[0], ..., values[t-1].
+// and are unique integers in the range [0, t).
 // visit should return false to terminate the algorithm
 //  immediately.
+
+namespace combinations {
 
 // Basic, un-optimized generator
 //  This is algorithm L of Knuth TAOCP 7.2.1.3
@@ -31,6 +34,7 @@ template<std::size_t t,
     return;
   }
 
+  std::size_t n = s + t;
   std::size_t tm1 = t - 1;
   while (true) {
     // L2: visit
@@ -50,4 +54,5 @@ template<std::size_t t,
   }
 }
 
-#endif __combinations_h__
+}
+#endif

@@ -12,8 +12,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_definitions(-Os -std=c++14)
 endif()
 
-
-project (permutations CXX)
+project (combinations CXX)
 
 #-------------------
 # set common include folder for module
@@ -28,4 +27,4 @@ add_subdirectory(${EXT_PROJECTS_DIR}/gbench)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 
 # Benchmarking
-add_subdirectory(${PROJECT_SOURCE_DIR}/bench)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/bench)
