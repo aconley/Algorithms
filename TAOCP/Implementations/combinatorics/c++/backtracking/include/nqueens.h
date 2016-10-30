@@ -13,6 +13,10 @@ namespace backtracking {
 //     bool visit(const array<int, n>& rows)
 // Where the queen in column i is in row rows[i]
 //  in the range [0, n)
+// If visit returns false, it indicates that the
+//  algorithm should be terminated immediately.  This
+//  is useful if looking for, say, the first solution
+//  to satisfy some additional property.
 
 // Basic visitor
 template<std::size_t n, template<std::size_t> class Visitor>
@@ -36,7 +40,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
 
   B2: // Enter level l
   if (l > nm1) {
-    vis.visit(rows);
+    if (!vis.visit(rows)) return;
     goto B5;
   }
   x_l = 0;
@@ -105,7 +109,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
 
   B2: // Enter level l
   if (l > nm1) {
-    vis.visit(rows);
+    if (!vis.visit(rows)) return;
     goto B5;
   }
   t = 0;
@@ -167,7 +171,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
 
   B2: // Enter level l
   if (l > nm1) {
-    vis.visit(rows);
+    if (!vis.visit(rows)) return;
     goto B5;
   }
   t = 0;
@@ -253,7 +257,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
     for (int i = 1; i <= int_n; ++i) {
       rows[i - 1] = backtracking::getPositionOfLeastSetBit(a[i] - a[i - 1]);
     }
-    vis.visit(rows);
+    if (!vis.visit(rows)) return;
     goto W4;
   }
   s[l] = mu & (~a[l - 1]) & (~b[l - 1]) & (~c[l - 1]);
