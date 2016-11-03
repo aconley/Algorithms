@@ -27,4 +27,4 @@ add_subdirectory(${EXT_PROJECTS_DIR}/gbench)
 add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 
 # Benchmarking
-# add_subdirectory(${PROJECT_SOURCE_DIR}/bench)
+add_subdirectory(${PROJECT_SOURCE_DIR}/bench)

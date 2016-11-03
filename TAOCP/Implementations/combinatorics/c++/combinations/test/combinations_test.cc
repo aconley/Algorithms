@@ -112,6 +112,12 @@ TEST(CombinationsTest, TestCount4) {
   EXPECT_EQ(vis4.getN(), 4845) << "20 chose 4 is 4845";
 }
 
+TEST(CombinationsTest, TestCountBig) {
+  CountingVisitor<10> vis10;
+  combinations::combinations_lex_basic(20, vis10);
+  EXPECT_EQ(vis10.getN(), 184756) << "20 chose 10 is 184756";
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

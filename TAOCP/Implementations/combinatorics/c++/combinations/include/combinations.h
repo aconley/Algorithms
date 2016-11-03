@@ -1,6 +1,8 @@
 #ifndef __combinations_h__
 #define __combinations_h__
 
+#include<array>
+
 // The methods here all visit (s, t) combinations --
 // that is, a combination of s + t things taken t at
 // a time
