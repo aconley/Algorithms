@@ -1087,4 +1087,16 @@ and set $a_j \gets a_l$, $a_l \gets c$.
 \newstep{L4.2} Set $k \gets j + 2$ and $l \gets n - 1$.  While $k < l$,
 interchange $a_k$ and $a_l$ and set $k \gets k + 1$, $l \gets l - 1$.  Return to {\bf L1}.
 
+\newprob{Problem~21} True or false: if an alphametic has a solution in radix $b$,
+it has a solution in radix $b + 1$.\hfill\break
+It suffices to find a single counterexample: ${\tt A} + {\tt A} = {\tt AB}$ only
+has a solution for $b = 2$ (with {\tt A} = 1, {\tt B} = 0).
+
+\newprob{Problem 25} How can you quickly compute $\rm{min}\left(a \cdot s\right)$
+and $\rm{ max}\left(a \cdot s\right)$?\hfil\break
+We have the freedom to chose the letter codes to put $s$ in order (e.g., $s_1 \le s_2 \le \ldots
+\le s_10$).  Then simply iterate through the elements of $a \notin F$ in that order.  So, if
+the least index is $j$ , then $a_j = 0$, etc.  The max is the same procedure with the signs of
+the signatures flipped.
+
 \end
