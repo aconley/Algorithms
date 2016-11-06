@@ -1087,6 +1087,25 @@ and set $a_j \gets a_l$, $a_l \gets c$.
 \newstep{L4.2} Set $k \gets j + 2$ and $l \gets n - 1$.  While $k < l$,
 interchange $a_k$ and $a_l$ and set $k \gets k + 1$, $l \gets l - 1$.  Return to {\bf L1}.
 
+\newprob{Problem 3} Determine the rank of a permutation $a_1 a_2 \ldots a_n$ in
+Algorithm~L.\hfil\break
+The important thing to understand is the way that Algorithm~L changes the inversion
+table.  For $n=3$, the sequence $123, 132, 213, 231, 312, 321$ has the inversion
+table $000, 010, 100, 110, 200, 210$.  That is, it appears to be counting in the mixed
+radix number system $b = \left(n, n-1, n-2, \ldots, 1\right)$ -- that is, the factorial
+number system.  And inspection of Algorithm~L shows that is exactly what it is doing --
+finding the $j$ to increase is finding the rightmost digit that can be increased, and then
+putting the remaining elements in order is setting all the subsequent digits to zero.
+Therefore, the rank of $a_1 \ldots a_n$ is:
+\newstep{R1} Form the inversion table for $a$: $c_1 \ldots c_n$.  This can be done
+efficiently by a merge sort-like procedure if $n$ is large.
+\newstep{R2} The rank is the mixed radix number
+$$
+ {c_1\,c_2\,\ldots\,c_{n-1}\,c_n \brack n\,n-1\,\ldots\,2\,1} .
+$$
+Therefore, the rank of 314592687 is ${2\,0\,1\,1\,4\,0\,0\,1\,0 \brack 9\,8\,7\,6\,5\,4\,3\,2\,1} =
+81577$.
+
 \newprob{Problem~21} True or false: if an alphametic has a solution in radix $b$,
 it has a solution in radix $b + 1$.\hfill\break
 It suffices to find a single counterexample: ${\tt A} + {\tt A} = {\tt AB}$ only
