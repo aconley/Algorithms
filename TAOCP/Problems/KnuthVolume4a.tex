@@ -1106,6 +1106,11 @@ $$
 Therefore, the rank of 314592687 is ${2\,0\,1\,1\,4\,0\,0\,1\,0 \brack 9\,8\,7\,6\,5\,4\,3\,2\,1} =
 81577$.
 
+\newprob{Problem~8} Modify Algorithm~L to visit all variations of a multiset.\hfil\break
+For each permutation we would visit in {\bf L1}, simply visit
+each prefix of that permutation.  For example, for 1224, visit $\epsilon$, 1, 12, 122, and 1224
+in ${\bf L1}$.  However, note that this will visit many of the variations multiple times.
+
 \newprob{Problem~21} True or false: if an alphametic has a solution in radix $b$,
 it has a solution in radix $b + 1$.\hfill\break
 It suffices to find a single counterexample: ${\tt A} + {\tt A} = {\tt AB}$ only
