@@ -5,8 +5,33 @@
 \centerline{\tt Knuth 7.2.2.2: Satisfiability}
 \vskip 0.3in
 
-\newprob {Problem 1} The shortest unsatisfiable set of clauses is the
+\newprob{Problem 1} The shortest unsatisfiable set of clauses is the
 empty clause $\epsilon$, the shortest satisfiable set is the empty set $\emptyset$.
+
+\newprob{Problem~87}: Explain why the clauses (42) represent Alice and Bob's
+programs (40).\hfil\break
+Denoting Alice's states at time $t$ by $A0_t, \ldots, A4_t$ and Bob's by $B0_t, \ldots, B4_t$,
+the first set of clauses expresses the fact that neither can change state unless it is there term.
+If we couple this with clauses that require that both Alice and Bob can only be in one
+state, these can be written $@_k \vee \overline{AK_{k}} \vee AK_{k+1}$
+and $\overline{@_k} \vee \overline{BK_{k}} \vee BK_{k+1}$.  For example, if Alice is in state
+A0 at time $t$, then this states that if $@_k = 0$ then she must still be in A0 at
+time $t+1$.
+
+The next set of clauses represent possible transitions.  For example, if it is
+Alice's turn ($@_t = 1$) and she is in state $A2$, she has to go to $A3$, which becomes
+$\overline{@_k} \vee {\overline A2_k} \vee A3_{k+1}$.  For $A0$ there are two possible
+target states, although we could ignore non-transitions as irrelevant to the problem:
+$\overline{@_k} \vee {\overline A0_k} \vee A0_{k+1} \vee A1_{k+1}$.  For A1 it's a bit more
+complicated because it depends on $l$, so we get two rules: first, for $l=1$
+$\overline{@_k} \vee \overline{A1_{k}} \overline{l_k} \vee A1_{k+1}$; then, for $l=0$
+$\overline{@_k} \vee \overline{A1_{k}} \vee l_k \vee A2_{k+1}$.  To express the $A2$ and $A4$
+changes to $l$: $\overline{@_k} \vee \overline{A2_k} \vee l_{k+1}$ and
+$\overline{@_k} \vee \overline{A4_k} \vee \overline{l_{k+1}}$.  And finally, we encode
+that $l$ doesn't change except in states $A2$ and $A4$ with
+$\overline{@_k} \vee l_k \vee A2 \vee A4 \vee \overline{l_{k+1}}$
+and $\overline{@_k} \vee \overline{k_t} \vee A2 \vee A4 \vee l_{k+1}$.
+There are similar clauses for $BK$ but with $@_k$ instead of $\overline{@_k}$.
 
 \newprob {Problem 121}: Lower level operations in Algorithm~A
 \newstep {A3} [Remove $\bar l$].  Because of the reverse order the variables are
