@@ -12,8 +12,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_definitions(-Os -std=c++14)
 endif()
 
-
-project (permutations CXX)
+project (backtracking CXX)
 
 #-------------------
 # set common include folder for module
