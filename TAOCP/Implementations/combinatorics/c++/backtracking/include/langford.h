@@ -1,6 +1,8 @@
 #ifndef __langford_h__
 #define __langford_h__
 
+#include<array>
+
 namespace backtracking {
 
 // Visit all Langford pairs
@@ -10,25 +12,25 @@ namespace backtracking {
 //  and -x.  The second occurrence is always negative
 //
 //  Visitor must implement a method
-//     bool visit(const int* const vals, int n)
-//  noting that vals has 2 n values
+//     bool visit(const array<int, two_n> vals)
+//  where two_n = 2 * n
 
 // Algorithm L of Knuth 7.2.2 (Backtrack Programming)
-template<class RandomIt, class Visitor>
-void langford(unsigned int n, Visitor& vis) {
+template<std::size_t n, template<std::size_t> class Visitor>
+  void langford_basic(Visitor<n>& vis) {
+
   if (n == 0)
     return;
 
-  unsigned int n2 = 2 * n;
+  constexpr unsigned int n2 = 2 * n;
 
   // Indices start at 0 in this implementation
-  int* x = new int[n2]; // Values we will give to visit
-  int* p = new int[n + 1]; // Pointer to unused values
-  int *y = new int[n2]; // Backtracking array
+  std::array<int, n2> x{};    // Values we will give to visit
+  std::array<int, n + 1> p; // Pointer to unused values
+  std::array<int, n2> y;    // Backtracking array
 
   // Initialize (L1)
-  int j, k, l;
-  std::memset(x, 0, std::static_cast<size_t>(n2 * sizeof(unsigned int)));
+  int j, k, l, lpkp1;
   for (k = 0; k < n; ++k) p[k] = k + 1;
   p[n] = 0;
   l = 0;
@@ -38,7 +40,7 @@ void langford(unsigned int n, Visitor& vis) {
 L2:
   k = p[0];
   if (k == 0) {
-    vis.visit(x, n);
+    vis.visit(x);
     goto L5;
   }
   j = 0;
@@ -46,7 +48,7 @@ L2:
 
   // Try x_l = k
 L3:
-  int lpkp1 = l + k + 1;
+  lpkp1 = l + k + 1;
   if (lpkp1 >= n2) goto L5; // Can't insert -- off edge
   if (x[lpkp1] == 0) {
     x[l] = k;
@@ -74,11 +76,6 @@ L5:
     p[j] = k;
     goto L4;
   }
-
-  // We're done; clean up
-  delete[] x;
-  delete[] p;
-  delete[] y;
 }
 
 }
