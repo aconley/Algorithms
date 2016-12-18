@@ -71,6 +71,7 @@ TEST(LangfordBasicTest, CountNBad) {
     << "Should be 0 solutions for n = 6";
 }
 
+// Counting with no solutions
 TEST(LangfordBasicTest, CountNGood) {
 
   CountingVisitor<3> vis3;
