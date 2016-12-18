@@ -2,8 +2,17 @@
 #define __langford_h__
 
 #include<array>
+#include<iostream>
+#include<ostream>
 
 namespace backtracking {
+
+template <class T, std::size_t N>
+std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
+{
+    std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(o, " "));
+    return o;
+}
 
 // Visit all Langford pairs
 //
@@ -27,35 +36,39 @@ template<std::size_t n, template<std::size_t> class Visitor>
   // Indices start at 0 in this implementation
   std::array<int, n2> x{};    // Values we will give to visit
   std::array<int, n + 1> p; // Pointer to unused values
-  std::array<int, n2> y;    // Backtracking array
+  std::array<int, n2> y{};    // Backtracking array
 
   // Initialize (L1)
   int j, k, l, lpkp1;
   for (k = 0; k < n; ++k) p[k] = k + 1;
   p[n] = 0;
-  l = 0;
+  l = 1;
 
   // Enter level l
   //  Yes, very goto heavy.  But it's much more efficient that way
 L2:
   k = p[0];
   if (k == 0) {
+    // std::cerr << "Visiting solution: " << x << std::endl;
     vis.visit(x);
     goto L5;
   }
   j = 0;
-  while (x[l] < 0) ++l;
+  while (x[l - 1] < 0) ++l;
 
-  // Try x_l = k
+  // Try x_{l - 1} = k
 L3:
   lpkp1 = l + k + 1;
-  if (lpkp1 >= n2) goto L5; // Can't insert -- off edge
-  if (x[lpkp1] == 0) {
-    x[l] = k;
-    x[lpkp1] = -k;
-    y[l] = j;
+  if (lpkp1 > n2) goto L5; // Can't insert -- off edge
+  if (x[lpkp1 - 1] == 0) {
+    // std::cerr << "L3: Trying x[" << l << "] = " << k;
+    x[l - 1] = k;
+    x[lpkp1 - 1] = -k;
+    y[l - 1] = j;
     p[j] = p[k];
     ++l;
+    // std::cerr << " x: " << x << " p: " << p << " y: " << y << std::endl;
+    goto L2;
   }
 
   // Try again
@@ -66,14 +79,16 @@ L4:
 
   // Backtrack
 L5:
+  // std::cerr << "L5: Backtrack" << std::endl;
   --l;
-  if (l >= 0) {
-    while (x[l] < 0) --l;
-    k = x[l];
-    x[l] = 0;
-    x[l + k + 1] = 0;
-    j = y[l];
+  if (l > 0) {
+    while (x[l - 1] < 0) --l;
+    k = x[l - 1];
+    x[l - 1] = 0;
+    x[l + k] = 0;
+    j = y[l - 1];
     p[j] = k;
+    // std::cerr << "x: " << x << " p: " << p << " y: " << y << std::endl;
     goto L4;
   }
 }
