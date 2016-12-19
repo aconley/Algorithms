@@ -4,6 +4,13 @@
 #include "gtest/gtest.h"
 #include "langford.h"
 
+template <class T, std::size_t N>
+std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
+{
+    std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(o, " "));
+    return o;
+}
+
 template<std::size_t n> class RecordingVisitor {
   private:
     std::vector<std::array<int, 2 * n>> solutions;
@@ -93,6 +100,20 @@ TEST(LangfordBasicTest, CountNGood) {
   backtracking::langford_basic(vis8);
   EXPECT_EQ(vis8.getN(), 300)
     << "Should be 300 solutions for n = 8";
+}
+
+TEST(LangfordBasicTest, Record3) {
+  RecordingVisitor<3> vis3;
+  backtracking::langford_basic(vis3);
+
+  EXPECT_EQ(vis3.getN(), 2)
+    << "Should have 2 solutions for n = 3";
+  std::vector<std::array<int, 6>> expected =
+    {{2, 3, 1, -2, -1, -3}, {3, 1, 2, -1, -3, -2}};
+  EXPECT_EQ(vis3.get(0), expected[0])
+    << "Got unexpected first langford solution for n = 3";
+  EXPECT_EQ(vis3.get(1), expected[1])
+    << "Got unexpected second langford solution for n = 3";
 }
 
 int main(int argc, char **argv) {
