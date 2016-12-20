@@ -3,7 +3,17 @@
 
 #include<array>
 
+#include<iostream>
+#include<ostream>
+
 namespace backtracking {
+
+template <class T, std::size_t N>
+std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
+{
+    std::copy(arr.cbegin(), arr.cend(), std::ostream_iterator<T>(o, " "));
+    return o;
+}
 
 // Visit all Langford pairs
 //
@@ -101,7 +111,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
   std::array<int, n2> x{};     // Values we will give to visit
   // std::array<int, n2> xrev;    // Reversed x
   std::array<int, n + 1> p;    // Pointer to unused values
-  std::array<int, n2> y;       // Backtracking array
+  std::array<int, n2> y{};       // Backtracking array
   std::array<bool, n + 1> a{}; // True if k has appeared
 
   // Initialize (L1)
@@ -115,6 +125,8 @@ template<std::size_t n, template<std::size_t> class Visitor>
 L2:
   k = p[0];
   if (k == 0) {
+    // All the elements used
+    //std::cerr << "Visiting: " << x << std::endl;
     vis.visit(x);
     goto L5;
   }
@@ -129,18 +141,23 @@ L2:
 L3:
   lpkp1 = l + k + 1;
   if (lpkp1 >= n2) goto L5; // Can't insert -- off edge
+  // Now check the rest of the list
   if (l >= (n - 2) && !a[n2 - l - 2]) {
     while (l + k + 2 < n2) {
       j = k;
       k = p[k];
     }
+    lpkp1 = l + k + 1;
   }
   if (x[lpkp1] == 0) {
+    // std::cout << "Trying x[" << l << "] = " << k;
     x[l] = k;
     x[lpkp1] = -k;
     a[k] = true;
     y[l] = j;
     p[j] = p[k];
+    // std::cout << " x: " << x << " p: " << p << " y: " << y <<
+    //  " a: " << a << std::endl;
     ++l;
     goto L2;
   }
@@ -162,6 +179,8 @@ L5:
     x[l + k + 1] = 0;
     j = y[l];
     p[j] = k;
+    // std::cout << "Backtrack to x: " << x << " p: " << p << " y: " << y <<
+    //  " a: " << a << std::endl;
     goto L4;
   }
 }
