@@ -26,9 +26,17 @@ template<std::size_t n> class CountingVisitor {
 static void BM_Langford_Basic11(benchmark::State& state) {
   CountingVisitor<11> vis;
   while (state.KeepRunning()) {
-    backtracking::langford_basic(v);
+    backtracking::langford_basic(vis);
   }
 }
 BENCHMARK(BM_Langford_Basic11);
+
+static void BM_Langford11(benchmark::State& state) {
+  CountingVisitor<11> vis;
+  while (state.KeepRunning()) {
+    backtracking::langford(vis);
+  }
+}
+BENCHMARK(BM_Langford11);
 
 BENCHMARK_MAIN();
