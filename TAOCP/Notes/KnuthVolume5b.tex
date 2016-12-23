@@ -44,7 +44,7 @@ while $l + k + 1 \ne 2 n $ set $j \leftarrow k$, $k \leftarrow p_k$.  If $x_{l +
 set $x_l \leftarrow k$, $x_{l + k + 1} \leftarrow -k$,
 $a_k \leftarrow 1$, $y_l \leftarrow j$, $p_j \leftarrow p_k$, $l \leftarrow l + 1$, and return to L2.
 \vskip 0.05in
-\noindent {\bf L4.} [Try again.] (We've found all olutions that begin with $x_1 \ldots x_{l-1} k$
+\noindent {\bf L4.} [Try again.] (We've found all solutions that begin with $x_1 \ldots x_{l-1} k$
 or something smaller.) Set $j \leftarrow k$ and $k \leftarrow p_j$, then go to L3 if $k \ne 0$.
 \vskip 0.05in
 \noindent {\bf L5.} [Backtrack.] Set $l \leftarrow l - 1$.   If $l = 0$ then terminate the algorithm.
