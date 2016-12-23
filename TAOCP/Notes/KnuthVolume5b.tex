@@ -31,7 +31,8 @@ $a_{1} \ldots a_{n} \leftarrow 0 \ldots 0$, $l \leftarrow 1$,
 $n^{\prime} = n - [n \rm{\, is\, even}].$
 \vskip 0.05in
 \noindent {\bf L2.} [Enter level $l$.] Set $k \gets p_0$.  If $k = 0$, visit
-$x_1 \ldots x_{2n}$ and go to L5.  Otherwise, set $j \leftarrow 0$, and
+$x_1 \ldots x_{2n}$, optionally visit $x_{2n} \ldots x_1$, and 
+go to L5.  Otherwise, set $j \leftarrow 0$, and
 while $x_l < 0$, go to L5 if ($l = \lfloor n / 2 \rfloor$ and $a_{n^{\prime}} = 0$) 
 or ($l \ge n - 1$ and $a_{2n - l - 1} = 0$), otherwise
 set $l \leftarrow l + 1$.
