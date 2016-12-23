@@ -16,4 +16,40 @@ and Walkers version.  The execution time runs in the ratio
 22:6.3:6.6:1.  So bit twiddling is not helpful, but, unsurprisingly,
 Walkers method is by far the fastest.
 
+\vskip 0.1in
+\noindent {\bf Optimized Algorithm L}
+
+It's useful to have the fully optimized Algorithm~L in one place, incorporating
+the improvements from exercises (20) and (21).
+
+\noindent This uses auxillary arrays $p_0 p_1 \ldots p_n$, $y_1 \ldots y_{2n}$, and
+$a_1 \ldots a_n$.
+
+\noindent {\bf L1.} [Initialize.] Set $x_1 \ldots x_{2 n} \leftarrow 0 \ldots 0$,
+$p_k \leftarrow k + 1$ for $0 \leq k < n$, $p_n \leftarrow 0$, 
+$a_{1} \ldots a_{n} \leftarrow 0 \ldots 0$, $l \leftarrow 1$,
+$n^{\prime} = n - [n \rm{\, is\, even}].$
+\vskip 0.05in
+\noindent {\bf L2.} [Enter level $l$.] Set $k \gets p_0$.  If $k = 0$, visit
+$x_1 \ldots x_{2n}$ and go to L5.  Otherwise, set $j \leftarrow 0$, and
+while $x_l < 0$, go to L5 if ($l = \lfloor n / 2 \rfloor$ and $a_{n^{\prime}} = 0$) 
+or ($l \ge n - 1$ and $a_{2n - l - 1} = 0$), otherwise
+set $l \leftarrow l + 1$.
+\vskip 0.05in
+\noindent {\bf L3.} [Try $x_l = k$.] (At this point we have $k = p_j$).  If $l + k + 1 > 2n$
+goto L5.  If $l = \lfloor n / 2 \rfloor$ and $a_{n^{\prime}} = 0$, while $k \ne n^{\prime}$
+set $j \leftarrow k$, $k \leftarrow p_k$.  If $l \ge n - 1$ and $a_{2n - l - 1} = 0$, 
+while $l + k + 1 \ne 2 n $ set $j \leftarrow k$, $k \leftarrow p_k$.  If $x_{l + k + 1} = 0$, 
+set $x_l \leftarrow k$, $x_{l + k + 1} \leftarrow -k$,
+$a_k \leftarrow 1$, $y_l \leftarrow j$, $p_j \leftarrow p_k$, $l \leftarrow l + 1$, and return to L2.
+\vskip 0.05in
+\noindent {\bf L4.} [Try again.] (We've found all olutions that begin with $x_1 \ldots x_{l-1} k$
+or something smaller.) Set $j \leftarrow k$ and $k \leftarrow p_j$, then go to L3 if $k \ne 0$.
+\vskip 0.05in
+\noindent {\bf L5.} [Backtrack.] Set $l \leftarrow l - 1$.   If $l = 0$ then terminate the algorithm.
+Otherwise do the following: While $x_l < 0$, set $l \leftarrow l - 1$.  Then set 
+$k \leftarrow x_l$, $x_l \leftarrow 0$, $x_{l + k + 1} \leftarrow 0$, $a_k \leftarrow 0$, 
+$j \leftarrow y_l$, $p_j \leftarrow k$.  If $l = \lfloor n / 2 \rfloor$ and $k = n^{\prime}$
+goto L5, otherwise goto L4.
+
 \bye
