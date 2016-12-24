@@ -23,6 +23,14 @@ template<std::size_t n> class CountingVisitor {
 };
 
 // Basic
+static void BM_Langford_Basic7(benchmark::State& state) {
+  CountingVisitor<7> vis;
+  while (state.KeepRunning()) {
+    backtracking::langford_basic(vis);
+  }
+}
+BENCHMARK(BM_Langford_Basic7);
+
 static void BM_Langford_Basic11(benchmark::State& state) {
   CountingVisitor<11> vis;
   while (state.KeepRunning()) {
@@ -31,10 +39,19 @@ static void BM_Langford_Basic11(benchmark::State& state) {
 }
 BENCHMARK(BM_Langford_Basic11);
 
+// Optimized
+static void BM_Langford7(benchmark::State& state) {
+  CountingVisitor<7> vis;
+  while (state.KeepRunning()) {
+    backtracking::langford(vis, true);
+  }
+}
+BENCHMARK(BM_Langford7);
+
 static void BM_Langford11(benchmark::State& state) {
   CountingVisitor<11> vis;
   while (state.KeepRunning()) {
-    backtracking::langford(vis);
+    backtracking::langford(vis, true);
   }
 }
 BENCHMARK(BM_Langford11);
