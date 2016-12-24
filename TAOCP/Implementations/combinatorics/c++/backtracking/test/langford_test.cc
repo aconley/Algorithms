@@ -137,38 +137,58 @@ TEST(LangfordTest, CountNBad) {
     << "Should be 0 solutions for n = 6";
 }
 
-// Counting with no solutions
+// Counting with solutions
 TEST(LangfordTest, CountNGood) {
 
   CountingVisitor<3> vis3;
   backtracking::langford(vis3);
-  EXPECT_EQ(vis3.getN(), 2)
-    << "Should be 2 solutions for n = 3";
+  EXPECT_EQ(vis3.getN(), 1)
+    << "Should be 1 solutions for n = 3";
 
   CountingVisitor<4> vis4;
   backtracking::langford(vis4);
-  EXPECT_EQ(vis4.getN(), 2)
-    << "Should be 2 solutions for n = 4";
+  EXPECT_EQ(vis4.getN(), 1)
+    << "Should be 1 solutions for n = 4";
 
   CountingVisitor<7> vis7;
   backtracking::langford(vis7);
-  EXPECT_EQ(vis7.getN(), 52)
-    << "Should be 52 solutions for n = 7";
+  EXPECT_EQ(vis7.getN(), 26)
+    << "Should be 26 solutions for n = 7";
 
   CountingVisitor<8> vis8;
   backtracking::langford(vis8);
-  EXPECT_EQ(vis8.getN(), 300)
-    << "Should be 300 solutions for n = 8";
+  EXPECT_EQ(vis8.getN(), 150)
+    << "Should be 150 solutions for n = 8";
+}
+
+// Counting including reversed
+TEST(LangfordTest, CountNGoodWithReversed) {
+  CountingVisitor<7> vis7;
+  backtracking::langford(vis7, true);
+  EXPECT_EQ(vis7.getN(), 52)
+    << "Should be 52 solutions for n = 7 if reversed solutions are included";
 }
 
 TEST(LangfordTest, Record3) {
   RecordingVisitor<3> vis3;
   backtracking::langford(vis3);
 
+  EXPECT_EQ(vis3.getN(), 1)
+    << "Should have 1 solution for n = 3";
+  std::vector<std::array<int, 6>> expected =
+    {{3, 1, 2, -1, -3, -2}};
+  EXPECT_EQ(vis3.get(0), expected[0])
+    << "Got unexpected langford solution for n = 3";
+}
+
+TEST(LangfordTest, Record3WithReversed) {
+  RecordingVisitor<3> vis3;
+  backtracking::langford(vis3, true);
+
   EXPECT_EQ(vis3.getN(), 2)
     << "Should have 2 solutions for n = 3";
   std::vector<std::array<int, 6>> expected =
-    {{2, 3, 1, -2, -1, -3}, {3, 1, 2, -1, -3, -2}};
+    {{3, 1, 2, -1, -3, -2}, {2, 3, 1, -2, -1, -3}};
   EXPECT_EQ(vis3.get(0), expected[0])
     << "Got unexpected first langford solution for n = 3";
   EXPECT_EQ(vis3.get(1), expected[1])
