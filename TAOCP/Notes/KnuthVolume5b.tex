@@ -53,4 +53,8 @@ $k \leftarrow x_l$, $x_l \leftarrow 0$, $x_{l + k + 1} \leftarrow 0$, $a_k \left
 $j \leftarrow y_l$, $p_j \leftarrow k$.  If $l = \lfloor n / 2 \rfloor$ and $k = n^{\prime}$
 goto L5, otherwise goto L4.
 
+When implemented in c++, the relative timings are 16 $\mu$s and 7.3 $\mu$s for $n = 7$ for the
+raw and optimized Algorithm~L (both visiting both the forward and reversed solutions),
+and 60 ms vs.\ 18 ms for $n = 11$.
+
 \bye
