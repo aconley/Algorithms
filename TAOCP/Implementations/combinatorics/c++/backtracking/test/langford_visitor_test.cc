@@ -71,3 +71,19 @@ TEST(LangfordRecordingVisitorTest, MakesCopy) {
   vals[0][0] = 100;
   EXPECT_NE(vis.get(0), vals[0]) << "Visitor should have copy";
 }
+
+TEST(LangfordBalancedVisitor, ChecksBalance) {
+  // Knuth 4a section 7 (2)
+  backtracking::LangfordBalancedVisitor<16> vis;
+  std::array<int, 32> balanced{16, 6, 9, 15, 2, 3, 8, -2, -6, -3,
+    13, 10, -9, 12, 14, -8, 11, -16, 1, -15, -1, 5, -10, 7, -13,
+    4, -12, -5, -11, -14, -4, -7};
+
+  EXPECT_EQ(vis.getN(), 0) << "Should start empty";
+
+  vis.visit(balanced);
+  EXPECT_EQ(vis.getN(), 1) << "Should accept balanced example";
+  balanced[0] = 200;
+  vis.visit(balanced);
+  EXPECT_EQ(vis.getN(), 1) << "Should not accept unbalanced one";
+}

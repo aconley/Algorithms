@@ -23,6 +23,9 @@ set(EXT_PROJECTS_DIR ${PROJECT_SOURCE_DIR}/ext)
 add_subdirectory(${EXT_PROJECTS_DIR}/gtest)
 add_subdirectory(${EXT_PROJECTS_DIR}/gbench)
 
+# Examples
+add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+
 # Tests
 add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 
