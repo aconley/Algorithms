@@ -3,6 +3,7 @@
 
 #include "gtest/gtest.h"
 #include "langford.h"
+#include "langford_visitors.h"
 
 template <class T, std::size_t N>
 std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
@@ -11,99 +12,54 @@ std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
     return o;
 }
 
-template<std::size_t n> class RecordingVisitor {
-  private:
-    std::vector<std::array<int, 2 * n>> solutions;
-
-  public:
-    bool visit(const std::array<int, 2 * n>& sol) {
-      std::array<int, 2 * n> v(sol);
-      solutions.push_back(v);
-      return true;
-    }
-
-    void reset() {
-      solutions.clear();
-    }
-
-    int getN() const {
-      return solutions.size();
-    }
-
-    const std::array<int, 2 * n>& get(int i) {
-      return solutions.at(i);
-    }
-};
-
-template<std::size_t n> class CountingVisitor {
-  private:
-    int nsolutions;
-
-  public:
-    CountingVisitor() { nsolutions = 0; }
-
-    bool visit(const std::array<int, 2 * n>& rows) {
-      ++nsolutions;
-      return true;
-    }
-
-    void reset() {
-      nsolutions = 0;
-    }
-
-    int getN() const {
-      return nsolutions;
-    }
-};
-
 //////////////////////
 // Test langford_basic
 
 // Counting with solutions
 TEST(LangfordBasicTest, CountNBad) {
 
-  CountingVisitor<2> vis2;
+  backtracking::LangfordCountingVisitor<2> vis2;
   backtracking::langford_basic(vis2);
   EXPECT_EQ(vis2.getN(), 0)
     << "Should be 0 solutions for n = 2";
 
-  CountingVisitor<5> vis5;
+  backtracking::LangfordCountingVisitor<5> vis5;
   backtracking::langford_basic(vis5);
   EXPECT_EQ(vis5.getN(), 0)
     << "Should be 0 solutions for n = 5";
 
-  CountingVisitor<6> vis6;
+  backtracking::LangfordCountingVisitor<6> vis6;
   backtracking::langford_basic(vis6);
   EXPECT_EQ(vis6.getN(), 0)
     << "Should be 0 solutions for n = 6";
 }
 
-// Counting with no solutions
+// Counting with solutions
 TEST(LangfordBasicTest, CountNGood) {
 
-  CountingVisitor<3> vis3;
+  backtracking::LangfordCountingVisitor<3> vis3;
   backtracking::langford_basic(vis3);
   EXPECT_EQ(vis3.getN(), 2)
     << "Should be 2 solutions for n = 3";
 
-  CountingVisitor<4> vis4;
+  backtracking::LangfordCountingVisitor<4> vis4;
   backtracking::langford_basic(vis4);
   EXPECT_EQ(vis4.getN(), 2)
     << "Should be 2 solutions for n = 4";
 
-  CountingVisitor<7> vis7;
+  backtracking::LangfordCountingVisitor<7> vis7;
   backtracking::langford_basic(vis7);
   EXPECT_EQ(vis7.getN(), 52)
     << "Should be 52 solutions for n = 7";
 
-  CountingVisitor<8> vis8;
+  backtracking::LangfordCountingVisitor<8> vis8;
   backtracking::langford_basic(vis8);
   EXPECT_EQ(vis8.getN(), 300)
     << "Should be 300 solutions for n = 8";
 }
 
 TEST(LangfordBasicTest, Record3) {
-  RecordingVisitor<3> vis3;
+  backtracking::LangfordRecordingVisitor<3> vis3;
   backtracking::langford_basic(vis3);
 
   EXPECT_EQ(vis3.getN(), 2)
@@ -121,17 +77,17 @@ TEST(LangfordBasicTest, Record3) {
 // Counting with solutions
 TEST(LangfordTest, CountNBad) {
 
-  CountingVisitor<2> vis2;
+  backtracking::LangfordCountingVisitor<2> vis2;
   backtracking::langford(vis2);
   EXPECT_EQ(vis2.getN(), 0)
     << "Should be 0 solutions for n = 2";
 
-  CountingVisitor<5> vis5;
+  backtracking::LangfordCountingVisitor<5> vis5;
   backtracking::langford(vis5);
   EXPECT_EQ(vis5.getN(), 0)
     << "Should be 0 solutions for n = 5";
 
-  CountingVisitor<6> vis6;
+  backtracking::LangfordCountingVisitor<6> vis6;
   backtracking::langford(vis6);
   EXPECT_EQ(vis6.getN(), 0)
     << "Should be 0 solutions for n = 6";
@@ -140,22 +96,22 @@ TEST(LangfordTest, CountNBad) {
 // Counting with solutions
 TEST(LangfordTest, CountNGood) {
 
-  CountingVisitor<3> vis3;
+  backtracking::LangfordCountingVisitor<3> vis3;
   backtracking::langford(vis3);
   EXPECT_EQ(vis3.getN(), 1)
     << "Should be 1 solutions for n = 3";
 
-  CountingVisitor<4> vis4;
+  backtracking::LangfordCountingVisitor<4> vis4;
   backtracking::langford(vis4);
   EXPECT_EQ(vis4.getN(), 1)
     << "Should be 1 solutions for n = 4";
 
-  CountingVisitor<7> vis7;
+  backtracking::LangfordCountingVisitor<7> vis7;
   backtracking::langford(vis7);
   EXPECT_EQ(vis7.getN(), 26)
     << "Should be 26 solutions for n = 7";
 
-  CountingVisitor<8> vis8;
+  backtracking::LangfordCountingVisitor<8> vis8;
   backtracking::langford(vis8);
   EXPECT_EQ(vis8.getN(), 150)
     << "Should be 150 solutions for n = 8";
@@ -163,14 +119,14 @@ TEST(LangfordTest, CountNGood) {
 
 // Counting including reversed
 TEST(LangfordTest, CountNGoodWithReversed) {
-  CountingVisitor<7> vis7;
+  backtracking::LangfordCountingVisitor<7> vis7;
   backtracking::langford(vis7, true);
   EXPECT_EQ(vis7.getN(), 52)
     << "Should be 52 solutions for n = 7 if reversed solutions are included";
 }
 
 TEST(LangfordTest, Record3) {
-  RecordingVisitor<3> vis3;
+  backtracking::LangfordRecordingVisitor<3> vis3;
   backtracking::langford(vis3);
 
   EXPECT_EQ(vis3.getN(), 1)
@@ -182,7 +138,7 @@ TEST(LangfordTest, Record3) {
 }
 
 TEST(LangfordTest, Record3WithReversed) {
-  RecordingVisitor<3> vis3;
+  backtracking::LangfordRecordingVisitor<3> vis3;
   backtracking::langford(vis3, true);
 
   EXPECT_EQ(vis3.getN(), 2)

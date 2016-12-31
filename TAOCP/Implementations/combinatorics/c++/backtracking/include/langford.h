@@ -20,7 +20,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
   void langford_basic(Visitor<n>& vis) {
 
   // Quick check returns when there are no solutions
-  if (n == 0)
+  if (n <= 0)
     return;
   int nm4 = n % 4;
   if (nm4 == 1 || nm4 == 2)
@@ -92,7 +92,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
   void langford(Visitor<n>& vis, bool visitReversed=false) {
 
   // Quick check returns when there are no solutions
-  if (n == 0)
+  if (n <= 0)
     return;
   int nm4 = n % 4;
   if (nm4 == 1 || nm4 == 2)
