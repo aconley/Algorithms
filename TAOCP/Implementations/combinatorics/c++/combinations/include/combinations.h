@@ -59,5 +59,67 @@ template<std::size_t t,
   }
 }
 
+// Optimized version of permutations visitor
+//  This is algorithm T of Knuth TAOCP 7.2.1.3
+// This visits n objects taken t at a time
+template<std::size_t t,
+         template<std::size_t> class Visitor>
+  void combinations_lex(std::size_t n, Visitor<t>& vis) {
+
+  if (t == 0) return;
+  if (n < t) {
+    throw new std::invalid_argument("n should be >= t");
+  }
+
+  // L1: Initialize
+  std::array<int, t> c;
+  int j, x;
+  for (j = 0; j < t; ++j)
+    c[j] = j;
+
+  // Quick exit cases
+  if (n == t) {
+    vis.visit(c);
+    return;
+  } else if (t == 1) {
+    vis.visit(c);
+    for (j = 1; j < n; ++j) {
+      c[0] = j;
+      if (!vis.visit(c)) return;
+    }
+    return;
+  }
+  j = t;
+
+T2: // visit
+if (!vis.visit(c)) return;
+  if (j > 0) {
+    x = j;
+    goto T6;
+  }
+
+T3:
+  if (c[0] + 1 < c[1]) {
+    c[0] += 1;
+    goto T2;
+  }
+  j = 2;
+
+T4:
+  c[j - 2] = j - 2;
+  x = c[j - 1] + 1;
+  if (x == n) return;
+  if (x == c[j]) {
+    ++j;
+    goto T4;
+  }
+
+T6:
+  c[j - 1] = x;
+  --j;
+  goto T2;
+}
+
+
 }
 #endif
