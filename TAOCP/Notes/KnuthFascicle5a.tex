@@ -13,4 +13,22 @@ final step again takes advantage of ${\rm E}\left(X | X > 0\right) = {\rm E} \le
 {\rm Pr}\left(X > 0\right)$, and therefore $\left( {\rm E} \left(X | X > 0\right) \right)^2 = 
 \left({\rm E} \left(X \right) / {\rm Pr}\left(X > 0\right) \right)^2$.
 
+\newhead{Martingales}
+
+\noindent Something that goes oddly unmentioned, but is used, is that
+${\rm E} Z_n = {\rm E} Z_0$ for any martingale.  For example, it gets used in the stopping rule
+discussion.  {\it Proof}: We have 
+$$
+\eqalign{ 
+{\rm E}\, Z_n 
+ &= \sum_{Z_{n-1}, \ldots, Z_{0}} {\rm E} \left(Z_n | Z_{n-1} \ldots, Z_0 \right)
+                {\rm Pr}\left(Z_{n-1}, \ldots, Z_{0} \right)\cr 
+ &= \sum_{Z_{n-1}, \ldots, Z_{0}} z_{n-1} {\rm Pr}\left(Z_{n-1}  \ldots, Z_{0} \right) \cr
+ &= \sum_{Z_{n-1}, \ldots, Z_{0}} z_{n-1} {\rm Pr}\left(Z_{n-1} | Z_{n-2}, \ldots, Z_0\right)
+                 {\rm Pr} \left(Z_{n-2}, \ldots, Z_0 \right) \cr
+ &= {\rm E} Z_{n-1}.\cr
+}
+$$
+And we can keep doing this all the way down to ${\rm E}\, Z_0$.
+
 \bye
