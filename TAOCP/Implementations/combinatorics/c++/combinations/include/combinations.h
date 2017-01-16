@@ -120,6 +120,85 @@ T6:
   goto T2;
 }
 
+// Grey code revolving door generator: Knuth 4A 7.2.1.3 Algorithm R
+template<std::size_t t,
+         template<std::size_t> class Visitor>
+  void combinations_grey(std::size_t n, Visitor<t>& vis) {
+
+  if (t == 0) return;
+  if (n < t) {
+    throw new std::invalid_argument("n should be >= t");
+  }
+
+  // R1: Initialize
+  std::array<int, t> c;
+  int j;
+  for (j = 1; j <= t; ++j)
+    c[j - 1] = j - 1;
+  if (n == t) {
+    vis.visit(c);
+    return;
+  } else if (t == 1) {
+    vis.visit(c);
+    for (j = 1; j < n; ++j) {
+      c[0] = j;
+      if (!vis.visit(c)) return;
+    }
+    return;
+  }
+  bool is_t_odd = (t & 1) == 0;
+
+R2:
+  if (!vis.visit(c)) return;
+
+R3: // Easy case
+  if (is_t_odd) {
+    if (c[0] < c[1]) {
+      ++c[0];
+      goto R2;
+    } else {
+      j = 2;
+      goto R4;
+    }
+  } else {
+    if (c[0] > 0) {
+      --c[0];
+      goto R2;
+    } else {
+      j = 2;
+      goto R5;
+    }
+  }
+
+R4: // Try to decrease c_j
+  if (c[j - 1] >= j) {
+    c[j - 1] = c[j - 2];
+    c[j - 2] = j - 2;
+    goto R2;
+  } else {
+    ++j;
+  }
+
+R5: // Try to increase c_j
+  if (j == t) {
+    if (c[j - 1] + 1 < n) {
+      c[j - 2] = c[j - 1];
+      ++c[j - 1];
+      goto R2;
+    } else {
+      return;
+    }
+  } else {
+    if (c[j - 1] + 1 < c[j]) {
+      c[j - 2] = c[j - 1];
+      ++c[j-1];
+      goto R2;
+    } else {
+      ++j;
+      if (j <= t) goto R4;
+    }
+  }
+}
 
 }
 #endif
