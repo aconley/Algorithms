@@ -82,7 +82,7 @@ template<std::size_t t,
     vis.visit(c);
     return;
   } else if (t == 1) {
-    vis.visit(c);
+    if (!vis.visit(c)) return;
     for (j = 1; j < n; ++j) {
       c[0] = j;
       if (!vis.visit(c)) return;
@@ -141,7 +141,7 @@ template<std::size_t t,
     vis.visit(c);
     return;
   } else if (t == 1) {
-    vis.visit(c);
+    if (!vis.visit(c)) return;
     for (j = 1; j < n; ++j) {
       c[0] = j;
       if (!vis.visit(c)) return;
@@ -150,6 +150,7 @@ template<std::size_t t,
   }
 
   bool is_t_odd = (t & 1) != 0;
+  int tm1 = static_cast<int>(t) - 1;
 
 R2:
   if (!vis.visit(c)) return;
@@ -160,7 +161,7 @@ R3: // Easy case
       ++c[0];
       goto R2;
     } else {
-      j = 2;
+      j = 1;
       goto R4;
     }
   } else {
@@ -168,37 +169,37 @@ R3: // Easy case
       --c[0];
       goto R2;
     } else {
-      j = 2;
+      j = 1;
       goto R5;
     }
   }
 
 R4: // Try to decrease c_j
-  if (c[j - 1] >= j) {
-    c[j - 1] = c[j - 2];
-    c[j - 2] = j - 2;
+  if (c[j] > j) {
+    c[j] = c[j - 1];
+    c[j - 1] = j - 1;
     goto R2;
   } else {
     ++j;
   }
 
 R5: // Try to increase c_j
-  if (j == t) {
-    if (c[j - 1] + 1 < n) {
-      c[j - 2] = c[j - 1];
-      ++c[j - 1];
+  if (j == tm1) {
+    if (c[j] + 1 < n) {
+      c[j - 1] = c[j];
+      ++c[j];
       goto R2;
     } else {
       return;
     }
   } else {
-    if (c[j - 1] + 1 < c[j]) {
-      c[j - 2] = c[j - 1];
-      ++c[j-1];
+    if (c[j] + 1 < c[j + 1]) {
+      c[j - 1] = c[j];
+      ++c[j];
       goto R2;
     } else {
       ++j;
-      if (j <= t) goto R4;
+      if (j <= tm1) goto R4;
     }
   }
 }
