@@ -133,8 +133,10 @@ template<std::size_t t,
   // R1: Initialize
   std::array<int, t> c;
   int j;
-  for (j = 1; j <= t; ++j)
-    c[j - 1] = j - 1;
+  for (j = 0; j < t; ++j)
+    c[j] = j;
+
+  // Easy cases
   if (n == t) {
     vis.visit(c);
     return;
@@ -146,14 +148,15 @@ template<std::size_t t,
     }
     return;
   }
-  bool is_t_odd = (t & 1) == 0;
+
+  bool is_t_odd = (t & 1) != 0;
 
 R2:
   if (!vis.visit(c)) return;
 
 R3: // Easy case
   if (is_t_odd) {
-    if (c[0] < c[1]) {
+    if (c[0] + 1 < c[1]) {
       ++c[0];
       goto R2;
     } else {
