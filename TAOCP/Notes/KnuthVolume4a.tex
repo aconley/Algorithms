@@ -1124,6 +1124,24 @@ Implementations of Algorithms~L, T, and F in c++ show that Algorithm~T is about
 25\% faster than Algorithm~L (the examples used were $14 \choose 4$ and $16 \choose 5$),
 but Algorithm~R is about 20\% faster still.
 
+\sec{Section 7.2.1.4: Generating all Partitions}
+
+\noindent {\bf The number of partitions}
+
+\newitem{396} Recurrence relation for the number of partitions.  We have
+$$
+ \prod_{m=1}^{\infty} 1 - z^m = \sum_{-\infty < n < \infty} \left(-1\right)^n z^{\left(3 n^2 + n\right) / 2}
+  = \sum_n \left(-1\right)^n z^{3 n^2 / 2} \left(z^{n/2} + z^{-n/2}\right),
+$$
+but how do we get the complicated recurrence relation?  Well, we have 
+$ \prod_m 1 / \left(1 - z^m\right) = P\left(z\right)$, so $ \prod_m \left(1 - z^m\right) = 1 / P\left(z\right),$
+or $P\left(z\right) \prod_m \left(1 + z^m\right).$  So, writing out the first few terms, this is
+$$
+ \left(1 - z - z^2 + z^5 + z^7 - \ldots \right) \left(p\left(0\right) z + p\left(1\right) z + p\left(2\right) z^2
+ + \ldots\right) = 1.
+$$
+Consider the coefficient of $z^n$ in this product.  It is $p\left(n\right) z^n - p\left(n - 1\right) z^{n-1} z
+- p\left(n - 2\right) z^{n-2} z^2 + \ldots = 0$, from which the stated occurrence follows immediately.
 
 \sec{Section 7.2.1.6: Generating all Trees}
 
