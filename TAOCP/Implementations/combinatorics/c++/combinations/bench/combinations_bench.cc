@@ -1,5 +1,6 @@
 #include "benchmark/benchmark.h"
 #include "combinations.h"
+#include "combinations_gray.h"
 
 class CountingVisitor {
   private:
@@ -58,20 +59,20 @@ static void BM_Combinations_16_5(benchmark::State& state) {
 BENCHMARK(BM_Combinations_16_5);
 
 // Grey code / Revolving door
-static void BM_Combinations_Grey_14_4(benchmark::State& state) {
+static void BM_Combinations_Gray_14_4(benchmark::State& state) {
   CountingVisitor vis4;
   while (state.KeepRunning()) {
-    combinations::combinations_grey(14, 4, vis4);
+    combinations::combinations_gray(14, 4, vis4);
   }
 }
-BENCHMARK(BM_Combinations_Grey_14_4);
+BENCHMARK(BM_Combinations_Gray_14_4);
 
-static void BM_Combinations_Grey_16_5(benchmark::State& state) {
+static void BM_Combinations_Gray_16_5(benchmark::State& state) {
   CountingVisitor vis5;
   while (state.KeepRunning()) {
-    combinations::combinations_grey(16, 5, vis5);
+    combinations::combinations_gray(16, 5, vis5);
   }
 }
-BENCHMARK(BM_Combinations_Grey_16_5);
+BENCHMARK(BM_Combinations_Gray_16_5);
 
 BENCHMARK_MAIN();
