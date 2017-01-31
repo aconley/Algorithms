@@ -71,27 +71,31 @@ template<class Visitor>
   }
 
   // L1: Initialize
-  std::vector<int> c(t);
+  std::vector<int> c(t + 2);
   int j, x;
   for (j = 0; j < t; ++j)
     c[j] = j;
+  c[t] = n;
+  c[t + 1] = 0;
+
+  auto vis_end = c.cend() - 2;
 
   // Quick exit cases
   if (n == t) {
-    vis.visit(c.cbegin(), c.cend());
+    vis.visit(c.cbegin(), vis_end);
     return;
   } else if (t == 1) {
-    if (!vis.visit(c.cbegin(), c.cend())) return;
+    if (!vis.visit(c.cbegin(), vis_end)) return;
     for (j = 1; j < n; ++j) {
       c[0] = j;
-      if (!vis.visit(c.cbegin(), c.cend())) return;
+      if (!vis.visit(c.cbegin(), vis_end)) return;
     }
     return;
   }
   j = t;
 
 T2: // visit
-if (!vis.visit(c.cbegin(), c.cend())) return;
+  if (!vis.visit(c.cbegin(), vis_end)) return;
   if (j > 0) {
     x = j;
     goto T6;
@@ -107,11 +111,11 @@ T3:
 T4:
   c[j - 2] = j - 2;
   x = c[j - 1] + 1;
-  if (x == n) return;
   if (x == c[j]) {
     ++j;
     goto T4;
   }
+  if (j > t) return;
 
 T6:
   c[j - 1] = x;
