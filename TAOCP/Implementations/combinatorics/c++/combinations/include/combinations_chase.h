@@ -28,12 +28,24 @@ template<class Visitor>
   std::vector<int> c(t + 1), z(t + 1, 0);
   int j, s, r, x;
   s = n - t;
-  for (j = 0; j < t; ++j) c[j] = s + j;
+  for (j = 0; j <= t; ++j) c[j] = s + j;
   auto vis_end = c.cend() - 1;
 
+/*
+  std::cout << "Initial";
+  std::copy(c.cbegin(), vis_end, std::ostream_iterator<int>(std::cout, " "));
+  std::cout << std::endl;
+*/
   // Easy case
   if (n == t) {
     vis.visit(c.cbegin(), vis_end);
+    return;
+  } else if (t == 1) {
+    if (!vis.visit(c.cbegin(), vis_end)) return;
+    for (j = n - 2; j >= 0; --j) {
+      c[0] = j;
+      if (!vis.visit(c.cbegin(), vis_end)) return;
+    }
     return;
   }
 
@@ -41,16 +53,17 @@ template<class Visitor>
 
 CC2: // Visit
   if (!vis.visit(c.cbegin(), vis_end)) return;
+  j = r;
 
 CC3: // Branch
-  if (z[j - 1] == 0) goto CC4;
+  if (z[j - 1] != 0) goto CC5;
 
 CC4: // Try to decrease c_j
   x = c[j - 1] + (c[j - 1] & 1) - 2;
   if (x >= j) {
     c[j - 1] = x;
     r = 1;
-  } else if (c[j - 1] = j) {
+  } else if (c[j - 1] == j) {
     --c[j - 1];
     z[j - 1] = c[j] - ((c[j] + 1) & 1);
     r = j;
@@ -85,3 +98,4 @@ CC5: // Try to increase c_j
 }
 
 }
+#endif
