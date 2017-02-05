@@ -1143,6 +1143,20 @@ $$
 Consider the coefficient of $z^n$ in this product.  It is $p\left(n\right) z^n - p\left(n - 1\right) z^{n-1} z
 - p\left(n - 2\right) z^{n-2} z^2 + \ldots = 0$, from which the stated occurrence follows immediately.
 
+\newitem{399} Partitions into at most $m$ parts.\hfil\break
+Why is this equal to $\vert {n + m \over m}\vert$?  You can see this by telescoping the recurrence
+formula:
+$$
+\eqalign{\left| {n + m \over m} \right| 
+  &= \left| {n \over m} \right| + \left| {n + m - 1 \over m - 1} \right| \cr
+  &= \left| {n \over m} \right| + \left| {n \over m - 1} \right| + \left| {n + m - 2 \over m - 2} \right| \cr
+  &= \left| {n \over m} \right| + \left| {n \over m - 1} \right| + \left| {n \over m - 2} \right| +
+                          \left| { n + m - 3 \over m - 3} \right| \cr
+  &= \ldots}
+$$
+which is just the sum of the number of ways to split $n$ into $m, m-1, \ldots, 1$ parts -- exactly
+what we want. 
+
 \sec{Section 7.2.1.6: Generating all Trees}
 
 \noindent [p 443] {\bf Algorithm P} \hfil\break
