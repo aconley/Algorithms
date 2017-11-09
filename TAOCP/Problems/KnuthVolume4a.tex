@@ -108,6 +108,12 @@ The toughest ones are $\oplus = \supset \bar \land \subset = 1011 \bar \land 110
 The latter two are just $\subset \bar \land T$ and $\supset \bar \land T$,
 and $\perp = T \bar \land T$.
 
+Incidentally, if one doesn't want to start with projection and negation, those
+can be constructed from NAND.  First, $\bar x = x \bar \land x$.  Then we
+can form $1 = x \bar \land \bar x = x \bar \land \left( x \bar \land x \right)$ 
+and use that to form $L = \overline{ x \bar \land 1}$ (writing $0$ in terms of $y$), and
+$R = \overline{ y \bar \land 1}$.  Also: $0 = \overline{\left( x \bar \land \bar x \right)}.$
+
 \vskip 0.1in \noindent {\bf Problem 12} ({\it multilinear representation}).\hfil\break
 a) Recall that (22) has the truth table $1100\,1001\,0000\,1111$, and
 the expansion using Boole's law is given by (23).  This can rather easily
