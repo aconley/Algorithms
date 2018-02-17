@@ -51,7 +51,7 @@ template<std::size_t n, template<std::size_t> class Visitor>
 
   B3: // Try t
   if ( (a & (1 << t)) == 0
-    && (b & (1 << (t+l))) == 0
+    && (b & (1 << (t + l))) == 0
     && (c & (1 << (t - l + nm1))) == 0)  {
     // Worked
     a |= (1 << t);

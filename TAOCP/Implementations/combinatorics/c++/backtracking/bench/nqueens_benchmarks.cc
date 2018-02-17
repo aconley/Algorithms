@@ -2,6 +2,7 @@
 #include "nqueens_basic.h"
 #include "nqueens_array.h"
 #include "nqueens_bitwise.h"
+#include "nqueens_iterative.h"
 #include "nqueens_walker.h"
 
 template<std::size_t n> class CountingVisitor {
@@ -91,6 +92,31 @@ static void BM_Nqueens_Bitwise13(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_Nqueens_Bitwise13);
+
+// Bitwise Iterative
+static void BM_Nqueens_BitwiseIterative8(benchmark::State& state) {
+  CountingVisitor<8> v;
+  while (state.KeepRunning()) {
+    backtracking::nqueens_iterative(v);
+  }
+}
+BENCHMARK(BM_Nqueens_BitwiseIterative8);
+
+static void BM_Nqueens_BitwiseIterative10(benchmark::State& state) {
+  CountingVisitor<10> v;
+  while (state.KeepRunning()) {
+    backtracking::nqueens_iterative(v);
+  }
+}
+BENCHMARK(BM_Nqueens_BitwiseIterative10);
+
+static void BM_Nqueens_BitwiseIterative13(benchmark::State& state) {
+  CountingVisitor<13> v;
+  while (state.KeepRunning()) {
+    backtracking::nqueens_iterative(v);
+  }
+}
+BENCHMARK(BM_Nqueens_BitwiseIterative13);
 
 // Walker
 static void BM_Nqueens_Walker8(benchmark::State& state) {
