@@ -7,18 +7,18 @@
 
 namespace backtracking {
 
-// The methods here visit all NQueens solution
+// The methods here visit all NQueens solutions.
 //
 //  Visitor must implement a method
 //     bool visit(const array<int, n>& rows)
 // Where the queen in column i is in row rows[i]
 //  in the range [0, n)
-// If visit returns false, it indicates that the
+// If visit method returns false, it indicates that the
 //  algorithm should be terminated immediately.  This
 //  is useful if looking for, say, the first solution
 //  to satisfy some additional property.
 
-// Basic visitor
+// Basic implementation
 template<std::size_t n, template<std::size_t> class Visitor>
   void nqueens_basic(Visitor<n>& vis) {
 
