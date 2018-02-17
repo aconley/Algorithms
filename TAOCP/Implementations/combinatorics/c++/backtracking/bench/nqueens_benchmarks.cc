@@ -1,5 +1,8 @@
 #include "benchmark/benchmark.h"
-#include "nqueens.h"
+#include "nqueens_basic.h"
+#include "nqueens_array.h"
+#include "nqueens_bitwise.h"
+#include "nqueens_walker.h"
 
 template<std::size_t n> class CountingVisitor {
   private:
