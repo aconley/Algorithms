@@ -6,6 +6,7 @@ ExternalProject_Add(googlebench
     GIT_REPOSITORY https://github.com/google/benchmark.git
     CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
                -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
+               -DBENCHMARK_ENABLE_GTEST_TESTS=OFF
      PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
 # Disable install step
     INSTALL_COMMAND ""
