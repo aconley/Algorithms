@@ -49,7 +49,7 @@ template<class Visitor>
 R2:
   if (!vis.visit(c.cbegin(), c.cend())) return;
 
-R3: // Easy case
+// R3: Easy case
   if (is_t_odd) {
     if (c[0] + 1 < c[1]) {
       ++c[0];

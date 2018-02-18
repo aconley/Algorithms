@@ -58,7 +58,7 @@ CC2: // Visit
 CC3: // Branch
   if (z[j - 1] != 0) goto CC5;
 
-CC4: // Try to decrease c_j
+// CC4: Try to decrease c_j
   x = c[j - 1] + (c[j - 1] & 1) - 2;
   if (x >= j) {
     c[j - 1] = x;

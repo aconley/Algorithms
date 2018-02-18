@@ -101,7 +101,7 @@ T2: // visit
     goto T6;
   }
 
-T3:
+// T3
   if (c[0] + 1 < c[1]) {
     c[0] += 1;
     goto T2;
