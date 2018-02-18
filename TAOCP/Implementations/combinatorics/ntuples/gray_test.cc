@@ -4,6 +4,7 @@
 #include "looplessgray.h"
 
 #include<array>
+#include<iterator>
 
 using namespace ntuples;
 
@@ -12,18 +13,14 @@ using namespace ntuples;
 ////////////////////////////////////////
 TEST(GrayTest, Count) {
   Gray gray(15);
-
-  unsigned int nfound = 0;
-  for (auto it : gray)
-    ++nfound;
-
+  auto nfound = std::distance(gray.begin(), gray.end());
   EXPECT_EQ(nfound, 32768) << "Got unexpected number of ntuples for n = 15";
 }
 
 TEST(GrayTest, Pattern4) {
   std::array<std::uint32_t, 16> expected =
-    { 0b0000, 0b0001, 0b0011, 0b0010, 0b0110, 0b0111, 0b0101, 0b0100,
-      0b1100, 0b1101, 0b1111, 0b1110, 0b1010, 0b1011, 0b1001, 0b1000};
+    {{ 0b0000, 0b0001, 0b0011, 0b0010, 0b0110, 0b0111, 0b0101, 0b0100,
+      0b1100, 0b1101, 0b1111, 0b1110, 0b1010, 0b1011, 0b1001, 0b1000 }};
   Gray gray(4);
   int idx = 0;
   for (auto it : gray) {
@@ -39,30 +36,20 @@ TEST(GrayTest, Pattern4) {
 ////////////////////////////////////////
 TEST(BinaryGrayTest, IteratorCount) {
   int n = 15;
-  auto start = BinaryGrayIterator::begin(n);
-  auto end = BinaryGrayIterator::end(n);
-
-  unsigned int nfound = 0;
-  for (auto it = start; it != end; ++it)
-    ++nfound;
-
+  auto nfound = std::distance(BinaryGrayIterator::begin(n), BinaryGrayIterator::end(n));
   EXPECT_EQ(nfound, 32768) << "Got unexpected number of ntuples for n = 15";
 }
 
 TEST(BinaryGrayTest, Count) {
   BinaryGray gray(15);
-
-  unsigned int nfound = 0;
-  for (auto it : gray)
-    ++nfound;
-
+  auto nfound = std::distance(gray.begin(), gray.end());
   EXPECT_EQ(nfound, 32768) << "Got unexpected number of ntuples for n = 15";
 }
 
 TEST(BinaryGrayTest, Pattern4) {
   std::array<std::uint32_t, 16> expected =
-    { 0b0000, 0b0001, 0b0011, 0b0010, 0b0110, 0b0111, 0b0101, 0b0100,
-      0b1100, 0b1101, 0b1111, 0b1110, 0b1010, 0b1011, 0b1001, 0b1000};
+    {{ 0b0000, 0b0001, 0b0011, 0b0010, 0b0110, 0b0111, 0b0101, 0b0100,
+       0b1100, 0b1101, 0b1111, 0b1110, 0b1010, 0b1011, 0b1001, 0b1000 }};
   BinaryGray gray(4);
   int idx = 0;
   for (auto it : gray) {
@@ -83,18 +70,14 @@ TEST(BinaryGrayTest, GetNext) {
 ////////////////////////////////////////
 TEST(LooplessGrayTest, Count) {
   LooplessGray gray(15);
-
-  unsigned int nfound = 0;
-  for (auto it : gray)
-    ++nfound;
-
+  auto nfound = std::distance(gray.begin(), gray.end());
   EXPECT_EQ(nfound, 32768) << "Got unexpected number of ntuples for n = 15";
 }
 
 TEST(LooplessGrayTest, Pattern4) {
   std::array<std::uint32_t, 16> expected =
-    { 0b0000, 0b0001, 0b0011, 0b0010, 0b0110, 0b0111, 0b0101, 0b0100,
-      0b1100, 0b1101, 0b1111, 0b1110, 0b1010, 0b1011, 0b1001, 0b1000};
+    {{ 0b0000, 0b0001, 0b0011, 0b0010, 0b0110, 0b0111, 0b0101, 0b0100,
+       0b1100, 0b1101, 0b1111, 0b1110, 0b1010, 0b1011, 0b1001, 0b1000 }};
   LooplessGray gray(4);
   int idx = 0;
   for (auto it : gray) {

@@ -3,6 +3,8 @@
 #include "binarygray.h"
 #include "looplessgray.h"
 
+#include<iterator>
+
 using namespace ntuples;
 
 const int n = 18;
@@ -22,36 +24,24 @@ BENCHMARK(BM_PureCount);
 
 static void BM_Gray(benchmark::State& state) {
   Gray gray(n);
-
-  unsigned int nfound;
   while (state.KeepRunning()) {
-    nfound = 0;
-    for (auto g : gray)
-      benchmark::DoNotOptimize(++nfound);
+    auto nfound = std::distance(gray.begin(), gray.end());
   }
 }
 BENCHMARK(BM_Gray);
 
 static void BM_BinaryGray(benchmark::State& state) {
   BinaryGray gray(n);
-
-  unsigned int nfound;
   while (state.KeepRunning()) {
-    nfound = 0;
-    for (auto g : gray)
-      benchmark::DoNotOptimize(++nfound);
+    auto nfound = std::distance(gray.begin(), gray.end());
   }
 }
 BENCHMARK(BM_BinaryGray);
 
 static void BM_LooplessGray(benchmark::State& state) {
   LooplessGray gray(n);
-
-  unsigned int nfound;
   while (state.KeepRunning()) {
-    nfound = 0;
-    for (auto g : gray)
-      benchmark::DoNotOptimize(++nfound);
+    auto nfound = std::distance(gray.begin(), gray.end());
   }
 }
 BENCHMARK(BM_LooplessGray);
