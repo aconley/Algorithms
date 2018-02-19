@@ -32,7 +32,7 @@ TEST(LangfordCountingVisitorTest, DoesReset) {
 TEST(LangfordRecordingVisitorTest, DoesRecord) {
   backtracking::LangfordRecordingVisitor<3> vis;
   std::vector<std::array<int, 6>> vals =
-    {{3, 1, 2, -1, -3, -2}, {2, 3, 1, -2, -1, -3}};
+    {{ {{3, 1, 2, -1, -3, -2}}, {{2, 3, 1, -2, -1, -3}} }};
   EXPECT_EQ(vis.getN(), 0) << "should start with n = 0";
   vis.visit(vals[0]);
   EXPECT_EQ(vis.getN(), 1) << "n should be 1 after the first visit";
@@ -46,7 +46,7 @@ TEST(LangfordRecordingVisitorTest, DoesRecord) {
 TEST(LangfordRecordingVisitorTest, DoesReset) {
   backtracking::LangfordRecordingVisitor<3> vis;
   std::vector<std::array<int, 6>> vals =
-    {{3, 1, 2, -1, -3, -2}, {2, 3, 1, -2, -1, -3}};
+    {{ {{3, 1, 2, -1, -3, -2}}, {{2, 3, 1, -2, -1, -3}} }};
   vis.visit(vals[0]);
   vis.visit(vals[1]);
   EXPECT_EQ(vis.getN(), 2) << "n should be 2 after the second visit";
@@ -63,7 +63,7 @@ TEST(LangfordRecordingVisitorTest, DoesReset) {
 TEST(LangfordRecordingVisitorTest, MakesCopy) {
   backtracking::LangfordRecordingVisitor<3> vis;
   std::vector<std::array<int, 6>> vals =
-    {{3, 1, 2, -1, -3, -2}, {2, 3, 1, -2, -1, -3}};
+    {{ {{3, 1, 2, -1, -3, -2}}, {{2, 3, 1, -2, -1, -3}} }};
   vis.visit(vals[0]);
   vis.visit(vals[1]);
   EXPECT_EQ(vis.getN(), 2) << "n should be 2 after the second visit";
@@ -75,9 +75,9 @@ TEST(LangfordRecordingVisitorTest, MakesCopy) {
 TEST(LangfordBalancedVisitor, ChecksBalance) {
   // Knuth 4a section 7 (2)
   backtracking::LangfordBalancedVisitor<16> vis;
-  std::array<int, 32> balanced{16, 6, 9, 15, 2, 3, 8, -2, -6, -3,
+  std::array<int, 32> balanced{{ 16, 6, 9, 15, 2, 3, 8, -2, -6, -3,
     13, 10, -9, 12, 14, -8, 11, -16, 1, -15, -1, 5, -10, 7, -13,
-    4, -12, -5, -11, -14, -4, -7};
+    4, -12, -5, -11, -14, -4, -7 }};
 
   EXPECT_EQ(vis.getN(), 0) << "Should start empty";
 

@@ -15,7 +15,7 @@ std::ostream& operator<<(std::ostream& o, const std::array<T, N>& arr)
 //////////////////////
 // Test langford_basic
 
-// Counting with solutions
+// Counting with no solutions
 TEST(LangfordBasicTest, CountNBad) {
 
   backtracking::LangfordCountingVisitor<2> vis2;
