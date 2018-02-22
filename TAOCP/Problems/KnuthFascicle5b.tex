@@ -1,0 +1,19 @@
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+
+\topglue 0.5in
+\centerline{\tt Knuth Fascicle 5b}
+\vskip 0.3in
+
+\noindent {\bf Problem~1} {\it Generating Combinatoric Quantities using Backtracking}\hfil\break
+(a) $n$-tuples: $D_k$ is whatever the domain is and $P_l$ is always true.\hfil\break
+(b) Permutations: $D_k = \{ 1, \ldots, n \}$ and $P_l$ is that all the elements are distinct.\hfil\break
+(c) Combinations: $D_k = \{1, \ldots, N + 1 - k \}$ and $P_l = x_1 < \ldots < x_l$.\hfil\break
+
+\newprob {Problem~2} {\it Making $P_1$ always true}\hfil\break
+Simply discard any elements of $D_1$ that do not satisfy $P_1$.
+
+\newprob {Problem~3} {\it Saving half the work for $n$-queens}\hfil\break
+Restrict $D_1$ to be only the first half of the range, and then add the reflected
+solution $n + 1 - x_1, \ldots, n + 1 - x_n$.  For example, if $n = 8$ then $D_1 = \{1, 2, 3, 4\}$.
+\bye
