@@ -34,3 +34,16 @@ cc_binary(
     "@googlebench//:gbench",
   ]
 )
+
+cc_library(
+  name = "nqueens_skiprow_lib",
+  srcs = ["nqueens_skiprow.cc"]
+)
+
+cc_binary(
+  name = "nqueens_skiprow",
+  srcs = ["nqueens_skiprow.cc"],
+  deps = [
+    ":nqueens_skiprow_lib",
+  ]
+)

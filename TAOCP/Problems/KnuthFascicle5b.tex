@@ -35,4 +35,13 @@ structures.\hfil\break
 {\bf I5.} [Done] If $l=0$ halt, otherwise goto {\bf I2}.
 \hfil\break
 
+So, why not use something like this?  Really, the answer is because Don Knuth
+is an assembly programmer, and that's the way he thinks.  One could argue his
+algorithm is faster, which could be critical in large problems, but tests show
+the difference is small when coded in a higher level language -- in fact this
+way is sometimes faster.
+
+\newprob {Problem~5} {\it NQueens skipping 1 row.}\hfil\break
+For $n=8$, skipping row $0, 1, \ldots, 7$ gives ${312, 396,
+430, 458, 458, 430, 396, 312}$ solutions.
 \bye
