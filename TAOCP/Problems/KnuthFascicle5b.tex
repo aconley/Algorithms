@@ -5,15 +5,34 @@
 \centerline{\tt Knuth Fascicle 5b}
 \vskip 0.3in
 
-\noindent {\bf Problem~1} {\it Generating Combinatoric Quantities using Backtracking}\hfil\break
-(a) $n$-tuples: $D_k$ is whatever the domain is and $P_l$ is always true.\hfil\break
-(b) Permutations: $D_k = \{ 1, \ldots, n \}$ and $P_l$ is that all the elements are distinct.\hfil\break
-(c) Combinations: $D_k = \{1, \ldots, N + 1 - k \}$ and $P_l = x_1 < \ldots < x_l$.\hfil\break
+\noindent {\bf Problem~1} {\it Generating Combinatoric Quantities using 
+Backtracking}\hfil\break
+(a) $n$-tuples: $D_k$ is whatever the domain is and $P_l$ is always 
+true.\hfil\break 
+(b) Permutations: $D_k = \{ 1, \ldots, n \}$ and $P_l$ is that all the elements 
+are distinct.\hfil\break
+(c) Combinations: $D_k = \{1, \ldots, N + 1 - k \}$ and 
+$P_l = x_1 < \ldots < x_l$.\hfil\break
 
 \newprob {Problem~2} {\it Making $P_1$ always true}\hfil\break
 Simply discard any elements of $D_1$ that do not satisfy $P_1$.
 
 \newprob {Problem~3} {\it Saving half the work for $n$-queens}\hfil\break
-Restrict $D_1$ to be only the first half of the range, and then add the reflected
-solution $n + 1 - x_1, \ldots, n + 1 - x_n$.  For example, if $n = 8$ then $D_1 = \{1, 2, 3, 4\}$.
+Restrict $D_1$ to be only the first half of the range, and then add the 
+reflected solution $n + 1 - x_1, \ldots, n + 1 - x_n$.  For example, if $n = 8$
+then $D_1 = \{1, 2, 3, 4\}$.
+
+\newprob {Problem~4} {\it Recursive backtracking}\hfil\break
+{\bf I1.} [Initialize] Set $l \leftarrow 0$ and initialize other data 
+structures.\hfil\break
+{\bf I2.} [Test $P_l$] If $P_l\left(x_1 \ldots x_l\right)$ set 
+ $l \leftarrow l + 1$ and $x_l \leftarrow {\rm min}\,D_l$,
+  otherwise goto {\bf I4}.\hfil\break 
+{\bf I3.} [Visit] If $l > n$ visit $x_1 \ldots x_n$, set $l \leftarrow l-1$.
+\hfil\break
+{\bf I4.} [Iterate] Set $x_l$ to the next larger element in $D_l$ and goto 
+ {\bf I2}. If there is no such element set $l \leftarrow l - 1$.\hfil\break
+{\bf I5.} [Done] If $l=0$ halt, otherwise goto {\bf I2}.
+\hfil\break
+
 \bye
