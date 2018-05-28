@@ -11,4 +11,5 @@ cc_library(
     copts = [
           "-DHAVE_STD_REGEX"
     ],
+    linkopts = ["-pthread"],
 )
