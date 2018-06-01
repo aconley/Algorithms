@@ -41,7 +41,43 @@ algorithm is faster, which could be critical in large problems, but tests show
 the difference is small when coded in a higher level language -- in fact this
 way is sometimes faster.
 
-\newprob {Problem~5} {\it NQueens skipping 1 row.}\hfil\break
+\newprob {Problem~5} {\it NQueens skipping one row.}\hfil\break
 For $n=8$, skipping row $0, 1, \ldots, 7$ gives ${312, 396,
 430, 458, 458, 430, 396, 312}$ solutions.
+
+\newprob {Problem~9} {\it Bitwise N-Queens}\hfil\break
+Obviously we will represent the current state of the $A_l, B_l, C_l$ 
+as integers $a_l, b_l, c_l$, one for each level, and where, for example, 
+$a_l\left[i\right] = 1$ if and only if $x_{i-1}$ is present in $A_l$.  
+Similarly, $S_l$ will be represented by integers $s_l$.  Let 
+$m = \left(1 \ll {n-1}\right)$, which is a bitmask on the available elements
+for $x$.
+
+Then in {\bf W2}, to compute the available values,
+$s_l \leftarrow m \,\&\, {\bar a_{l-1}} \,\&\, {\bar b_{l-1}} \,\&\, {\bar c_{l-1}}$.
+We compute the bitwise representation of the current choice for $x$ to chose as
+$x \leftarrow s_l \& \left(- s_l\right)$, then $a_l \leftarrow a_{l-1} + t$,
+$b_l \leftarrow \left(b_{l-1} + t\right) \gg 1$, and 
+$c_l \leftarrow \left( {c_{l-1} + t} \ll 1 \right) \,\&\, m$.  The shifts are 
+necessary for $b, c$ because $l$ has increased.  In {\bf W4} we
+remove that choice by doing $s_l \leftarrow s_l - t$, although since we keep
+all the $s_l$, we can do it in W2 if desired.
+
+\newprob {Problem 15} {\it Hexwise N-Queens}\hfil\break
+This is like N-Queens except we only need to check one diagonal.  This turns out
+to be like ignoring $b$ from Problem~9.
+
+Then we have $n=1: 1, 2: 1, 3: 3, 4: 7, 5: 23, 6: 83, 7: 405, 8: 2113, 9: 12657,
+10: 82297$.
+
+\newprob {Problem 20} {\it Forced move in Langford.}\hfil\break
+We need a new array $a$ where $a_i$ means that $i$ has already appeared.
+We initially set it to all 0s, and when we take a value in {\bf L3}
+we set $a_k \leftarrow 1$, and when we undo in {\bf L5} $a_k \leftarrow 0$.
+In {\bf L2}, when entering a level, before setting $l \leftarrow l+1$
+we check if $a_{2n-l-1} = 0$ and $l \ge n-1$ (which means we are out
+of room), and if so we immediately backtrack by going to {\bf L5}.
+In {\bf L3}, when chosing the candidate, we need to check if it must be forced.
+So, after the first check, we check if $l \ge n-1$ and $a_{2n-l-1} = 0$, and if so we
+walk the list of pointers forward until we find the forced value.
 \bye

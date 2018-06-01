@@ -47,3 +47,16 @@ cc_binary(
     ":nqueens_skiprow_lib",
   ]
 )
+
+cc_library(
+  name = "nqueens_hex_lib",
+  srcs = ["nqueens_hex.cc"]
+)
+
+cc_binary(
+  name = "nqueens_hex",
+  srcs = ["nqueens_hex.cc"],
+  deps = [
+    ":nqueens_hex_lib",
+  ]
+)
