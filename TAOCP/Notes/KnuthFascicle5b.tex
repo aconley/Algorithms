@@ -1,0 +1,72 @@
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+
+\topglue 0.5in
+\centerline{Notes on Knuth Fascicle 5b: Basic Backtracking}
+\vskip 0.3in
+
+\noindent {\bf Timing tests}
+
+\noindent I implemented the N-Queens algorithms, including the optimizations
+discussed in the problems, in c++ and timed their performance using
+Google Benchmark.  The four methods were a  unoptimized
+version, the array version of the basic algorithm~B, the
+same version modified to use bit twiddling instead of arrays,
+and Walkers version.  The execution time runs in the ratio
+22:6.3:6.6:1.  So bit twiddling is not helpful, but, unsurprisingly,
+Walkers method is by far the fastest.
+
+\vskip 0.1in
+\noindent {\bf Algorithm L}
+
+\noindent In this algorithm, $1 \le l \le 2n$, and $l$ simply indicates the position
+we are trying to set.  $k$ is the value we are trying, and $k = p_j$.
+$y_l$ is the $j$ that we chose.  $x_i = 0$ means the value is unset,
+and $x_i < 0$ means that value was already used earlier.
+
+\vskip 0.1in
+\noindent {\bf Optimized Algorithm L}
+
+\noindent It's useful to have the fully optimized Algorithm~L in one place, 
+incorporating the improvements from exercises (20) and (21).  
+
+\noindent This uses auxillary arrays $p_0 p_1 \ldots p_n$, $y_1 \ldots y_{2n}$, 
+and $a_1 \ldots a_n$.
+
+\noindent {\bf L1.} [Initialize.] Set $x_1 \ldots x_{2 n} \leftarrow 0 
+\ldots 0$, $p_k \leftarrow k + 1$ for $0 \leq k < n$, $p_n \leftarrow 0$, 
+$a_{1} \ldots a_{n} \leftarrow 0 \ldots 0$, $l \leftarrow 1$,
+$n^{\prime} = n - [n \rm{\, is\, even}].$
+\vskip 0.05in
+\noindent {\bf L2.} [Enter level $l$.] Set $k \gets p_0$.  If $k = 0$, visit
+$x_1 \ldots x_{2n}$, optionally visit $x_{2n} \ldots x_1$, and 
+go to {\bf L5}.  Otherwise, set $j \leftarrow 0$, and
+while $x_l < 0$, go to {\bf L5} if ($l = \lfloor n / 2 \rfloor$ and 
+$a_{n^{\prime}} = 0$) or ($l \ge n - 1$ and $a_{2n - l - 1} = 0$), otherwise
+set $l \leftarrow l + 1$.
+\vskip 0.05in
+\noindent {\bf L3.} [Try $x_l = k$.] (At this point we have $k = p_j$).  
+If $l + k + 1 > 2n$ goto {\bf L5}.  If $l = \lfloor n / 2 \rfloor$ and 
+$a_{n^{\prime}} = 0$, while $k \ne n^{\prime}$ set $j \leftarrow k$, 
+$k \leftarrow p_k$.  If $l \ge n - 1$ and $a_{2n - l - 1} = 0$, while 
+$l + k + 1 \ne 2 n $ set $j \leftarrow k$, $k \leftarrow p_k$.  If 
+$x_{l + k + 1} = 0$, set $x_l \leftarrow k$, $x_{l + k + 1} \leftarrow - k$,
+$a_k \leftarrow 1$, $y_l \leftarrow j$, $p_j \leftarrow p_k$, 
+$l \leftarrow l + 1$, and return to {\bf L2}.
+\vskip 0.05in
+\noindent {\bf L4.} [Try again.] (We've found all solutions that begin with 
+$x_1 \ldots x_{l-1} k$ or something smaller.) Set $j \leftarrow k$ and 
+$k \leftarrow p_j$, then go to {\bf L3} if $k \ne 0$.
+\vskip 0.05in
+\noindent {\bf L5.} [Backtrack.] Set $l \leftarrow l - 1$.   If $l = 0$ then 
+terminate the algorithm. Otherwise do the following: While $x_l < 0$, set 
+$l \leftarrow l - 1$.  Then set $k \leftarrow x_l$, $x_l \leftarrow 0$, 
+$x_{l + k + 1} \leftarrow 0$, $a_k \leftarrow 0$, $j \leftarrow y_l$, 
+$p_j \leftarrow k$.  If $l = \lfloor n / 2 \rfloor$ and $k = n^{\prime}$
+goto {\bf L5}, otherwise goto {\bf L4}.
+
+When implemented in c++, the relative timings are 16 $\mu$s and 7.3 $\mu$s 
+for $n = 7$ for the raw and optimized Algorithm~L (both visiting both the 
+forward and reversed solutions), and 60 ms vs.\ 18 ms for $n = 11$.
+
+\bye
