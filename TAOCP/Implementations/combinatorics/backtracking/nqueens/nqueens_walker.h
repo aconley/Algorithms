@@ -1,5 +1,5 @@
-#ifndef __nqueens_h__
-#define __nqueens_h__
+#ifndef __nqueens_walker_h__
+#define __nqueens_walker_h__
 
 #include<array>
 #include<exception>

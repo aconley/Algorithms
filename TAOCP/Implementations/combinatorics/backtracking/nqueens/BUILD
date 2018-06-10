@@ -7,7 +7,11 @@ cc_library(
     "nqueens_bitwise.h",
     "nqueens_iterative.h",
     "nqueens_walker.h",
-  ]
+    "nqueens_iterator.h",
+  ],
+  srcs = [
+    "nqueens_iterator.cc"
+  ],
 )
 
 cc_test(
