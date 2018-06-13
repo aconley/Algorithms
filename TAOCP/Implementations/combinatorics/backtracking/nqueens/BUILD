@@ -21,7 +21,8 @@ cc_test(
     "nqueens_basic_test.cc",
     "nqueens_bitwise_test.cc",
     "nqueens_iterative_test.cc",
-    "nqueens_walker_test.cc"
+    "nqueens_walker_test.cc",
+    "nqueens_iterator_test.cc"
   ],
   deps = [
     ":nqueens_lib",

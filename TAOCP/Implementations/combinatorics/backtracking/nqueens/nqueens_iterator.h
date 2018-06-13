@@ -1,6 +1,7 @@
 #ifndef __nqueens_iterator_h__
 #define __nqueens_iterator_h__
 
+#include<array>
 #include<cstdint>
 #include<iterator>
 #include<vector>
@@ -20,14 +21,13 @@ class NQueensIterator {
         iterator& operator++();
         iterator operator++(int);
         value_type operator*();
-        bool operator==(iterator);
-        bool operator!=(iterator);
+        bool operator==(const iterator&);
+        bool operator!=(const iterator&);
+        difference_type operator-(const iterator&);
       private:
-        static constexpr std::uint8_t MultiplyDeBruijnBitPosition[32] =
-          {
-            0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
-            31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-          };
+        static constexpr int max_n = 24;
+        static const std::array<long, max_n + 1> n_solutions;
+        static const std::array<std::uint8_t, 32> MultiplyDeBruijnBitPosition;
 
         std::uint8_t getPositionOfLeastSetBit(std::uint32_t v);
 
@@ -35,7 +35,7 @@ class NQueensIterator {
         long ctr;
         int n, l;
         std::vector<std::uint32_t> a, b, c, s;
-        std::uint32_t mu;
+        std::uint32_t mu, t;
       };
 
     explicit NQueensIterator(int);

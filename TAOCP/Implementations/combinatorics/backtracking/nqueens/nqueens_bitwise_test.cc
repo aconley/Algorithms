@@ -32,7 +32,7 @@ TEST(NQueensBitwiseTest, VisitN4) {
   EXPECT_EQ(vis.getN(), 2)
     << "Got unexpected number of permutations for 4 queens";
   std::vector<std::array<int, 4>> expected = {{ {{1, 3, 0, 2}}, {{2, 0, 3, 1}} }};
-  for (int i = 0; i < expected.size(); ++i) {
+  for (unsigned int i = 0; i < expected.size(); ++i) {
     EXPECT_EQ(vis.get(i), expected[i])
       << "Got unexpected permutation at position for 4 queens " << i;
   }
