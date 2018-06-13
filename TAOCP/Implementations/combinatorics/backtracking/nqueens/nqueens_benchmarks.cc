@@ -4,6 +4,7 @@
 #include "nqueens_bitwise.h"
 #include "nqueens_iterative.h"
 #include "nqueens_walker.h"
+#include "nqueens_iterator.h"
 
 template<std::size_t n> class CountingVisitor {
   private:
@@ -142,5 +143,38 @@ static void BM_Nqueens_Walker13(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_Nqueens_Walker13);
+
+// Iterator
+long count_solutions(const NQueensIterator& nq) {
+  long n_solutions = 0;
+  for (NQueensIterator::iterator it = nq.begin(); it != nq.end(); ++it) {
+    ++n_solutions;
+  }
+  return n_solutions;
+}
+
+static void BM_Nqueens_Iterator8(benchmark::State& state) {
+  NQueensIterator nq(8);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_Iterator8);
+
+static void BM_Nqueens_Iterator10(benchmark::State& state) {
+  NQueensIterator nq(10);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_Iterator10);
+
+static void BM_Nqueens_Iterator13(benchmark::State& state) {
+  NQueensIterator nq(13);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_Iterator13);
 
 BENCHMARK_MAIN();

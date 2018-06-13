@@ -21,16 +21,16 @@ const std::array<long, NQueensIterator::iterator::max_n + 1>
 
 NQueensIterator::NQueensIterator(int _n) : n(_n) {}
 
-NQueensIterator::iterator NQueensIterator::begin() { 
+NQueensIterator::iterator NQueensIterator::begin() const { 
   return iterator(n, false); 
 }
 
-NQueensIterator::iterator NQueensIterator::end() { 
+NQueensIterator::iterator NQueensIterator::end() const { 
   return iterator(n, true); 
 }
 
 std::uint8_t 
-  NQueensIterator::iterator::getPositionOfLeastSetBit(std::uint32_t v) {
+  NQueensIterator::iterator::getPositionOfLeastSetBit(std::uint32_t v) const {
     std::uint32_t idx = ((uint32_t)((v & -v) * 0x077CB531U)) >> 27;
     return MultiplyDeBruijnBitPosition[idx];
 }
@@ -88,7 +88,9 @@ NQueensIterator::iterator& NQueensIterator::iterator::operator++() {
   }
 }
 
-NQueensIterator::iterator::value_type NQueensIterator::iterator::operator*() {
+NQueensIterator::iterator::value_type 
+  NQueensIterator::iterator::operator*() const {
+
   std::vector<std::uint8_t> retval(n);
   for (int i = 0; i < n; ++i) {
     retval[i] = getPositionOfLeastSetBit(a[i + 1] - a[i]);

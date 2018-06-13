@@ -20,7 +20,7 @@ class NQueensIterator {
         explicit iterator(int, bool);
         iterator& operator++();
         iterator operator++(int);
-        value_type operator*();
+        value_type operator*() const;
         bool operator==(const iterator&);
         bool operator!=(const iterator&);
         difference_type operator-(const iterator&);
@@ -29,7 +29,7 @@ class NQueensIterator {
         static const std::array<long, max_n + 1> n_solutions;
         static const std::array<std::uint8_t, 32> MultiplyDeBruijnBitPosition;
 
-        std::uint8_t getPositionOfLeastSetBit(std::uint32_t v);
+        std::uint8_t getPositionOfLeastSetBit(std::uint32_t v) const;
 
         bool done;
         long ctr;
@@ -40,8 +40,8 @@ class NQueensIterator {
 
     explicit NQueensIterator(int);
     
-    iterator begin();
-    iterator end();
+    iterator begin() const;
+    iterator end() const;
   
   private:
     int n;
