@@ -4,7 +4,8 @@
 #include "nqueens_bitwise.h"
 #include "nqueens_iterative.h"
 #include "nqueens_walker.h"
-#include "nqueens_iterator.h"
+
+using namespace backtracking;
 
 template<std::size_t n> class CountingVisitor {
   private:
@@ -28,27 +29,43 @@ template<std::size_t n> class CountingVisitor {
 };
 
 // Basic
+long count_solutions(const NQueensBasic& nq) {
+  long n_solutions = 0;
+  for (NQueensBasic::iterator it = nq.begin(); it != nq.end(); ++it) {
+    ++n_solutions;
+  }
+  return n_solutions;
+}
+
 static void BM_Nqueens_Basic8(benchmark::State& state) {
-  CountingVisitor<8> v;
+  NQueensBasic nq(8);
   while (state.KeepRunning()) {
-    backtracking::nqueens_basic(v);
+    count_solutions(nq);
   }
 }
 BENCHMARK(BM_Nqueens_Basic8);
 
 static void BM_Nqueens_Basic10(benchmark::State& state) {
-  CountingVisitor<10> v;
+  NQueensBasic nq(10);
   while (state.KeepRunning()) {
-    backtracking::nqueens_basic(v);
+    count_solutions(nq);
   }
 }
 BENCHMARK(BM_Nqueens_Basic10);
+
+static void BM_Nqueens_Basic13(benchmark::State& state) {
+  NQueensBasic nq(13);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_Basic13);
 
 // Array
 static void BM_Nqueens_Array8(benchmark::State& state) {
   CountingVisitor<8> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_array(v);
+    nqueens_array(v);
   }
 }
 BENCHMARK(BM_Nqueens_Array8);
@@ -56,7 +73,7 @@ BENCHMARK(BM_Nqueens_Array8);
 static void BM_Nqueens_Array10(benchmark::State& state) {
   CountingVisitor<10> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_array(v);
+    nqueens_array(v);
   }
 }
 BENCHMARK(BM_Nqueens_Array10);
@@ -64,7 +81,7 @@ BENCHMARK(BM_Nqueens_Array10);
 static void BM_Nqueens_Array13(benchmark::State& state) {
   CountingVisitor<13> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_array(v);
+    nqueens_array(v);
   }
 }
 BENCHMARK(BM_Nqueens_Array13);
@@ -73,7 +90,7 @@ BENCHMARK(BM_Nqueens_Array13);
 static void BM_Nqueens_Bitwise8(benchmark::State& state) {
   CountingVisitor<8> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_bitwise(v);
+    nqueens_bitwise(v);
   }
 }
 BENCHMARK(BM_Nqueens_Bitwise8);
@@ -81,7 +98,7 @@ BENCHMARK(BM_Nqueens_Bitwise8);
 static void BM_Nqueens_Bitwise10(benchmark::State& state) {
   CountingVisitor<10> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_bitwise(v);
+    nqueens_bitwise(v);
   }
 }
 BENCHMARK(BM_Nqueens_Bitwise10);
@@ -89,7 +106,7 @@ BENCHMARK(BM_Nqueens_Bitwise10);
 static void BM_Nqueens_Bitwise13(benchmark::State& state) {
   CountingVisitor<13> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_bitwise(v);
+    nqueens_bitwise(v);
   }
 }
 BENCHMARK(BM_Nqueens_Bitwise13);
@@ -98,7 +115,7 @@ BENCHMARK(BM_Nqueens_Bitwise13);
 static void BM_Nqueens_BitwiseIterative8(benchmark::State& state) {
   CountingVisitor<8> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_iterative(v);
+    nqueens_iterative(v);
   }
 }
 BENCHMARK(BM_Nqueens_BitwiseIterative8);
@@ -106,7 +123,7 @@ BENCHMARK(BM_Nqueens_BitwiseIterative8);
 static void BM_Nqueens_BitwiseIterative10(benchmark::State& state) {
   CountingVisitor<10> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_iterative(v);
+    nqueens_iterative(v);
   }
 }
 BENCHMARK(BM_Nqueens_BitwiseIterative10);
@@ -114,67 +131,42 @@ BENCHMARK(BM_Nqueens_BitwiseIterative10);
 static void BM_Nqueens_BitwiseIterative13(benchmark::State& state) {
   CountingVisitor<13> v;
   while (state.KeepRunning()) {
-    backtracking::nqueens_iterative(v);
+    nqueens_iterative(v);
   }
 }
 BENCHMARK(BM_Nqueens_BitwiseIterative13);
 
 // Walker
-static void BM_Nqueens_Walker8(benchmark::State& state) {
-  CountingVisitor<8> v;
-  while (state.KeepRunning()) {
-    backtracking::nqueens_walker(v);
-  }
-}
-BENCHMARK(BM_Nqueens_Walker8);
-
-static void BM_Nqueens_Walker10(benchmark::State& state) {
-  CountingVisitor<10> v;
-  while (state.KeepRunning()) {
-    backtracking::nqueens_walker(v);
-  }
-}
-BENCHMARK(BM_Nqueens_Walker10);
-
-static void BM_Nqueens_Walker13(benchmark::State& state) {
-  CountingVisitor<13> v;
-  while (state.KeepRunning()) {
-    backtracking::nqueens_walker(v);
-  }
-}
-BENCHMARK(BM_Nqueens_Walker13);
-
-// Iterator
-long count_solutions(const NQueensIterator& nq) {
+long count_solutions(const NQueensWalker& nq) {
   long n_solutions = 0;
-  for (NQueensIterator::iterator it = nq.begin(); it != nq.end(); ++it) {
+  for (NQueensWalker::iterator it = nq.begin(); it != nq.end(); ++it) {
     ++n_solutions;
   }
   return n_solutions;
 }
 
-static void BM_Nqueens_Iterator8(benchmark::State& state) {
-  NQueensIterator nq(8);
+static void BM_Nqueens_Walker8(benchmark::State& state) {
+  NQueensWalker nq(8);
   while (state.KeepRunning()) {
     count_solutions(nq);
   }
 }
-BENCHMARK(BM_Nqueens_Iterator8);
+BENCHMARK(BM_Nqueens_Walker8);
 
-static void BM_Nqueens_Iterator10(benchmark::State& state) {
-  NQueensIterator nq(10);
+static void BM_Nqueens_Walker10(benchmark::State& state) {
+  NQueensWalker nq(10);
   while (state.KeepRunning()) {
     count_solutions(nq);
   }
 }
-BENCHMARK(BM_Nqueens_Iterator10);
+BENCHMARK(BM_Nqueens_Walker10);
 
-static void BM_Nqueens_Iterator13(benchmark::State& state) {
-  NQueensIterator nq(13);
+static void BM_Nqueens_Walker13(benchmark::State& state) {
+  NQueensWalker nq(13);
   while (state.KeepRunning()) {
     count_solutions(nq);
   }
 }
-BENCHMARK(BM_Nqueens_Iterator13);
+BENCHMARK(BM_Nqueens_Walker13);
 
 BENCHMARK_MAIN();

@@ -7,10 +7,10 @@ cc_library(
     "nqueens_bitwise.h",
     "nqueens_iterative.h",
     "nqueens_walker.h",
-    "nqueens_iterator.h",
   ],
   srcs = [
-    "nqueens_iterator.cc"
+    "nqueens_basic.cc",
+    "nqueens_walker.cc"
   ],
 )
 
@@ -20,9 +20,7 @@ cc_test(
     "nqueens_array_test.cc",
     "nqueens_basic_test.cc",
     "nqueens_bitwise_test.cc",
-    "nqueens_iterative_test.cc",
     "nqueens_walker_test.cc",
-    "nqueens_iterator_test.cc"
   ],
   deps = [
     ":nqueens_lib",
