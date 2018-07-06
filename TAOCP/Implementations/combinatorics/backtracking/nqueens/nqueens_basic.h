@@ -28,9 +28,6 @@ class NQueensBasic {
         bool operator!=(const iterator&);
         difference_type operator-(const iterator&);
       private:
-        static constexpr int max_n = 24;
-        static const std::array<long, max_n + 1> n_solutions;
-
         bool done;
         long ctr;
         std::uint8_t n, x_l;

@@ -9,11 +9,11 @@ using namespace backtracking;
 
 long count_walker_solutions(int n) {
   NQueensWalker nq(n);
-  long n_solutions = 0;
+  long nsol = 0;
   for (NQueensWalker::iterator it = nq.begin(); it != nq.end(); ++it) {
-    ++n_solutions;
+    ++nsol;
   }
-  return n_solutions;
+  return nsol;
 }
 
 //////////////////////

@@ -26,8 +26,6 @@ class NQueensWalker {
         bool operator!=(const iterator&);
         difference_type operator-(const iterator&);
       private:
-        static constexpr int max_n = 24;
-        static const std::array<long, max_n + 1> n_solutions;
         static const std::array<std::uint8_t, 32> MultiplyDeBruijnBitPosition;
 
         std::uint8_t getPositionOfLeastSetBit(std::uint32_t v) const;

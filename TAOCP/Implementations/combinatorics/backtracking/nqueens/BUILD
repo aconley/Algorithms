@@ -5,11 +5,13 @@ cc_library(
     "nqueens_array.h",
     "nqueens_basic.h",
     "nqueens_bitwise.h",
+    "nqueens_constants.h",
     "nqueens_iterative.h",
     "nqueens_walker.h",
   ],
   srcs = [
     "nqueens_basic.cc",
+    "nqueens_constants.cc",
     "nqueens_walker.cc"
   ],
 )

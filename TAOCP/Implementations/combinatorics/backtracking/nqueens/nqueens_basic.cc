@@ -1,17 +1,9 @@
 #include<exception>
 #include<limits>
 #include "nqueens_basic.h"
+#include "nqueens_constants.h"
 
 using namespace backtracking;
-
-const std::array<long, NQueensBasic::iterator::max_n + 1>
-  NQueensBasic::iterator::n_solutions =
-    {{
-          1, 1, 0, 0, 2, 10, 4, 40, 92, 352, 724, 2680, 14200, 73712,
-          365596, 2279184, 14772512, 95815104, 666090624,
-          4968057848, 39029188884, 314666222712, 2691008701644,
-          24233937684440, 227514171973736
-    }};
 
 NQueensBasic::NQueensBasic(int _n) : n(_n) {}
 
