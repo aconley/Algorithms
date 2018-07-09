@@ -2,6 +2,7 @@
 #include "nqueens_basic.h"
 #include "nqueens_array.h"
 #include "nqueens_bitwise.h"
+#include "nqueens_bitwise_loop.h"
 #include "nqueens_iterative.h"
 #include "nqueens_walker.h"
 
@@ -135,6 +136,39 @@ static void BM_Nqueens_BitwiseIterative13(benchmark::State& state) {
   }
 }
 BENCHMARK(BM_Nqueens_BitwiseIterative13);
+
+// Bitwise Loop
+long count_solutions(const NQueensBitwiseLoop& nq) {
+  long n_solutions = 0;
+  for (NQueensBitwiseLoop::iterator it = nq.begin(); it != nq.end(); ++it) {
+    ++n_solutions;
+  }
+  return n_solutions;
+}
+
+static void BM_Nqueens_BitwiseLoop8(benchmark::State& state) {
+  NQueensBitwiseLoop nq(8);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_BitwiseLoop8);
+
+static void BM_Nqueens_BitwiseLoop10(benchmark::State& state) {
+  NQueensBitwiseLoop nq(10);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_BitwiseLoop10);
+
+static void BM_Nqueens_BitwiseLoop13(benchmark::State& state) {
+  NQueensBitwiseLoop nq(13);
+  while (state.KeepRunning()) {
+    count_solutions(nq);
+  }
+}
+BENCHMARK(BM_Nqueens_BitwiseLoop13);
 
 // Walker
 long count_solutions(const NQueensWalker& nq) {

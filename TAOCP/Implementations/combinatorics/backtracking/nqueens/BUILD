@@ -5,12 +5,14 @@ cc_library(
     "nqueens_array.h",
     "nqueens_basic.h",
     "nqueens_bitwise.h",
+    "nqueens_bitwise_loop.h",
     "nqueens_constants.h",
     "nqueens_iterative.h",
     "nqueens_walker.h",
   ],
   srcs = [
     "nqueens_basic.cc",
+    "nqueens_bitwise_loop.cc",
     "nqueens_constants.cc",
     "nqueens_walker.cc"
   ],
@@ -22,6 +24,7 @@ cc_test(
     "nqueens_array_test.cc",
     "nqueens_basic_test.cc",
     "nqueens_bitwise_test.cc",
+    "nqueens_bitwise_loop_test.cc",
     "nqueens_walker_test.cc",
   ],
   deps = [

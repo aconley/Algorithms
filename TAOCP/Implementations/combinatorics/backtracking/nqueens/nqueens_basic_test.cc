@@ -56,7 +56,7 @@ TEST(NQueensBasicTest, VisitN4) {
  
   NQueensBasic nq(4);
   NQueensBasic::iterator it = nq.begin();
-  EXPECT_EQ(*(++it), expected0) << "Unexpected 0th permutation";
+  EXPECT_EQ(*it, expected0) << "Unexpected 0th permutation";
   EXPECT_EQ(*(++it), expected1) << "Unexpected 1st permutation";
-  EXPECT_TRUE(it == nq.end()) << "Expected last iteration after 2";
+  EXPECT_TRUE(++it == nq.end()) << "Expected last iteration after 2";
 }

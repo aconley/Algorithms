@@ -21,13 +21,9 @@ NQueensBasic::iterator::iterator(int _n, bool _done) :
   if (n < 1 || n > max_n)
     throw std::invalid_argument("n must be in range [1, 24].");
   ctr = done ? n_solutions[n] : 0;
-  if (done) {
-    ctr = n_solutions[n];
-  } else {
-    ctr = 0;
-    rows = std::vector<std::uint8_t>(n, 0u);
-    rows[0] = 255;
-  }
+  rows = std::vector<std::uint8_t>(n, 0u);
+  rows[0] = 255;
+  operator++();
 }
 
 NQueensBasic::iterator& 
@@ -91,6 +87,7 @@ NQueensBasic::iterator
 
 bool NQueensBasic::iterator::operator==(const iterator& other) {
   if (n != other.n) return false;
+  if (done != other.done) return false;
   return done ? other.done : ctr == other.ctr;
 }
 

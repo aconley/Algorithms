@@ -45,6 +45,7 @@ NQueensWalker::iterator::iterator(int _n, bool _done) :
   } else {
     ctr = n_solutions[n];
   }
+  operator++();
 }
 
 NQueensWalker::iterator& NQueensWalker::iterator::operator++() {
@@ -100,6 +101,7 @@ NQueensWalker::iterator NQueensWalker::iterator::operator++(int) {
 
 bool NQueensWalker::iterator::operator==(const iterator& other) {
   if (n != other.n) return false;
+  if (done != other.done) return false;
   return done ? other.done : ctr == other.ctr;
 }
 
