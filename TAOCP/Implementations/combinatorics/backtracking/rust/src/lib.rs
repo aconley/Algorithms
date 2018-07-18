@@ -7,22 +7,10 @@ pub struct Solution {
     rows: Vec<u8>,
 }
 
-// A function which visits a solution, returning false if
-// no further iterations are desired. 
-pub type Visitor = Fn(&Solution) -> bool;
-
-pub trait NQueensSolver {
-    fn visit(&mut self, n: u8, v: &Visitor);
-}
-
-pub struct BitwiseNQueensSolver {
-    n: usize,
-    nm1: usize, 
-    a: u64,
-    b: u64, 
-    c: u64,
-    s: Solution,
-    done: bool
+impl Clone for Solution {
+    fn clone(&self) -> Solution { 
+        Solution{ n: self.n, rows: self.rows.clone() } 
+    }
 }
 
 impl fmt::Display for Solution {
@@ -48,6 +36,51 @@ impl fmt::Display for Solution {
     }
 }
 
+// An object which visits N Queens solutions.
+pub trait Visitor {
+    // Visits a single solution.  Returns true if further solutions should
+    // be visited, otherwise false.
+    fn visit(&mut self, s: &Solution) -> bool;
+}
+
+// A visitor which counts solutions.
+pub struct CountingVisitor {
+    n_solutions: u64
+}
+
+impl Visitor for CountingVisitor {
+    fn visit(&mut self, _s: &Solution) -> bool {
+        self.n_solutions += 1;
+        true
+    }
+}
+
+// A visitor which records solutions.
+pub struct RecordingVisitor {
+    solutions: Vec<Solution>
+}
+
+impl Visitor for RecordingVisitor {
+    fn visit(&mut self, s: &Solution) -> bool {
+        self.solutions.push(s.clone());
+        true
+    }
+}
+
+pub trait NQueensSolver {
+    fn visit(&mut self, n: u8, v: &mut Visitor);
+}
+
+pub struct BitwiseNQueensSolver {
+    n: usize,
+    nm1: usize, 
+    a: u64,
+    b: u64, 
+    c: u64,
+    s: Solution,
+    done: bool
+}
+
 impl BitwiseNQueensSolver {
     fn init(&mut self, n: u8) -> () {
         self.a = 0;
@@ -59,12 +92,12 @@ impl BitwiseNQueensSolver {
         self.s = Solution {n : n, rows: vec![0; n as usize]};
     }
 
-    fn visit_levels(&mut self, l: usize, v: &Visitor) {
+    fn visit_levels(&mut self, l: usize, v: &mut Visitor) {
         if self.done {
             return;
         }
         if l > self.nm1 {
-            if !v(&self.s) {
+            if !v.visit(&self.s) {
                 self.done = true;
                 return;
             }
@@ -96,7 +129,7 @@ impl BitwiseNQueensSolver {
 }
 
 impl NQueensSolver for BitwiseNQueensSolver {
-    fn visit(&mut self, n: u8, v: &Visitor) {
+    fn visit(&mut self, n: u8, v: &mut Visitor) {
         self.init(n);
         self.visit_levels(0, v);
     }
@@ -111,5 +144,10 @@ mod tests {
         let sol = Solution { n: 4, rows: vec![2, 0, 3, 1]};
         assert_eq!(format!("{}", sol), 
             ". . Q . \nQ . . . \n. . . Q \n. Q . . \n");
+    }
+
+    #[test]
+    fn bitwise_nqueens_n4_count() {
+        
     }
 }
