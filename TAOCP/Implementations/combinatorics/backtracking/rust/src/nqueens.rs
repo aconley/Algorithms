@@ -163,9 +163,33 @@ mod tests {
   }
 
   #[test]
-  fn bitwise_nqueens_n4_count() {
+  fn bitwise_nqueens_count_n1() {
+    assert_eq!(count_n(1), 1);
+  }
+
+  #[test]
+  fn bitwise_nqueens_count_n2() {
+    assert_eq!(count_n(2), 0);
+  }
+
+  #[test]
+  fn bitwise_nqueens_count_n4() {
+    assert_eq!(count_n(4), 2);
+  }
+
+  #[test]
+  fn bitwise_nqueens_count_n5() {
+    assert_eq!(count_n(5), 10);
+  }
+
+  #[test]
+  fn bitwise_nqueens_count_n8() {
+    assert_eq!(count_n(8), 92);
+  }
+
+  fn count_n(n: u8) -> u64 {
     let mut cv = CountingVisitor::new();
-    BitwiseNQueensSolver::new(4).visit(&mut cv);
-    assert_eq!(cv.n_solutions, 2);
+    BitwiseNQueensSolver::new(n).visit(&mut cv);
+    cv.n_solutions
   }
 }
