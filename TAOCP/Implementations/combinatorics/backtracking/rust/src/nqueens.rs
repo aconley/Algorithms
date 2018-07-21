@@ -164,32 +164,32 @@ mod tests {
 
   #[test]
   fn bitwise_nqueens_count_n1() {
-    assert_eq!(count_n(1), 1);
+    assert_eq!(count_n(&mut BitwiseNQueensSolver::new(1)), 1);
   }
 
   #[test]
   fn bitwise_nqueens_count_n2() {
-    assert_eq!(count_n(2), 0);
+    assert_eq!(count_n(&mut BitwiseNQueensSolver::new(2)), 0);
   }
 
   #[test]
   fn bitwise_nqueens_count_n4() {
-    assert_eq!(count_n(4), 2);
+    assert_eq!(count_n(&mut BitwiseNQueensSolver::new(4)), 2);
   }
 
   #[test]
   fn bitwise_nqueens_count_n5() {
-    assert_eq!(count_n(5), 10);
+    assert_eq!(count_n(&mut BitwiseNQueensSolver::new(5)), 10);
   }
 
   #[test]
   fn bitwise_nqueens_count_n8() {
-    assert_eq!(count_n(8), 92);
+    assert_eq!(count_n(&mut BitwiseNQueensSolver::new(8)), 92);
   }
 
-  fn count_n(n: u8) -> u64 {
+  fn count_n(nq: &mut NQueensSolver) -> u64 {
     let mut cv = CountingVisitor::new();
-    BitwiseNQueensSolver::new(n).visit(&mut cv);
+    nq.visit(&mut cv);
     cv.n_solutions
   }
 }
