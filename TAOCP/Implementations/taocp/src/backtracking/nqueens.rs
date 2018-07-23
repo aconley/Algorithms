@@ -1,5 +1,10 @@
 use std::fmt;
 
+const DE_BRUJIN_BIT_POSITION : [u8; 32] = [
+  0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+  31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+];
+
 pub struct Solution {
   // The number of queens.
   n: u8,
@@ -159,34 +164,55 @@ pub struct WalkerNQueensSolver {
   c: Vec<u32>,
   s: Vec<u32>,
   mu: u32,
-  done: bool
+  done: bool,
+  solution: Solution
 }
 
 impl WalkerNQueensSolver {
   fn new(n: u8) -> WalkerNQueensSolver {
     let np1 = (n + 1) as usize;
     let mu = if n == 32 { !0u32 } else { (1u32 << n) - 1 };
-    let mut s = vec![0; np1];
-    s[0] = mu;
     WalkerNQueensSolver {
       n: n as usize,
       a: vec![0; np1],
       b: vec![0; np1],
       c: vec![0; np1],
-      s: s,
+      s: vec![0; np1],
       mu: mu,
       done: false,
+      solution: Solution { n : n, rows: vec![0; n as usize] }
     }
   }
 
   fn clear(&mut self) -> () {
     let np1 = self.n + 1;
-    self.a = vec![0; np1];
-    self.b = vec![0; np1];
-    self.c = vec![0; np1];
-    self.s = vec![0; np1];
-    self.s[0] = self.mu;
     self.done = false;
+  }
+
+  fn least_set_bit(v: u32) -> u8 {
+    let v64 = v as i64;
+    let idx = (((v64 & -v64) * 0x077CB531) >> 27) as usize;
+    return DE_BRUJIN_BIT_POSITION[idx];
+  }
+
+  fn fill_solution(&mut self) -> () {
+    for i in 0..self.n {
+      self.solution.rows[i] = 
+        WalkerNQueensSolver::least_set_bit(self.a[i+1] - self.a[i]);
+    }
+  }
+
+  fn visit_levels(&mut self, l: usize, v: &mut Visitor) {
+    if self.done {
+      return;
+    }
+    if l == self.n {
+      self.fill_solution();
+      if !v.visit(&self.solution) {
+        self.done = true;
+      }
+      return
+    }
   }
 }
 
