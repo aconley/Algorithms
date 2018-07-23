@@ -151,6 +151,45 @@ impl NQueensSolver for BitwiseNQueensSolver {
   }
 }
 
+// NQueens solver using Walkers method.
+pub struct WalkerNQueensSolver {
+  n: usize,
+  a: Vec<u32>,
+  b: Vec<u32>,
+  c: Vec<u32>,
+  s: Vec<u32>,
+  mu: u32,
+  done: bool
+}
+
+impl WalkerNQueensSolver {
+  fn new(n: u8) -> WalkerNQueensSolver {
+    let np1 = (n + 1) as usize;
+    let mu = if n == 32 { !0u32 } else { (1u32 << n) - 1 };
+    let mut s = vec![0; np1];
+    s[0] = mu;
+    WalkerNQueensSolver {
+      n: n as usize,
+      a: vec![0; np1],
+      b: vec![0; np1],
+      c: vec![0; np1],
+      s: s,
+      mu: mu,
+      done: false,
+    }
+  }
+
+  fn clear(&mut self) -> () {
+    let np1 = self.n + 1;
+    self.a = vec![0; np1];
+    self.b = vec![0; np1];
+    self.c = vec![0; np1];
+    self.s = vec![0; np1];
+    self.s[0] = self.mu;
+    self.done = false;
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
