@@ -1,15 +1,10 @@
 use std::fmt;
 
-const DE_BRUJIN_BIT_POSITION : [u8; 32] = [
-  0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
-  31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-];
-
 pub struct Solution {
   // The number of queens.
-  n: u8,
+  pub n: u8,
   // For each of the n rows, the colum number [0, n)
-  rows: Vec<u8>,
+  pub rows: Vec<u8>,
 }
 
 impl Clone for Solution {
@@ -54,7 +49,7 @@ pub struct CountingVisitor {
 }
 
 impl CountingVisitor {
-  fn new() -> CountingVisitor {
+  pub fn new() -> CountingVisitor {
     CountingVisitor { n_solutions: 0 }
   }
 }
@@ -69,6 +64,20 @@ impl Visitor for CountingVisitor {
 // A visitor which records solutions.
 pub struct RecordingVisitor {
   solutions: Vec<Solution>
+}
+
+impl RecordingVisitor {
+  pub fn new() -> RecordingVisitor {
+    RecordingVisitor { solutions: Vec::new() }
+  }
+
+  pub fn get_n_solutions(&self) -> u64 {
+    self.solutions.len() as u64
+  }
+
+  pub fn get_solution(&self, idx: usize) -> &Solution {
+    &self.solutions[idx]
+  }
 }
 
 impl Visitor for RecordingVisitor {
@@ -93,7 +102,7 @@ pub struct BitwiseNQueensSolver {
 }
 
 impl BitwiseNQueensSolver {
-  fn new(n: u8) -> BitwiseNQueensSolver {
+  pub fn new(n: u8) -> BitwiseNQueensSolver {
     BitwiseNQueensSolver {
       a: 0,
       b: 0,
@@ -169,7 +178,7 @@ pub struct WalkerNQueensSolver {
 }
 
 impl WalkerNQueensSolver {
-  fn new(n: u8) -> WalkerNQueensSolver {
+  pub fn new(n: u8) -> WalkerNQueensSolver {
     let np1 = (n + 1) as usize;
     let mu = if n == 32 { !0u32 } else { (1u32 << n) - 1 };
     WalkerNQueensSolver {
@@ -193,7 +202,7 @@ impl WalkerNQueensSolver {
   }
 
   fn least_set_bit(v: u32) -> u8 {
-    return (v.trailing_zeros() + 1) as u8;
+    return v.trailing_zeros() as u8;
   }
 
   fn fill_solution(&mut self) -> () {
@@ -271,6 +280,15 @@ mod tests {
   }
 
   #[test]
+  fn bitwise_nqueens_n4_solutions() {
+    let mut v = RecordingVisitor::new();
+    BitwiseNQueensSolver::new(4).visit(&mut v);
+    assert_eq!(v.get_n_solutions(), 2);
+    assert_eq!(v.get_solution(0).rows, [1, 3, 0, 2]);
+    assert_eq!(v.get_solution(1).rows, [2, 0, 3, 1]);
+  }
+
+  #[test]
   fn walker_nqueens_count_n1() {
     assert_eq!(count_n(&mut WalkerNQueensSolver::new(1)), 1);
   }
@@ -293,6 +311,15 @@ mod tests {
   #[test]
   fn walker_nqueens_count_n8() {
     assert_eq!(count_n(&mut WalkerNQueensSolver::new(8)), 92);
+  }
+
+  #[test]
+  fn walker_nqueens_n4_solutions() {
+    let mut v = RecordingVisitor::new();
+    WalkerNQueensSolver::new(4).visit(&mut v);
+    assert_eq!(v.get_n_solutions(), 2);
+    assert_eq!(v.get_solution(0).rows, [1, 3, 0, 2]);
+    assert_eq!(v.get_solution(1).rows, [2, 0, 3, 1]);
   }
 
   fn count_n(nq: &mut NQueensSolver) -> u64 {
