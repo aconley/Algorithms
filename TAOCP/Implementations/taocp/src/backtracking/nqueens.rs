@@ -206,13 +206,30 @@ impl WalkerNQueensSolver {
     if self.done {
       return;
     }
-    if l == self.n {
+    if l > self.n {
       self.fill_solution();
       if !v.visit(&self.solution) {
         self.done = true;
       }
       return
     }
+
+    self.s[l] = self.mu & !self.a[l-1] & !self.b[l-1] & !self.c[l-1];
+    while self.s[l] != 0 {
+      let t = self.s[l] & (!self.s[l] + 1);
+      self.a[l] = self.a[l - 1] + t;
+      self.b[l] = (self.b[l - 1] + t) >> 1;
+      self.c[l] = ((self.c[l - 1] + t) << 1) & self.mu;
+      self.s[l] -= t;
+      self.visit_levels(l + 1, v);
+    }    
+  }
+}
+
+impl NQueensSolver for WalkerNQueensSolver {
+  fn visit(&mut self, v: &mut Visitor) {
+    self.clear();
+    self.visit_levels(1, v);
   }
 }
 
