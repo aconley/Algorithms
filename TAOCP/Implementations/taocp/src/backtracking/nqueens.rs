@@ -185,14 +185,15 @@ impl WalkerNQueensSolver {
   }
 
   fn clear(&mut self) -> () {
-    let np1 = self.n + 1;
     self.done = false;
+    for v in &mut self.a { *v = 0; };
+    for v in &mut self.b { *v = 0; };
+    for v in &mut self.c { *v = 0; };
+    for v in &mut self.s { *v = 0; };
   }
 
   fn least_set_bit(v: u32) -> u8 {
-    let v64 = v as i64;
-    let idx = (((v64 & -v64) * 0x077CB531) >> 27) as usize;
-    return DE_BRUJIN_BIT_POSITION[idx];
+    return (v.trailing_zeros() + 1) as u8;
   }
 
   fn fill_solution(&mut self) -> () {
@@ -267,6 +268,31 @@ mod tests {
   #[test]
   fn bitwise_nqueens_count_n8() {
     assert_eq!(count_n(&mut BitwiseNQueensSolver::new(8)), 92);
+  }
+
+  #[test]
+  fn walker_nqueens_count_n1() {
+    assert_eq!(count_n(&mut WalkerNQueensSolver::new(1)), 1);
+  }
+
+  #[test]
+  fn walker_nqueens_count_n2() {
+    assert_eq!(count_n(&mut WalkerNQueensSolver::new(2)), 0);
+  }
+
+  #[test]
+  fn walker_nqueens_count_n4() {
+    assert_eq!(count_n(&mut WalkerNQueensSolver::new(4)), 2);
+  }
+
+  #[test]
+  fn walker_nqueens_count_n5() {
+    assert_eq!(count_n(&mut WalkerNQueensSolver::new(5)), 10);
+  }
+
+  #[test]
+  fn walker_nqueens_count_n8() {
+    assert_eq!(count_n(&mut WalkerNQueensSolver::new(8)), 92);
   }
 
   fn count_n(nq: &mut NQueensSolver) -> u64 {
