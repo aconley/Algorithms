@@ -1,3 +1,5 @@
+// Routines to solve the nqueens problem.
+
 use std::fmt;
 
 pub struct Solution {
