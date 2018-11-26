@@ -16,7 +16,7 @@ fn bitwise(n:u8) -> u64 {
 }
 
 fn bench_walker(c: &mut Criterion) {
-  c.bench_function("Bitwise 10 queens", |b| b.iter(|| walker(10)));
+  c.bench_function("Walker 10 queens", |b| b.iter(|| walker(10)));
 }
 
 fn walker(n: u8) -> u64 {
