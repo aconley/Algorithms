@@ -4,3 +4,10 @@ version = "0.1.0"
 authors = ["Alex Conley <alexanderconley@gmail.com>"]
 
 [dependencies]
+
+[dev-dependencies]
+criterion = "0.1.2"
+
+[[bench]]
+name = "combinatoric_benchmark"
+harness = false
