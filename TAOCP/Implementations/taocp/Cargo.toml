@@ -11,3 +11,7 @@ criterion = "0.1.2"
 [[bench]]
 name = "combinatoric_benchmark"
 harness = false
+
+[[bench]]
+name = "nqueens_benchmark"
+harness = false
