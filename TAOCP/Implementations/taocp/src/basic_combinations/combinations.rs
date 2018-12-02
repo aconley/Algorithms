@@ -54,6 +54,7 @@ impl Visitor for RecordingVisitor {
 // Generates all t-combinations of the n numbers [0, n), calling
 // visitor.visit for each one.
 pub fn basic_generate(n: u32, t: u32, v: &mut Visitor) {
+  assert!(n >= t, "n must be >= t");
   if n == 0 || t == 0 {
     return;
   }
@@ -91,6 +92,74 @@ pub fn basic_generate(n: u32, t: u32, v: &mut Visitor) {
   }
 }
 
+// Knuth Algorithm T, TAOCP 4A 7.2.1.3
+// Generates all t-combinations of the n numbers [0, n), calling
+// visitor.visit for each one.
+//
+// Like Algorithm L but faster.
+pub fn combinations(n: u32, t: u32, v: &mut Visitor) {
+  assert!(n >= t, "n must be >= t");
+  if n == 0 || t == 0 {
+    return;
+  }
+  if n == t {
+    // Algorithm t assumes t < n.
+    v.visit(&(0..t).collect::<Vec<u32>>());
+    return;
+  }
+
+  let ts = t as usize;
+
+  // We work with a 1 indexed array as in Knuth's specification,
+  // then slice for visiting.
+
+  // L1: Initialize
+  let mut c = Vec::with_capacity(ts + 2);
+  c.push(0); // Ignored
+  for i in 0..t {
+    c.push(i);
+  }
+  c.push(n);
+  c.push(0);
+  let mut j = ts;
+
+  loop {
+    // L2: Visit, terminate early if needed.
+    if !v.visit(&c[1..=ts]) {
+      return;
+    }
+
+    if j > 0 {
+      // T6: increase c_j
+      c[j] = j as u32;
+      j -= 1;
+    } else if c[1] + 1 < c[2] {  
+      // T3: Easy case?
+      c[1] += 1;
+    } else {
+      // T4: find j.
+      c[1] = 0;
+      j = 2;
+      let mut x = c[2] + 1;
+      while x == c[j + 1] {
+        j += 1;
+        c[j - 1] = (j - 2) as u32;
+        x = c[j] + 1;
+      }
+
+      // T5: done?
+      if j > ts {
+        return;
+      }
+
+      // T6: increase cj
+      c[j] = x;
+      j -= 1;
+    }
+  }
+
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -105,9 +174,22 @@ mod tests {
     test_visit(&basic_generate)
   }
 
+  #[test]
+  fn combinations_count() {
+    test_counts(&combinations);
+  }
+
+  #[test]
+  fn combinations_visit() {
+    test_visit(&combinations)
+  }
+
   fn test_counts(f: &Fn(u32, u32, &mut Visitor)) {
     // 3 choose 3
     assert_eq!(count(f, 3, 3), 1);
+
+    // 3 choose 2
+    assert_eq!(count(f, 3, 2), 3);
 
     // 5 choose 2
     assert_eq!(count(f, 5, 2), 10);
