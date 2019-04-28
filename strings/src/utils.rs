@@ -10,7 +10,7 @@ fn longest_prefix(v1: &[u8], v2: &[u8]) -> usize {
       l += 1;
     }
   }
-  return l;
+  l
 }
 
 /// The fundamental preprocessing algorithm.
@@ -18,6 +18,8 @@ fn longest_prefix(v1: &[u8], v2: &[u8]) -> usize {
 /// Given a string s, returns a vector v such that v[i] is the length
 /// of the longest substring of s that starts a i and matches a prefix of s,
 /// where all indexing is bytewise.
+///
+/// Algorithms on Strings, Trees, and Sequences, Gusfield, Section 1.4
 fn z_algorithm(s: &str) -> Vec<usize> {
   if s.is_empty() {
     return Vec::new();
@@ -58,8 +60,9 @@ fn z_algorithm(s: &str) -> Vec<usize> {
     }
   }
 
-  return result;
+  result
 }
+
 
 #[cfg(test)]
 mod tests {
