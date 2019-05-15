@@ -50,6 +50,9 @@ fn z_algorithm(s: &str) -> Vec<usize> {
       if zkp < beta {
         // Case 2a.
         result.push(zkp);
+      } else if zkp > beta {
+        // We must have zk = beta; See Exercise 1.6.6
+        result.push(beta);
       } else {
         // Case 2b.
         let pos_mismatch = longest_prefix(&b[r + 1..], &b[beta..]) + r + 1;
@@ -62,7 +65,6 @@ fn z_algorithm(s: &str) -> Vec<usize> {
 
   result
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -138,5 +140,8 @@ mod tests {
     // Test case 2b not running off end.
     assert_eq!(z_algorithm("aabaabcaabaabab"), 
       vec![15, 1, 0, 3, 1, 0, 0, 6, 1, 0, 4, 1, 0, 1, 0]);
+    
+    assert_eq!(z_algorithm("aabaaacdaabaad"),
+      vec![14, 1, 0, 2, 2, 1, 0, 0, 5, 1, 0, 2, 1, 0]);
   }
 }
