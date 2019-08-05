@@ -5,7 +5,7 @@ use std::fmt;
 pub struct Solution {
   // The number of queens.
   pub n: u8,
-  // For each of the n rows, the colum number [0, n)
+  // For each of the n rows, the column number [0, n)
   pub rows: Vec<u8>,
 }
 
@@ -38,7 +38,7 @@ impl fmt::Display for Solution {
   }
 }
 
-// An iterator over nqueens solutions.
+// An iterator over nqueens solutions using Walkers method.
 pub struct NQueensIterator {
     // Number of queens.
     n: usize,
@@ -177,6 +177,7 @@ mod tests {
         let mut q = NQueensIterator::new(4);
         assert_eq!(q.next(), Some(Solution{ n: 4, rows: vec![1, 3, 0, 2] }));
         assert_eq!(q.next(), Some(Solution{ n: 4, rows: vec![2, 0, 3, 1] }));
+        assert_eq!(q.next(), None);
         assert_eq!(q.next(), None);
     }
 }
