@@ -53,7 +53,7 @@ impl Visitor for RecordingVisitor {
 // Knuth Algorithm L, TAOCP 4A 7.2.1.3
 // Generates all t-combinations of the n numbers [0, n), calling
 // visitor.visit for each one.
-pub fn basic_generate(n: u32, t: u32, v: &mut Visitor) {
+pub fn basic_generate(n: u32, t: u32, v: &mut dyn Visitor) {
   assert!(n >= t, "n must be >= t");
   if n == 0 || t == 0 {
     return;
@@ -97,7 +97,7 @@ pub fn basic_generate(n: u32, t: u32, v: &mut Visitor) {
 // visitor.visit for each one.
 //
 // Like Algorithm L but faster.
-pub fn combinations(n: u32, t: u32, v: &mut Visitor) {
+pub fn combinations(n: u32, t: u32, v: &mut dyn Visitor) {
   assert!(n >= t, "n must be >= t");
   if n == 0 || t == 0 {
     return;
@@ -184,7 +184,7 @@ mod tests {
     test_visit(&combinations)
   }
 
-  fn test_counts(f: &Fn(u32, u32, &mut Visitor)) {
+  fn test_counts(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
     // 3 choose 3
     assert_eq!(count(f, 3, 3), 1);
 
@@ -201,7 +201,7 @@ mod tests {
     assert_eq!(count(f, 10, 4), 210);
   }
 
-  fn test_visit(f: &Fn(u32, u32, &mut Visitor)) {
+  fn test_visit(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
 
     // 4 choose 4
     let mut v = RecordingVisitor::new();
@@ -217,7 +217,7 @@ mod tests {
     assert_eq!(v.get_solution(1), [0, 1, 3]);
   }
 
-  fn count(f: &Fn(u32, u32, &mut Visitor), n: u32, t: u32) -> u64 {
+  fn count(f: &dyn Fn(u32, u32, &mut dyn Visitor), n: u32, t: u32) -> u64 {
     let mut cv = CountingVisitor::new();
     f(n, t, &mut cv);
     cv.n_solutions
