@@ -84,13 +84,6 @@ impl Iterator for NQueensIterator {
         if self.l == self.n {
             // Backtrack
             self.l -= 1;
-            while self.s[self.l] == 0 {
-                if self.l == 0 {
-                    self.done = true;
-                    return None
-                }
-                self.l -= 1;
-            }
         }
 
         let mut t;
@@ -127,8 +120,6 @@ impl Iterator for NQueensIterator {
         }
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {

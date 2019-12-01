@@ -1147,15 +1147,24 @@ Consider the coefficient of $z^n$ in this product.  It is $p\left(n\right) z^n -
 Why is this equal to $\vert {n + m \over m}\vert$?  You can see this by telescoping the recurrence
 formula:
 $$
-\eqalign{\left| {n + m \over m} \right| 
+\eqalign{
+  \left| {n + m \over m} \right| 
   &= \left| {n \over m} \right| + \left| {n + m - 1 \over m - 1} \right| \cr
   &= \left| {n \over m} \right| + \left| {n \over m - 1} \right| + \left| {n + m - 2 \over m - 2} \right| \cr
   &= \left| {n \over m} \right| + \left| {n \over m - 1} \right| + \left| {n \over m - 2} \right| +
                           \left| { n + m - 3 \over m - 3} \right| \cr
-  &= \ldots}
+  &= \left| {n \over m} \right| + \left| {n \over m - 1} \right| + \ldots + \left| {n \over 1} \right| 
+}
 $$
 which is just the sum of the number of ways to split $n$ into $m, m-1, \ldots, 1$ parts -- exactly
 what we want. 
+
+\newitem{400} Theorem E \hfil\break
+What is the term on the left side of Theorem~E?  Well, $p\left(n\right)$ is just the number
+of partitions, and $\left| {m + n \over m} \right|$ is the number of partitions of $m$ into at most $n$
+parts.  Therefore, this takes the form of a cumulative distribution function -- the different between 
+successive values (as $m$ is increased from $m$ to $m+1$) is the number of partitions of $n$ 
+into $m+1$ parts.
 
 \sec{Section 7.2.1.6: Generating all Trees}
 
