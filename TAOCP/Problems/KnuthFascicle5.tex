@@ -1,0 +1,190 @@
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+
+\topglue 0.5in
+\centerline{\tt Mathematical Preliminaries Redux}
+\vskip 0.3in
+
+
+\noindent {\bf Problem 1} {\it Non-transitive dice}\hfil\break
+(a) ${\rm Pr}\left(A > B\right) = 2 / 3$ (chance of $A$ rolling a 5) $\times 5 / 6$
+(chance that a 5 beats $B$) = 5 / 9.  And ${\rm Pr}\left(B > C\right) = 2 / 6 \times 2 / 6$
+($B = 3$) $ + 3 / 6 \times 4 / 6$ ($B = 4$) $+ 1 / 6 \times 4 / 6$ ($B = 6$)
+$ = 1 / 9 + 1 / 3 + 1 / 9 = 5 / 9$, ${\rm Pr}\left(C > A\right) = 2 / 6 \times 2 / 6 +
+2 / 6 \times 2 / 6 + 2 / 6 = 1 / 9 + 1 / 9 + 1 / 3 = 5 / 9$.\hfil\break
+
+\newprob{Problem 6} {\it Pairwise independence does not imply $k$-wise independence}\hfil\break
+Note that these can't be independent, or there would be no way to have a vector
+with two set values have non-zero probability but 1 or 3 have zero probability.
+Also note that there are $n \choose 2$ ways to have $x_1 + \ldots + x_n = 2$,
+so the chance that 2 are set is ${n \choose 2} \times {1 \over \left(n - 1\right)^2} =
+{n \left(n - 1\right) \over 2} \times {1 \over \left(n - 1\right)^2} = {n \over 2 \left(n - 1\right)}$.
+Combined with the chance that zero are set ($\left(n - 2\right) \over \left(2 n - 2\right)$),
+the total probability is one.
+
+In any case, we want to compute the probability that $X_i = 1$.  Given $X_i = 1$, there are $n - 1$
+ways to set $X_j = 1$ for $i \neq j$, all of equal probability, and all other settings have zero probability.
+Therefore, the probability that $X_i = 1$ must be $1 / \left(n - 1\right)$ so that the sum of
+all those arrangements adds up to the right value.  What about $\left(X_i, X_j\right) = \left(0, 1\right)$ 
+for $i \neq j$? Well, there are $n-2$ other choices for $X_k = 1$, so the probability
+must be $n - 2 \over \left(n - 1\right)^2$, and we must have the same probability
+for $\left(X_i, X_j\right) = \left(1, 0\right)$.  We already know that the chances of
+$\left(X_i, X_j\right) = \left(1, 1\right) = {1 \over \left(n - 1\right)^2}$ for $i \neq j$,
+so by subtraction we must have the chances of them both being 0 of
+$\left(n - 2\right)^2 \over \left(n - 1\right)^2$.
+
+Now note that these can be written as the probability that ${\rm Pr} \left(X_i, X_j\right) = 
+\left(0, 0\right), \left(0, 1\right), \left(1, 0\right), \left(1, 1\right) =
+p_0^2, p_0 p_1, p_1 p_0, p_1^2$ for $p_0 = {\left( n - 2\right) \over \left(n - 1\right)}$,
+$p_1 = {1 \over n - 1}$, which constitutes 2-wise independence.
+But we can't have $\left(X_i, X_j, X_k\right) = \left(0, 0, 0\right)$ for any distinct
+$i, j, k$, and the same is true for any combination of 4 or more.  So they are 2-wise
+independent, but no more.
+
+\newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
+\left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
+There are (at least) two ways to look at this, and neither of them depends on the $X > 0$
+part.  So I'll drop that.  First, there's the usual ${\rm E}\left( \left(X - {\rm E} \, X\right)^2 \right) =
+{\rm E} \, X^2 - \left({\rm E}\, X\right)^2$ where the square is manifestly non-negative.
+Second, $X^2$ is convex so we can simply use Jensen's inequality.
+
+\topglue 0.5in
+\centerline{\tt Knuth 7.2: Basic Backtracking}
+\vskip 0.3in
+
+
+\noindent {\bf Problem~1} {\it Generating Combinatoric Quantities using 
+Backtracking}\hfil\break
+(a) $n$-tuples: $D_k$ is whatever the domain is and $P_l$ is always 
+true.\hfil\break 
+(b) Permutations: $D_k = \{ 1, \ldots, n \}$ and $P_l$ is that all the elements 
+are distinct.\hfil\break
+(c) Combinations: $D_k = \{1, \ldots, N + 1 - k \}$ and 
+$P_l = x_1 < \ldots < x_l$.\hfil\break
+
+\newprob {Problem~2} {\it Making $P_1$ always true}\hfil\break
+Simply discard any elements of $D_1$ that do not satisfy $P_1$.
+
+\newprob {Problem~3} {\it Saving half the work for $n$-queens}\hfil\break
+Restrict $D_1$ to be only the first half of the range, and then add the 
+reflected solution $n + 1 - x_1, \ldots, n + 1 - x_n$.  For example, if $n = 8$
+then $D_1 = \{1, 2, 3, 4\}$.
+
+\newprob {Problem~4} {\it Recursive backtracking}\hfil\break
+{\bf I1.} [Initialize] Set $l \leftarrow 0$ and initialize other data 
+structures.\hfil\break
+{\bf I2.} [Test $P_l$] If $P_l\left(x_1 \ldots x_l\right)$ set 
+ $l \leftarrow l + 1$ and $x_l \leftarrow {\rm min}\,D_l$,
+  otherwise goto {\bf I4}.\hfil\break 
+{\bf I3.} [Visit] If $l > n$ visit $x_1 \ldots x_n$, set $l \leftarrow l-1$.
+\hfil\break
+{\bf I4.} [Iterate] Set $x_l$ to the next larger element in $D_l$ and goto 
+ {\bf I2}. If there is no such element set $l \leftarrow l - 1$.\hfil\break
+{\bf I5.} [Done] If $l=0$ halt, otherwise goto {\bf I2}.
+\hfil\break
+
+So, why not use something like this?  Really, the answer is because Don Knuth
+is an assembly programmer, and that's the way he thinks.  One could argue his
+algorithm is faster, which could be critical in large problems, but tests show
+the difference is small when coded in a higher level language -- in fact this
+way is sometimes faster.
+
+\newprob {Problem~5} {\it NQueens skipping one row.}\hfil\break
+For $n=8$, skipping row $0, 1, \ldots, 7$ gives ${312, 396,
+430, 458, 458, 430, 396, 312}$ solutions.
+
+\newprob {Problem~9} {\it Bitwise N-Queens}\hfil\break
+Obviously we will represent the current state of the $A_l, B_l, C_l$ 
+as integers $a_l, b_l, c_l$, one for each level, and where, for example, 
+$a_l\left[i\right] = 1$ if and only if $x_{i-1}$ is present in $A_l$.  
+Similarly, $S_l$ will be represented by integers $s_l$.  Let 
+$m = \left(1 \ll {n-1}\right)$, which is a bitmask on the available elements
+for $x$.
+
+Then in {\bf W2}, to compute the available values,
+$s_l \leftarrow m \,\&\, {\bar a_{l-1}} \,\&\, {\bar b_{l-1}} \,\&\, 
+{\bar c_{l-1}}$. We compute the bitwise representation of the current choice 
+for $x$ to chose as $x \leftarrow s_l \& \left(- s_l\right)$, then 
+$a_l \leftarrow a_{l-1} + t$, $b_l \leftarrow \left(b_{l-1} + t\right) \gg 1$, 
+and  $c_l \leftarrow \left( {c_{l-1} + t} \ll 1 \right) \,\&\, m$.  The shifts 
+are necessary for $b, c$ because $l$ has increased.  In {\bf W4} we
+remove that choice by doing $s_l \leftarrow s_l - t$, although since we keep
+all the $s_l$, we can do it in W2 if desired.
+
+\newprob {Problem 15} {\it Hexwise N-Queens}\hfil\break
+This is like N-Queens except we only need to check one diagonal.  This turns out
+to be like ignoring $b$ from Problem~9.
+
+Then we have $n=1: 1, 2: 1, 3: 3, 4: 7, 5: 23, 6: 83, 7: 405, 8: 2113, 9: 12657,
+10: 82297$.
+
+\newprob {Problem 20} {\it Forced move in Langford.}\hfil\break
+We need a new array $a$ where $a_i$ means that $i$ has already appeared.
+We initially set it to all 0s, and when we chose the value in {\bf L3}
+we set $a_k \leftarrow 1$.  Similarly, when we undo in $L_5$ we set
+$a_k \leftarrow 0$.
+
+The more interesting changes have to do with forcing a value.  First,
+we don't need to do any checks if $l < n - 1$ since nothing can be forced
+before that.  We force moves in {\bf L3}, after we determine we are not
+off the end (that is, after the $l + k + 1 \le 2 n$ check), we check to see 
+if the forced value has already been used.  If it has, continue, if not
+then we have to force it by walking the list forward until it is selected.
+So: if $l \ge n - 1$ and $a_{2n - l - 1} = 0$, while $l + k + 1 \ne 2 n$
+set $j \leftarrow k$, $k \leftarrow p_k$.  We are guaranteed this will
+terminate because we know it is available by checking $a$.
+
+But we can also modify $l$ by walking over used values in {\bf L2}, which
+may lead us to realize we are out of room.  So, in {\bf L2} while looping
+forward over negative values, we immediately backtrack (jump to {\bf L5}).
+So: while $x_l < 0$, if $l \ge n - 1$ and $a_{2 n - l - 1} = 0$ goto {\bf L5},
+otherwise set $l \leftarrow l + 1$.
+
+
+\topglue 0.5in
+\centerline{\tt Knuth 7.2.1: Dancing Links}
+\vskip 0.3in
+
+\noindent {\bf Problem 3} {\it Solving exact cover problems using
+linear algebra}\hfil\break
+(a) Together $x_2 + x_4 = 1$ and $x_2 + x_4 + x_6 = 1$
+imply that $x_6 = 0$.  Combined that with $x_1 + x_6 = 1$
+gives $x_1 = 1$.  In turn with $x_1 + x_3 = 1$ this implies
+$x_3 = 0$, then with $x_3 + x_5 = 1$ we have $x_5 = 1$.
+Then $x_3 + x_4 = 1 \rightarrow x_4 = 1$ and finally
+$x_2 + x_4 = 1 \rightarrow x_2 = 0$.  Altogether
+$\vec{x} = [1, 0, 0, 1, 1, 0]$.\hfil\break
+(b) Because in general there will be many, many more
+rows than columns (e.g., $m \gg n$), and so we the solution
+will not be uniquely determined.
+
+\newprob {Problem~4} {\it Exact cover on graph.}\hfil\break
+You are chosing edges such that each vertex has exactly one incident edge.
+This has various interpretations depending on the graph.  If it is bipartite, for
+example, each solution choses the vertices of one part.
+
+\newprob {Problem~6} {\it Size of data structures in Algorithm~D}\hfil\break
+The items occupy $N+1$ locaions of size 2 + the space to represent the names.
+Then we have $N$ header nodes plus $M+1$ spacers plus the $L$ options,
+each taking 3 elements, so $3\left(L + N + M + 1\right)$ locations.
+
+\newprob {Problem~7} {\it Explain specific values in Table~1}\hfil\break
+(a) {\tt TOP(23) = -4} because it is a spacer following option 4 (this is not
+really part of the algorithm; all that matters is that it is negative.\hfil\break
+(b) {\tt DLINK(23) = 25} because that is the last element of the next option
+(option 5).
+
+\newprob {Problem~18} {\it MRV Heuristic}\hfil\break
+Simply walk the list of active items and keep track of the minimum encountered
+so far.\hfil\break
+{\bf M1.} [Initialize] If $RLINK\left(0\right) = 0$, terminate unsuccessfully (there are no
+ active items).  Otherwise, set $m \leftarrow \infty$, $p \leftarrow 0$ ($m$ will hold
+ the current minimum).\hfil\break
+{\bf M2.} [Walk forward] Set $p \leftarrow RLINK\left(p\right)$.\hfil\break
+{\bf M3.} [Done?] If $p = 0$ goto {\bf M6}.\hfil\break
+{\bf M4.} [Compare] Set $l \leftarrow LEN\left(p\right)$.  If $l < m$ set $m \leftarrow l$,
+ $i \leftarrow p$.\hfil\break
+{\bf M5.} [Early terminate] If $m \ne 0$, goto {\bf M2}.\hfil\break
+{\bf M6.} [Exit] Return $i$.\hfil\break
+
+\bye
