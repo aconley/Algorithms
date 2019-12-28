@@ -120,6 +120,11 @@ mod tests {
   }
 
   #[test]
+  fn z_for_aaaa_returns_expected_value() {
+    assert_eq!(z_algorithm("aaab"), vec![4, 2, 1, 0]);
+  }
+
+  #[test]
   fn z_case2a_returns_expected_value() {
     // Tests case 2a.
     assert_eq!(z_algorithm("aabcaabxaaz"), 

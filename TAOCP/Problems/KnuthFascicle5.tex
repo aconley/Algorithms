@@ -12,6 +12,85 @@
 ($B = 3$) $ + 3 / 6 \times 4 / 6$ ($B = 4$) $+ 1 / 6 \times 4 / 6$ ($B = 6$)
 $ = 1 / 9 + 1 / 3 + 1 / 9 = 5 / 9$, ${\rm Pr}\left(C > A\right) = 2 / 6 \times 2 / 6 +
 2 / 6 \times 2 / 6 + 2 / 6 = 1 / 9 + 1 / 9 + 1 / 3 = 5 / 9$.\hfil\break
+(b) The die should not have any common faces between them or we could make a better
+die by making use of any unused ones.  So we want to partition {1, 2, 3, 4, 5, 6} somehow between
+three die, also specifying how many times each one appears.  Because we are only trying find
+{\it a} solution, not prove it is optimal, we don't need to be that rigorous.
+
+Start by considering the case where one die is all of one value.  It obviously can't be 6, or
+that die would alway win.  Say it has value $a \times 6$.  Now, say, that die B also all one
+face $b \times 6$.  We must have $a > b$ (and then $P\left(A > B\right) = 1$.   Clearly
+die C can't also be all one value, since then we couldn't have B beating C anc C beating A.
+So, say that c has two values, with $c_2 > c_1$.  Then we must have $c_2 > a$ and $c_1 < a$.
+We must also have $b > c_1$ so that B can beat C.  But then we can't have both 
+$P\left(C > A\right) > 1/2$ and $P \left(B > C\right) > 1/2$ because we run out of faces.
+Adding a third value to C does not help.
+
+So, if A is pure, B can't be.  So now we consider only one pure die -- say B also has two values
+$b_2 > b_1$.  We must have $a > b_2$ so that $P\left(A > B\right) > 0$.  If we also had 
+$a > b_1$ then A would also beat B.  We must have $c_1 > a$ so that C can beat B,
+but we can't have $c_2 > a$ or else B would lose to C.  So we must have $c_1 > a > c_2$ and $a > b_2$.
+If we then have $a > b_1$ then $P\left(C > B\right) \leq N_{c_2}$, $P \left(A > C\right) = N_{c_1}$,
+so this doesn't work.  We conclude that having A be pure doesn't seem t owork.
+
+So, try two values per die, with $a_1 > a_2, b_1 > b_2, c_1 > c_2$.  Try A is $a_1, 5 \times a_2$
+and C is $k_c c_1, \left(6-k_c\right) \times c_2$, and we have
+$$
+ P\left(C > A\right) = {k_c \over 36} \left[c_1 > a_1\right] + {5 k_c \over 36} \left[c_1 > a_2\right]
+  + {\left(6 - k_c\right) 5 \over 36} \left[c_1 > a_2\right],
+$$
+so we must have $c_1 > a_2$ to obtain the desired possibilities, and $P\left(C > A\right) = k_c / 6$,
+and we need $k_c \geq 5$.  So: A is $1 \times a_1, 5 \times a_2$ and C is $5 \times c_1, 1 \times c_2$.
+
+Now B is $k_b \times b_1, \left(6 - k_b\right) \times b_2$.  We must have $a_1 > b_1$, so 
+$$
+P\left(A > B\right) = {1 \over 6} + {5 k_b \over 36} \left[a_2 > b_2\right] + {5 \left(6-k_b\right) \over 36}
+ \left[a_2 > b_2\right] \geq {1 \over 6} + {5 \left(6 - k_b\right) \over 36} \left[a_2 > b_2\right].
+$$
+This means that we must have $k_b \leq 3$.
+
+And
+$$
+ P\left(B > C\right) = {k_b \over 6} \left[b_1 > c_1\right] + {6 - k_b \over 36} \left[b_2 > c_2\right]
+  + {\left(6 - k_b\right) 5 \over 36} \left[b_2 > c_1\right].
+$$
+Since $k_b \leq 3$, we must have $b_2 > c_2$ and $b_1 > c_1$.  This still gives us a lower limit of 
+$k_b \geq 3$, so together we have $k_b = 3$.
+
+Putting this all together: A is $1 \times a_1, 5 \times a_2$, B is $3 \times b_1, 3 \times b_2$,
+C is $5 \times c_1, 1 \times c_2$ with $a_1 > c_1 > a_2 > c_2$ and $b_1 > c_1$ and $b_2 > c_2$.
+This can be done with $A = 6 3 3 3 3 3$, $B=5 5 5 2 2 2$, $C = 4 4 4 4 4 1$.\hfil\break
+(c) Clearly we want to try splitting each die into $F_m = F_{m-1} + F_{m-2}$.  Try making
+one of the die all one value -- say A is $F_m \times a$, B is $F_{m-2} \times b_1, F_{m-1} \times b_2$.
+If $b_1 > a > b_2$, then $P\left(A > B\right) = F_{m-1} / F_m$.  If then C is $F_{m-1} \times c_1,
+F_{m-2} \times c_2$ with $c_1 > a > c_2$ then $P\left(C > A\right) = F_{m-1} / F_m$, and
+$P\left(B > C\right)$ is complex.
+
+So, this seems to work, but B should be the singleton.  That is: $A = F_{m-1} \times a_1, F_{m-2} \times a_2$,
+$B = F_m \times b$, $C = F_{m-1} \times c_1, F_{m-2} \times c_2$, and we can get two of the
+probabilities if $c_2 > b > c_1$ and $a_1 > b > a_2$, with 
+$P\left(C > A\right) = \left(F_{m-1} F_{m-2} + F_{m-2} F_m\right) / F^2_m$ 
+if $c_1 > a_2$ and $c_2 > a_1$.  That is: $c_2 > a_1 > b > c_1 > a_2$, which we can get by 
+using $A = F_{m-1} \times 4, F_{m-2} \times 1$, $B = F_m \times 3$, 
+$C = F_{m-1} \times 2, F_{m-2} \times 5$.
+
+But does this work? $P\left(C > A\right)$ is complex enough to suggest that it might work,
+but needs to be simplified.  Start with the Cassini identity: 
+$$
+ \eqalign{
+    F_{n+1} F_{n-1} - F_n^2 =& \left(-1\right)^n \cr
+   \left(F_{n+2} - F_{n}\right)  F_{n-1} - F_n^2 =& \left(-1\right)^n \cr
+   \left(F_{n+2} - F_{n}\right)  \left(F_n - F_{n-2}\right) - F_n^2 =& \left(-1\right)^n \cr
+   F_{n+2} F_n - F_n^2 - F_{n+2} F_{n-2} + F_n F_{n-2} - F_n^2 =& \left(-1\right)^n \cr
+   F_{n+2} \left(F_n - F_{n-2}\right) - 2 F_n^2 + F_n F_{n-2} =& \left(-1\right)^n \cr
+   F_{n+2} F_{n-1} - F_n \left(2 F_n - F_{n-2}\right) =& \left(-1\right)^n \cr
+   F_{n+2} F_{n-1} - F_n \left(F_n + F_{n-1}\right) =&  \left(-1\right)^n \cr
+   F_{n+2} F_{n-1} - F_n F_{n+1} =&  \left(-1\right)^n \cr
+   F_{n-1} F_{n+2} =& F_n F_{n+1} + \left(-1\right)^n \cr
+   F_{m-2} F_{m+1} =& F_{m-1} F_m - \left(-1\right)^{m-1}
+ }
+ $$
+ which, when substituted into $P\left(C > A\right)$ gives the desired result.
 
 \newprob{Problem 6} {\it Pairwise independence does not imply $k$-wise independence}\hfil\break
 Note that these can't be independent, or there would be no way to have a vector
@@ -40,6 +119,22 @@ $p_1 = {1 \over n - 1}$, which constitutes 2-wise independence.
 But we can't have $\left(X_i, X_j, X_k\right) = \left(0, 0, 0\right)$ for any distinct
 $i, j, k$, and the same is true for any combination of 4 or more.  So they are 2-wise
 independent, but no more.
+
+\newprob {Problem 13} {\it Does $P\left(A|B\right) > P\left(A\right)$,
+$P\left(B | C\right) > P\left(B\right)$ imply $P\left(A|C\right) > P\left(A\right)$?}\hfil\break
+Writing it out in terms of the definition does not suggest any way of demonstrating
+this, but is there a counterexample?  Yes, a particularly simple one is 
+$\Omega = {1, 2, 3, 4, 5}$, $P\left(i\right) = 1/5$ for $i \in \Omega$, and
+$A = {1, 2, 3}$, $B = {2, 3, 4}$, $C = {3, 4, 5}$.  For then
+$ P\left(A\right) = P\left(B\right) = P\left(C\right) = 3 / 5$
+and
+$$
+ \eqalign{
+  P\left(A | B\right) = {P\left({2, 3}\right) \over P\left(B\right)} = {2 \over 3} >& P\left(B\right) \cr
+  P\left(B | C\right) = {P\left({3, 4}\right) \over P\left(C\right)} = {2 \over 3} >& P\left(C\right) \cr
+ P\left(A | C\right) = {P\left({3}\right) \over P\left(C\right)} = {1 \over 3} <& P\left(C\right) \cr
+ }.
+$$
 
 \newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
 \left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
