@@ -202,7 +202,6 @@ mod tests {
   }
 
   fn test_visit(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
-
     // 4 choose 4
     let mut v = RecordingVisitor::new();
     f(4, 4, &mut v);

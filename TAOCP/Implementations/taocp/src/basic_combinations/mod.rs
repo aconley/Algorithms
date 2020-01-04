@@ -1,2 +1,2 @@
 pub mod combinations;
-pub mod permutations;
+pub mod partitions;
