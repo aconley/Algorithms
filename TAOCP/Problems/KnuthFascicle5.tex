@@ -120,6 +120,24 @@ But we can't have $\left(X_i, X_j, X_k\right) = \left(0, 0, 0\right)$ for any di
 $i, j, k$, and the same is true for any combination of 4 or more.  So they are 2-wise
 independent, but no more.
 
+\newprob {Problem 10} {\it k-wise independence modulo $p$}\hfil\break
+Note a similar (but simpler) version is discussed as example~15.1.1 of Mitzenmacher and Upfal.
+The basic idea is to show that $P\left(X_1 = a_1, \dots, X_k = a_k\right) = 1 / p^k$, and if it turns
+out that there is a unique map from the $Y$s to the $X$s, this will be true because the $Y$s are
+independent.
+
+First, note that if $n > p$ then $X_{p+1} = \left( \left(p+1\right)^m + Y_1 \left(p+1\right)^{m-1}
+ + \ldots + Y_m\right) \bmod p =X_1$, so they are definitely not unique.  Why?  Well, because
+ $\left(p + 1\right)^k \bmod p = \left[ \sum_q {m \choose q} p^k  \right] = {m \choose 0} \bmod p = 
+ 1 \bmod p$.  So therefore there is no independnece unless $n \leq p$.  Now, the 1 terms (that don't
+ involve the $Y$s) are just constants we can ignore.
+
+ As long as the vectors $1, j, \ldots, j^{m-1}$ are independent, then the solution is unique, otherwise
+ there would be multiple ways to formulate the solution.  Note, however, that the vectors don't have
+ to span the space, so for a given set of values of the $Y$s not all $X$s are possible!  And, indeed,
+ these vectors are unique modulo $p$ as long as there are less than $m$ of them, so this formulation
+ gives $m-1$-wise independence.
+
 \newprob {Problem 13} {\it Does $P\left(A|B\right) > P\left(A\right)$,
 $P\left(B | C\right) > P\left(B\right)$ imply $P\left(A|C\right) > P\left(A\right)$?}\hfil\break
 Writing it out in terms of the definition does not suggest any way of demonstrating
@@ -135,6 +153,36 @@ $$
  P\left(A | C\right) = {P\left({3}\right) \over P\left(C\right)} = {1 \over 3} <& P\left(C\right) \cr
  }.
 $$
+
+\newprob {Problem 14} {\it Prove the chain rule for conditional probability.}\hfil\break
+That is:
+$$
+  P\left(A_1 \cap \ldots \cap A_n\right) = P\left(A_1\right) P\left(A_2 | A_1\right)
+   \ldots P\left(A_n | A_1 \ldots A_{n-1} \right).
+$$.
+
+Proceed via induction.  First, the base case 
+$P\left(A_1 \cap A_2\right) = P\left(A_2 | A_1\right) P\left(A_1\right)$
+is true by the definition of conditional probability (MPR.4).  So now assume we have
+the above relation and want to demonstrate it for $n+1$.  If we denote $A_1 \cap A_n = An$,
+then this is simply $P\left(An\right) = P\left(A_1\right) \ldots P\left(A_n | A_1 \ldots A_{n-1}\right)$,
+and we have (from the definition) that 
+$P\left(A_{n+1} \cap An\right) = P\left(A_{n+1} | An\right) P\left(An\right)$
+which is just the desired formula.
+
+\newprob {Problem 15} {\it Is $P\left(A | B \cap C\right) P\left(B | C\right) = P\left(A \cap B | C\right)$?}\hfil\break
+Writing this out:
+$$
+P\left(A | B \cap C\right) P\left(B | C\right)  = {P\left(A \cap B \cap C\right) \over P\left(B \cap C\right)}
+   {P\left(B \cap C\right) \over P\left(C\right)} = {P\left(A \cap B \cap C\right) \over P\left(C\right)} =
+    P\left(A \cap B | C\right).
+$$
+So this is true {\it as long} as we avoid the special case $P\left(C\right) = 0$ 
+(and then it's true if $A$ and $B$ are independent).
+
+\newprob {Problem 17} {\it Evaluate $P\left(\hbox{\rm T is ace} | \hbox{\rm B is Q of spades}\right)$}. 
+\hfil \break
+Four of the remaining 51 cards are aces, so this is just $4/51$.
 
 \newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
 \left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
