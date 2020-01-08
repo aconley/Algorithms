@@ -184,6 +184,44 @@ So this is true {\it as long} as we avoid the special case $P\left(C\right) = 0$
 \hfil \break
 Four of the remaining 51 cards are aces, so this is just $4/51$.
 
+\newprob {Problem 18} {\it Prove that $\hbox{\rm Var}\left[x\right] 
+\leq \left(M - E\,X\right) \left(E\,X - m\right)$}.\hfil\break
+Here $M$ is the maximum value and $m$ the minimum.  Denoting the quantity
+as $Q$, we are trying to prove $\hbox{\rm Var}\left[x\right] \leq Q$, which is 
+equivalent to  $Q - \hbox{\rm Var}\left[x\right] \geq 0$.
+$$
+\eqalign{
+  \hbox{\rm Var}\left[x\right] =& E\left(X^2\right) - \left(E\,X\right)^2 \cr
+  Q =& \left(M + m\right) E\,X - \left(E\,X\right)^2 - m\,M \cr
+  Q - \hbox{\rm Var}\left[x\right] =& \left(M+m\right) E\,X - E\left(X^2\right) -m\,M .
+}
+$$
+Is the latter quantity positive?  Well, $\left(M - X\right) \left(X - m\right) \geq 0$, so
+it's expectation must also be positive.
+$$
+\eqalign{
+  E\left(M - X\right)\left(X - m\right) & \geq \cr
+  E\left(\left(M + m\right) X - X^2 -m\,M\right) & \geq 0 \cr
+  \left(M + m\right) E\, X - E\left(X^2\right) \geq 0
+}
+$$
+which is the desired proof.
+
+\newprob {Problem 20} {\it Prove the Union rule: $P\left(A_1 
+\cup \ldots \cup A_n\right) \leq P\left(A_1\right) + \ldots P\left(A_n\right).$}\hfil\break
+There are multiple ways to show this, but doing it with equation~8:
+$$
+\eqalign{
+  P\left(A_1 \cup \ldots \cup A_n \right) &= 
+           E\left( \left[A_1 \cup \ldots \cup A_n \right] \right) \cr 
+    &= E\, \hbox{\rm max}\left( \left[A_1\right], \ldots, \left[A_n \right] \right) \cr
+    &\leq E\left(\left[A_1\right] + \ldots + \left[A_n \right]\right) \cr
+    &= E\left[A_1\right] + \ldots + E\left[A_n\right]
+}
+$$
+where the last step follows by linearity of expectations.
+
+
 \newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
 \left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
 There are (at least) two ways to look at this, and neither of them depends on the $X > 0$
