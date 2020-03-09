@@ -222,7 +222,23 @@ $$
 $$
 where the last step follows by linearity of expectations.
 
-
+\newprob {Problem 35} True or false for conditional expectations.\hfil\break
+(a) $E\left( E\left(X | Y\right | Y \right) = E\left(X | Y\right)$.  First, notice that
+$E\left(X|Y\right)$ is just a function of $Y$ -- that is, a random variable which
+takes the value $\sum_x \, x Pr\left(X=x| Y = y\right)$ when $Y=y$.  So we have
+$E\left(E\left(X | Y\right) | Y \right) = E\left(f\left(Y\right) | Y\right) = f\left(Y\right) = E\left(X | Y\right),$
+as claimed.
+(b) $E\left(E\left(X|Y\right)|Z\right) = E\left(X|Z\right)$.  This one is not true.  We now have
+$E\left(E\left(X|Y\right)|Z\right) = \sum_y f\left(Y, Z\right) Pr\left(Z=z\right)$, but that isn't
+going to be $\sum_x x Pr\left(Z=z\right)$ in general.  In contrast, consider
+$$
+\eqalign{
+  E\left(E\left(X|Y, Z\right)|Z\right) &= 
+    \sum_{y^{\prime}, x} Pr\left(X=x|Y=y^{prime}, Z=z\right) Pr\left(Y=y^{\prime}| Z = z\right) \cr
+    &= \sum_x Pr\left(X=x|Z=z\right) \cr 
+    &= E\left(X|Z\right)
+}.
+$$
 \newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
 \left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
 There are (at least) two ways to look at this, and neither of them depends on the $X > 0$

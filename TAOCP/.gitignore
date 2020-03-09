@@ -1,6 +1,7 @@
 *.pdf
 *.log
 *.synctex.gz
+*.dvi
 settings.json
 c_cpp_properties.json
 .vscode
