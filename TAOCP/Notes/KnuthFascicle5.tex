@@ -9,7 +9,43 @@
 \centerline{\tt Mathematical Preliminaries Redux}
 \vskip 0.2in
 
-{\bf Inequalities}
+\noindent [p 3] Forumula (12): Expectation of expectations: show that
+$E\left( E\left(X | Y\right)\right) = E\left(X\right)$.  As explained in the text, $E\left(X|Y\right)$
+is a random function -- that is, a map from events $\omega \in \Omega$ to real numbers.   For an 
+event $\omega$ it takes the value:
+$$
+  E\left(X|Y\right)\left(\omega\right) =
+    \sum_{\omega^{\prime} \in \Omega} X\left(\omega^{\prime}\right)
+      \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+      {Pr\left(\omega^{\prime}\right) \over Pr \left(Y = Y\left(\omega\right)\right)}.
+$$
+where
+$$
+  Pr\left(Y = Y\left(\omega\right)\right) = \sum_{\omega^{prime} \in  \Omega}
+    Pr \left(\omega^{\prime}\right) \left[ Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+$$
+and $[]$ is the indicator function.  For example, if $\Omega = {-2, -1, 0, 1, 2}$, $Pr\left(\omega\right)
+= 1/5$, and $Y\left(\omega\right) = \omega^2$, then 
+$Pr \left(Y = 1\right) = Pr\left(1\right) + Pr\left(-1\right) = 2/5$.
+
+So, continuing:
+$$
+\eqalign{
+  E\left(E\left(X|Y\right)\right) =&\sum_{\omega \in \Omega} \sum_{\omega^{\prime} \in \Omega}
+  X\left(\omega^{\prime}\right)
+  \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+  {Pr\left(\omega^{\prime}\right) Pr\left(\omega\right) \over Pr \left(Y = Y\left(\omega\right)\right)} \cr
+   =& \sum_{\omega^{\prime} \in \Omega} \left(
+     X\left(\omega^{\prime}\right) Pr\left(\omega^{\prime}\right) 
+      \sum_{\omega \in \Omega} {\left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+       Pr\left(\omega\right) \over Pr \left(Y = Y\left(\omega\right)\right)} \right).
+}
+$$
+Now, the inner sum is just one, since it is just the definition of $Pr\left(Y = Y\left(\omega\right)\right)$ summed
+over all events $\omega$.  So this is just $E\left(E\left(X|Y\right)\right) = \sum_\omega X\left(\omega\right)
+Pr \left(\omega\right) = E\left(X\right)$, as claimed.
+
+\noindent {\bf Inequalities}
 
 \noindent [p 5] Formula (23): derivation of the second moment principle.  The
 final step again takes advantage of ${\rm E}\left(X | X > 0\right) = {\rm E} \left(X | X > 0\right)
@@ -17,7 +53,7 @@ final step again takes advantage of ${\rm E}\left(X | X > 0\right) = {\rm E} \le
 {\rm Pr}\left(X > 0\right)$, and therefore $\left( {\rm E} \left(X | X > 0\right) \right)^2 = 
 \left({\rm E} \left(X \right) / {\rm Pr}\left(X > 0\right) \right)^2$.
 
-{\bf Martingales}
+\noindent {\bf Martingales}
 
 \noindent Something that goes oddly unmentioned, but is used, is that
 ${\rm E} Z_n = {\rm E} Z_0$ for any martingale.  For example, it gets used in the stopping rule

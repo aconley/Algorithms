@@ -159,7 +159,7 @@ That is:
 $$
   P\left(A_1 \cap \ldots \cap A_n\right) = P\left(A_1\right) P\left(A_2 | A_1\right)
    \ldots P\left(A_n | A_1 \ldots A_{n-1} \right).
-$$.
+$$
 
 Proceed via induction.  First, the base case 
 $P\left(A_1 \cap A_2\right) = P\left(A_2 | A_1\right) P\left(A_1\right)$
@@ -222,23 +222,70 @@ $$
 $$
 where the last step follows by linearity of expectations.
 
-\newprob {Problem 35} True or false for conditional expectations.\hfil\break
-(a) $E\left( E\left(X | Y\right | Y \right) = E\left(X | Y\right)$.  First, notice that
+\newprob {Problem 35} {\it True or false for conditional expectations.}\hfil\break
+(a) $E\left( E\left(X | Y\right) | Y \right) = E\left(X | Y\right)$.  First, notice that
 $E\left(X|Y\right)$ is just a function of $Y$ -- that is, a random variable which
-takes the value $\sum_x \, x Pr\left(X=x| Y = y\right)$ when $Y=y$.  So we have
-$E\left(E\left(X | Y\right) | Y \right) = E\left(f\left(Y\right) | Y\right) = f\left(Y\right) = E\left(X | Y\right),$
-as claimed.
+takes the value $\sum_x \, x Pr\left(X=x| Y = y\right)$ when $Y=y$.  Or to write
+it out more fully
+$$
+E\left(X|Y\right)\left(\omega\right) =
+    \sum_{\omega^{\prime} \in \Omega} X\left(\omega^{\prime}\right)
+      \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+      {Pr\left(\omega^{\prime}\right) \over Pr \left(Y = Y\left(\omega\right)\right)}.
+$$
+Thus
+$$
+\eqalign{
+   E\left( E\left(X | Y\right) | Y \right) \left(\omega\right)  &=
+     \sum_{\omega^{\prime}} \sum_{\omega^{\prime \prime}}
+       X\left(\omega^{\prime\prime}\right)
+       \left[Y\left(\omega^{\prime\prime}\right) = Y\left(\omega^{\prime}\right)\right]
+       {Pr\left(\omega^{\prime\prime}\right) \over Pr\left(Y = Y\left(\omega^{\prime}\right)\right)}
+       \left[Y\left(\omega^{\prime}\right) = Y\left(\omega\right)\right]
+       {Pr\left(\omega^{\prime}\right) \over Pr\left(Y = Y\left(\omega\right)\right)} \cr
+   &=  \sum_{\omega^{\prime \prime}}
+     \left(
+     X\left(\omega^{\prime\prime}\right)
+     \left[Y\left(\omega^{\prime\prime}\right) = Y\left(\omega\right) \right]
+     {Pr\left(\omega^{\prime\prime}\right) \over Pr\left(Y=Y\left(\omega\right)\right)}
+     \sum_{\omega^{\prime}} 
+      { \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+         Pr\left(\omega^{\prime}\right) 
+         \over Pr \left(Y = Y\left(\omega^{\prime}\right)\right) }.
+     \right)
+}
+$$
+where we have swapped the equalities in the indicator functions because they must all be equal for a term to count.
+The last sum is 1 by the definition of $Pr\left(Y = Y\left(\omega\right)\right)$ (see the Notes for this portion),
+which leaves us with $E\left(X | Y\right) \left(\omega\right)$, as claimed.\hfil\break
 (b) $E\left(E\left(X|Y\right)|Z\right) = E\left(X|Z\right)$.  This one is not true.  We now have
 $E\left(E\left(X|Y\right)|Z\right) = \sum_y f\left(Y, Z\right) Pr\left(Z=z\right)$, but that isn't
 going to be $\sum_x x Pr\left(Z=z\right)$ in general.  In contrast, consider
 $$
 \eqalign{
   E\left(E\left(X|Y, Z\right)|Z\right) &= 
-    \sum_{y^{\prime}, x} Pr\left(X=x|Y=y^{prime}, Z=z\right) Pr\left(Y=y^{\prime}| Z = z\right) \cr
+    \sum_{y^{\prime}, x} Pr\left(X=x|Y=y^{\prime}, Z=z\right) Pr\left(Y=y^{\prime}| Z = z\right) \cr
     &= \sum_x Pr\left(X=x|Z=z\right) \cr 
     &= E\left(X|Z\right)
 }.
 $$
+
+\newprob{Problem 36} {\it Simplify conditional expectations}\hfil\break
+(a) Simplify $E\left(f\left(X\right) | X\right).$  This is simply $f\left(X\right)$\hfil\break
+(b) Simplify $E \left( f\left(Y\right) E\left(g\left(X\right) | Y\right) \right)$.  Recall that
+the conditional expectation is just a random variable.
+$$
+\eqalign{
+E \left( f\left(Y\right) E\left(g\left(X\right) | Y\right) \right)
+ &= \sum_y f\left(y\right) E\left(g\left(X\right) | Y\right) Pr\left(Y=y\right)\cr
+ &= \sum_{x, y}f\left(y\right) g\left(x\right) Pr\left(X=x | Y=y\right) Pr\left(Y=y\right) \cr
+ &= \sum_{x, y} f\left(y\right) g\left(x\right) 
+   {Pr\left(X=x , Y=y\right) \over Pr\left(Y=y\right)} Pr\left(Y=y\right) \cr
+  &= \sum_{x, y} f\left(y\right) g\left(x\right) Pr\left(X=x, Y=y\right) \cr
+  &= E\left( f\left(Y\right) g\left(X\right)\right)
+}
+$$
+
 \newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
 \left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
 There are (at least) two ways to look at this, and neither of them depends on the $X > 0$
@@ -249,7 +296,6 @@ Second, $X^2$ is convex so we can simply use Jensen's inequality.
 \topglue 0.5in
 \centerline{\tt Knuth 7.2: Basic Backtracking}
 \vskip 0.3in
-
 
 \noindent {\bf Problem~1} {\it Generating Combinatoric Quantities using 
 Backtracking}\hfil\break
