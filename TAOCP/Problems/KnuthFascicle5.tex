@@ -222,8 +222,9 @@ $$
 $$
 where the last step follows by linearity of expectations.
 
-\newprob {Problem 35} {\it True or false for conditional expectations.}\hfil\break
-(a) $E\left( E\left(X | Y\right) | Y \right) = E\left(X | Y\right)$.  First, notice that
+\newprob {Problem 34} {\it Write out an algebraic proof of (12)}\hfil\break
+That is, show $E\left(X\right) = E\left( E\left(X | Y \right) \right)$.  
+First, notice that
 $E\left(X|Y\right)$ is just a function of $Y$ -- that is, a random variable which
 takes the value $\sum_x \, x Pr\left(X=x| Y = y\right)$ when $Y=y$.  Or to write
 it out more fully
@@ -233,7 +234,31 @@ E\left(X|Y\right)\left(\omega\right) =
       \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
       {Pr\left(\omega^{\prime}\right) \over Pr \left(Y = Y\left(\omega\right)\right)}.
 $$
-Thus
+Thus we have
+$$
+ \eqalign{ 
+  \sum_{\omega} E \left(X | Y\right) Pr \left(\omega\right) &=
+     \sum_{\omega} Pr\left(\omega\right) \sum_{\omega^{\prime}}
+      X\left(\omega^{\prime}\right) Pr\left(\omega^{\prime}\right)
+       \left[Y\left(\omega^{\prime}\right) = Y\left(\omega\right)\right] /
+       Pr\left(Y = Y\left(\omega\right)\right) \cr
+     &= \sum_{\omega} Pr\left(\omega\right) \sum_{\omega^{\prime}}
+       X\left(\omega^{\prime}\right) Pr\left(\omega^{\prime}\right)
+        \left[Y\left(\omega^{\prime}\right) = Y\left(\omega\right)\right] /
+        Pr\left(Y = Y\left(\omega^\prime\right)\right) \cr
+    &= \sum_{\omega^\prime} X\left(\omega^{\prime}\right) Pr\left(\omega^{\prime}\right) 
+      \sum_{\omega} Pr\left(\omega\right)
+         \left[Y\left(\omega^{\prime}\right) = Y\left(\omega\right)\right] /
+         Pr\left(Y = Y\left(\omega^\prime\right)\right) \cr
+ }
+$$
+where the second sum is just one because it is the definition:
+$Pr\left(Y = Y\left(\omega\right)\right) \equiv \sum_{\omega^{\prime}} Pr\left(\omega^{\prime}\right)
+\left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right].$
+
+\newprob {Problem 35} {\it True or false for conditional expectations.}\hfil\break
+(a) $E\left( E\left(X | Y\right) | Y \right) = E\left(X | Y\right)$.  following on
+from the previous problem,
 $$
 \eqalign{
    E\left( E\left(X | Y\right) | Y \right) \left(\omega\right)  &=
