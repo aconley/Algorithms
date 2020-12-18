@@ -1211,4 +1211,16 @@ implementation in Go) the bit twiddling approach is $5-6\times$ faster.  But if
 one really needs the string form, then Algorithm~P is $\sim 2\times$ faster --
 at least in my implementation!
 
+\noindent [p 444] {\bf Trees as Inversion Tables} \hfil\break
+
+The fact that $c_1 = 0$ is just a standard fact of inversion tables
+(at least in this order), but the requirement that $c_{k+1} \le c_k + 1$
+is not true in general for all inversion tables.  For example,
+consider the permutation $4231$, which has the inversion table $0113$
+so that $c_4 > c_3 + 1$.
+
+So why is it true then?  Well, each $c_k$ is essentially how deeply nested
+you are at each left parenthesis (as the text notes), and you can't increase
+that depth by more than one in one place -- although you can decrease it.
+
 \end
