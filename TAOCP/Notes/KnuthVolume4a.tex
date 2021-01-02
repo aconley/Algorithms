@@ -1120,6 +1120,19 @@ approach of 7.1.2.1.(40) is about 10\% faster still.
 
 \sec{Section 7.2.1.3: Generating all Combinations}
 
+noindent [p 358] {\bf Algorithm L} ({\it Lexicographic Combinations})\hfil\break
+
+\noindent In the analysis of step L3, note that the analysis is not referring to
+the final value of $j$ that L3 produces, but each step.  That is, L3 may set
+$c_{j+1} = j - 1$ for multiple $j$.  Note that it does not necessarily set $c_1 = 0$,
+which is why we have $c_{j+1} = c_1 + j$ not $c_{j+1} = j$.  However, the {\it minimum}
+value of $c_0 = 0$, which is why the number of times is the same as the number of
+solutions to the stated inequality -- you can have $c_{j+1} > j$, but not less.
+In what follows, the conversion from $n - 1 \choose t - 1$ to $n - 1 \choose s$
+is because of the symmetry of $s$ and $t$ in binomial coefficients.
+
+
+
 Implementations of Algorithms~L, T, and F in c++ show that Algorithm~T is about
 25\% faster than Algorithm~L (the examples used were $14 \choose 4$ and $16 \choose 5$),
 but Algorithm~R is about 20\% faster still.
