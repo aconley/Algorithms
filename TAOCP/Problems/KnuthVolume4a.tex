@@ -1133,6 +1133,74 @@ the signatures flipped.
 \centerline{\tt Knuth 7.2.1.3: Combinations}
 \vskip 0.3in
 
+\newprob{Problem 5} Solutions to integer inequalities.
+
+\noindent What is a good way to generate all of the integer solutions to the following
+systems of inequalities?
+
+\vskip 0.05in
+\noindent a) $n > x_t \geq x_{t-1} > x_{t-2} \geq x_{t-3} > \cdots > x_1 \geq 0$
+when $t$ is odd?
+
+\vskip 0.04in
+\noindent Recall that a $\left(s, t\right)$ combination is a solution to the inequalities
+$n > c_t > \cdots > c_2 > c_1 \geq 0$.  Also note the alternating $\geq, >$.  This suggests we 
+take some form of $\left(s, t\right)$ combination and subtract either one or zero
+in an alternating fashion, e.g. some form of $k /\!/ 2$, where $/\!/$ is integer division
+(alternatively, $\lfloor k / 2 \rfloor$).  More precisely, to get it to line up, we need 
+$\left(k - 1\right) /\!/ 2$.  We have collapsed $t /\!/ 2$ of them, so: form 
+${n + t /\!/ 2 \choose t}$ and subtract $\left(k - 1\right) /\!/ 2$ from each $c_k$.
+
+\vskip 0.08in
+\noindent b) $n \gg x_t \gg x_{t-1} \gg \cdots \gg x_2 \gg x_1 \gg 0$ where
+$a \gg b$ means $a \geq b + 2$.
+
+\vskip 0.04in
+\noindent Basically the same idea, but now we are adding: $c_k \leftarrow c_k + k + 1$
+and we only need ${n - t - 2 \choose t}$ of them.
+
+\newprob{Problem 7} Design an algorithm that runs through the dual combinations $b$
+in dexreasing lexical order (as in table~1).
+
+\vskip 0.05in
+\noindent Recall that $n = s + t$.  I will use a 0 basis -- e.g., $b_{s-1}, b_{s-2}, \ldots, b_0$.
+
+\vskip 0.05in
+Here $k$ will be the index of the value we are currently modifying.
+\vskip 0.05in
+\noindent 
+{\bf B1} [Initialize] For $k$ in $\left[s - 1, 0\right]$ set $b_k = k + t$.\hfil\break
+{\bf B2} [Visit] Visit $b_{s-1}, \ldots, b_0$.  If $k = s$, terminate. \hfil\break
+{\bf B3} [Decrease $b_k$] Set $b_k \leftarrow b_k - 1$. \hfil\break
+{\bf B4} [Increase $k$] If $b_k = k$, set $k \leftarrow k + 1$ and go to {\bf B2}.\hfil\break
+{\bf B5} [Fix up $b_{k-1}, \ldots, b_0$] While $k > 0$ set $b_{k-1} \leftarrow b_k - 1$.
+  Goto {\bf B2}.\hfil\break
+
+\newprob{Problem 8} Design an algorithm that generates all $\left(s, t\right)$ combinations
+$a_{n-1}, \ldots, a_0$ lexicographically in bitstring form.
+
+\vskip 0.05in\noindent Here $i$ will be the index of the rightmost 0 and $j$ the index
+of the rightmost 1.
+\vskip 0.05in
+\noindent
+{\bf A1} [Initialize] Set $a \leftarrow 0^s 1^t$, $i \leftarrow t$, $j \leftarrow 0$.\hfil\break
+{\bf A2} [Visit] Visit $a_{n-1}, \ldots, a_0$.  If $i = 0$ ($a$ ends in a 0) goto 
+  {\bf A4}. \hfil\break
+{\bf A3} [Easy case: change $01^i \rightarrow 101^{i-1}$] Set $a_i \leftarrow 1$, 
+  $a_{i-1} \leftarrow 0$, $i \leftarrow i - 1$.  If $i = 0$ set $j \leftarrow 1$.
+  Goto {\bf A2}.\hfil\break
+{\bf A4} [Hard case: $\ldots 01^q0^{j-1} \rightarrow \ldots 0^{j}1^{q-1}$]
+ If $j = n-1$ terminate.  Otherwise set $a_j \leftarrow 0$, $j \leftarrow j + 1$.
+ If $a_j = 1$, set $a_i \leftarrow 1$, $i \leftarrow i + 1$ and goto {\bf A4}.\hfil\break
+{\bf A5} [Fix leading 1] Set $a_i \leftarrow 1$.\hfil\break
+{\bf A6} [Fix $j$] If $i > 0$ set $j \leftarrow 0$.  Goto {\bf A2}\hfil\break
+
+\vskip 0.05in
+\noindent {\bf A4} does things like $\ldots 01110 \rightarrow 00011$.  Note that the
+leading 1 is absent, hence {\bf A5}.  It also re-uses $j$ to index it's position, so 
+that within this step $j$ may not be the position of the rightmost 1, which is why {\bf A6} is needed.
+
+
 \topglue 0.5in
 \centerline{\tt Knuth 7.2.1.4: Partitions}
 \vskip 0.3in
