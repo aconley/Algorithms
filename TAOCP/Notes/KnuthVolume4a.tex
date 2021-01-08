@@ -1137,6 +1137,23 @@ but Algorithm~R is about 20\% faster still.
 
 \sec{Section 7.2.1.4: Generating all Partitions}
 
+\noindent {\bf Other representations of partitions}
+
+\newitem{349} Conjugate partitions.  Why does the relation $b_j - b_{j+1} = c_j$
+hold?  Each element of the conjugate partition is the number of things in the
+original partition that have that many or more elements.  So, in Fig.~48,
+7 means there are 7 partitions with a value $\geq 1$, then 5 with a value $\geq 2$.
+So that means there must be 2 with value 1.  And then 4 that are $\geq 2$,
+then 4 $\geq 3$, etc.  Only when it changes are we getting new values.
+
+\newitem{395} Why are there $n$ inversions in the rim representation?  Well, first,
+the leading 0s and 1s to get a total of $n$ are chosen explicitly to not cause
+any additional inversions.  Every time we move upwards (a 0), we add a number of inversions
+which is equal to the number of rightward (1) steps we took before moving up.
+But the number of rightward preceding steps is just the value $a$.  So there
+are $n$ partitions because $a_1 + a_2 + \ldots = n$ by definition of a partition.
+
+\vskip 0.2in
 \noindent {\bf The number of partitions}
 
 \newitem{396} Recurrence relation for the number of partitions.  We have
@@ -1153,6 +1170,29 @@ $$
 $$
 Consider the coefficient of $z^n$ in this product.  It is $p\left(n\right) z^n - p\left(n - 1\right) z^{n-1} z
 - p\left(n - 2\right) z^{n-2} z^2 + \ldots = 0$, from which the stated occurrence follows immediately.
+
+\newitem{396} Upper bound on the number of partitions.
+
+First, recall that the Taylor expansion of $\log {1 \over 1 - x}$ is
+$$ 
+\log {1 \over 1 - x} = \sum_{n \geq 1} {x^n \over n}.
+$$
+That explains 7.2.1.4-(21).  Now, inside 7.2.1.4-(22), we have
+$$
+\sum_{m \geq 1} {e^{-m n t} \over n} = {1 \over n}{1 \over e^{t n} - 1} 
+$$
+is just the geometric series.  The fact that
+$$
+{1 \over n}{1 \over e^{t n} - 1} \le {1 \over n^2 t}
+$$
+is just because $e^{t n} - 1 = t n + t^2 n^2 / 2 + t^e n^3 / 6 + \ldots$,
+and this is strictly more than $n t$.
+
+Next,
+$$
+{p\left(n\right) \over 1 - e^{-t}} = \sum_{k=n}^{\infty} p\left(n\right) e^{\left(n-k\right) t}
+$$
+is just the geometric series again (offset by $n$).
 
 \newitem{399} Partitions into at most $m$ parts.\hfil\break
 Why is this equal to $\vert {n + m \over m}\vert$?  You can see this by telescoping the recurrence
