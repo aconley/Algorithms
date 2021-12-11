@@ -42,11 +42,11 @@ impl fmt::Display for Solution {
 #[derive(Debug)]
 enum IteratorState {
     // New iterator.
-    NEW,
+    New,
     // Ready to generate next solution.
-    READY,
+    Ready,
     // Iterator is exhausted.
-    DONE,
+    Done,
 }
 
 pub struct NQueensIterator {
@@ -75,23 +75,23 @@ impl NQueensIterator {
         let nu = n as usize;
         let mu = if n == 32 { !0u32 } else { (1u32 << n) - 1 };
         NQueensIterator {
-            n: n,
+            n,
             l: 0,
             a: vec![0; nu],
             b: vec![0; nu],
             c: vec![0; nu],
             s: vec![mu; nu],
             final_move: 0,
-            mu: mu,
-            state: IteratorState::NEW,
+            mu,
+            state: IteratorState::New,
         }
     }
 
     fn to_solution(&self) -> Solution {
         let mut sv = vec![0; self.n as usize];
         let nm1 = self.n as usize - 1;
-        for i in 0..nm1 {
-            sv[i] = (self.a[i + 1] - self.a[i]).trailing_zeros() as u8;
+        for (i, item) in sv.iter_mut().enumerate().take(nm1) {
+            *item = (self.a[i + 1] - self.a[i]).trailing_zeros() as u8;
         }
         sv[nm1] = self.final_move;
         Solution { rows: sv }
@@ -103,9 +103,9 @@ impl Iterator for NQueensIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.state {
-            IteratorState::NEW => {}
-            IteratorState::DONE => return None,
-            IteratorState::READY => {
+            IteratorState::New => {}
+            IteratorState::Done => return None,
+            IteratorState::Ready => {
                 // Backtrack!
                 self.l -= 1;
             }
@@ -116,7 +116,7 @@ impl Iterator for NQueensIterator {
                 // No options remaining on level l.
                 if self.l == 0 {
                     // No more things to try.
-                    self.state = IteratorState::DONE;
+                    self.state = IteratorState::Done;
                     return None;
                 }
                 self.l -= 1;
@@ -130,7 +130,7 @@ impl Iterator for NQueensIterator {
 
             if self.l == self.n as usize {
                 // Solution!
-                self.state = IteratorState::READY;
+                self.state = IteratorState::Ready;
                 self.final_move = t.trailing_zeros() as u8;
                 return Some(self.to_solution());
             }
@@ -174,7 +174,7 @@ impl NQueensIteratorAlt {
             b: vec![0; nu],
             c: vec![0; nu],
             s: vec![mu; nu],
-            mu: mu,
+            mu,
             done: false,
         }
     }
@@ -207,8 +207,8 @@ impl Iterator for NQueensIteratorAlt {
             if self.l == self.n {
                 // Found solution.
                 let mut sv = vec![0; self.n];
-                for i in 0..(self.n - 1) {
-                    sv[i] = (self.a[i + 1] - self.a[i]).trailing_zeros() as u8;
+                for (i, item) in sv.iter_mut().enumerate().take(self.n - 1) {
+                    *item = (self.a[i + 1] - self.a[i]).trailing_zeros() as u8;
                 }
                 sv[self.n - 1] = t.trailing_zeros() as u8;
                 return Some(Solution { rows: sv });

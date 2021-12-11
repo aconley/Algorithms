@@ -3,9 +3,9 @@
 // TODO: Halve the amount of work by computing mirror.
 
 enum IteratorState {
-  NEW,
-  READY,
-  DONE,
+  New,
+  Ready,
+  Done,
 }
 
 pub struct LangfordIterator {
@@ -30,23 +30,23 @@ impl LangfordIterator {
     // There can only be solutions for n mod 4 = 0 or 3
     if n & 3 != 0 && n & 3 != 3 {
       LangfordIterator {
-        n: n,
+        n,
         x: Vec::with_capacity(0),
         p: Vec::with_capacity(0),
         y: Vec::with_capacity(0),
         l: 0,
-        state: IteratorState::DONE,
+        state: IteratorState::Done,
       }
     } else {
       let mut p: Vec<u8> = (1..=(n + 1)).collect();
       p[n as usize] = 0;
       LangfordIterator {
-        n: n,
+        n,
         x: vec![0; 2 * (n as usize)],
-        p: p,
+        p,
         y: vec![0; 2 * (n as usize)],
         l: 0,
-        state: IteratorState::NEW,
+        state: IteratorState::New,
       }
     }
   }
@@ -63,9 +63,9 @@ impl Iterator for LangfordIterator {
     // k = p[j] is the next element we are going to try, with k = 0 indicating
     // that we are out of options at this level.
     let (mut j, mut k) = match self.state {
-      IteratorState::DONE => return None,
-      IteratorState::READY => (0, 0), // This will cause backtrack.
-      IteratorState::NEW => (0, self.p[0]),
+      IteratorState::Done => return None,
+      IteratorState::Ready => (0, 0), // This will cause backtrack.
+      IteratorState::New => (0, self.p[0]),
     };
 
     let two_n = 2 * self.n;
@@ -75,7 +75,7 @@ impl Iterator for LangfordIterator {
         // Backtrack.
         if self.l == 0 {
           // No more options.
-          self.state = IteratorState::DONE;
+          self.state = IteratorState::Done;
           return None;
         }
         self.l -= 1;
@@ -110,7 +110,7 @@ impl Iterator for LangfordIterator {
 
         // Check to see if we are done.
         if self.l == two_n {
-          self.state = IteratorState::READY;
+          self.state = IteratorState::Ready;
           return Some(self.to_solution());
         }
 

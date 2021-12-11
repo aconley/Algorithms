@@ -12,21 +12,21 @@ pub struct IntegerPartitions {
   m: usize,
   q: usize,
   // Are we done?
-  done: bool
+  done: bool,
 }
 
 impl IntegerPartitions {
   pub fn new(n: usize) -> IntegerPartitions {
     assert!(n > 0, "n = 0");
-    let mut a = vec![1; (n+1) as usize];
+    let mut a = vec![1; (n + 1) as usize];
     a[0] = 0;
     a[1] = n;
     IntegerPartitions {
-      n: n,
-      a: a,
+      n,
+      a,
       m: 1,
       q: if n == 1 { 0 } else { 1 },
-      done: false
+      done: false,
     }
   }
 }
@@ -55,7 +55,6 @@ impl Iterator for IntegerPartitions {
         self.done = true;
       } else {
         let x = self.a[self.q] - 1;
-        
         self.a[self.q] = x;
         self.n = self.m - self.q + 1;
         self.m = self.q + 1;
@@ -67,7 +66,7 @@ impl Iterator for IntegerPartitions {
           self.n -= x;
         }
         self.a[self.m] = self.n;
-        self.q = if  self.n == 1 { self.m - 1 } else { self.m }
+        self.q = if self.n == 1 { self.m - 1 } else { self.m }
       }
     }
     Some(ret)
@@ -78,14 +77,14 @@ impl Iterator for IntegerPartitions {
 // Knuth 4A 7.2.1.4 Algorithm H
 
 pub enum IntegerPartitionsIntoParts {
-  IntegerIteratorSingle( iter::Once<Vec<usize>>),
+  IntegerIteratorSingle(iter::Once<Vec<usize>>),
   IntegerIteratorTwo(IteratorTwoData),
   IteratorGeneral(IteratorGeneralData),
 }
 
 // Iterator with two pieces
 pub struct IteratorTwoData {
-  a: Vec<usize>
+  a: Vec<usize>,
 }
 
 impl Iterator for IteratorTwoData {
@@ -106,7 +105,7 @@ impl Iterator for IteratorTwoData {
 pub struct IteratorGeneralData {
   m: usize,
   a: Vec<usize>,
-  done: bool
+  done: bool,
 }
 
 impl Iterator for IteratorGeneralData {
@@ -160,7 +159,7 @@ impl Iterator for IteratorGeneralData {
 
 impl IntegerPartitionsIntoParts {
   pub fn new(n: usize, m: usize) -> IntegerPartitionsIntoParts {
-    assert!(n > 0 , "n = 0");
+    assert!(n > 0, "n = 0");
     assert!(m > 0, "m = 0");
     assert!(n >= m, "m > n");
 
@@ -169,13 +168,13 @@ impl IntegerPartitionsIntoParts {
     } else if m == 1 {
       IntegerPartitionsIntoParts::IntegerIteratorSingle(iter::once(vec![n]))
     } else if m == 2 {
-      IntegerPartitionsIntoParts::IntegerIteratorTwo(IteratorTwoData{ a: vec![n-1, 1]})
+      IntegerPartitionsIntoParts::IntegerIteratorTwo(IteratorTwoData { a: vec![n - 1, 1] })
     } else {
       let mut a = vec![1; m as usize];
       a[0] = n - m + 1;
-      IntegerPartitionsIntoParts::IteratorGeneral( IteratorGeneralData{ m: m, a: a, done: false })
-      }
+      IntegerPartitionsIntoParts::IteratorGeneral(IteratorGeneralData { m, a, done: false })
     }
+  }
 }
 
 impl Iterator for IntegerPartitionsIntoParts {
@@ -185,7 +184,7 @@ impl Iterator for IntegerPartitionsIntoParts {
     match *self {
       IntegerPartitionsIntoParts::IntegerIteratorSingle(ref mut i) => i.next(),
       IntegerPartitionsIntoParts::IntegerIteratorTwo(ref mut i) => i.next(),
-      IntegerPartitionsIntoParts::IteratorGeneral(ref mut i) => i.next()
+      IntegerPartitionsIntoParts::IteratorGeneral(ref mut i) => i.next(),
     }
   }
 }
@@ -197,52 +196,72 @@ mod tests {
   // Partitions
   #[test]
   fn count_n1() {
-      assert_eq!(IntegerPartitions::new(1).count(), 1);
+    assert_eq!(IntegerPartitions::new(1).count(), 1);
   }
 
   #[test]
   fn count_n2() {
-      assert_eq!(IntegerPartitions::new(2).count(), 2);
+    assert_eq!(IntegerPartitions::new(2).count(), 2);
   }
 
   #[test]
   fn count_n3() {
-      assert_eq!(IntegerPartitions::new(3).count(), 3);
+    assert_eq!(IntegerPartitions::new(3).count(), 3);
   }
 
   #[test]
   fn count_n8() {
-      assert_eq!(IntegerPartitions::new(8).count(), 22);
+    assert_eq!(IntegerPartitions::new(8).count(), 22);
   }
 
   #[test]
   fn values_n1() {
-    let expected: Vec<Vec<usize>>= vec![vec![1]];
+    let expected: Vec<Vec<usize>> = vec![vec![1]];
     let actual: Vec<Vec<usize>> = IntegerPartitions::new(1).collect();
     assert_eq!(actual, expected);
   }
 
   #[test]
   fn values_n3() {
-    let expected: Vec<Vec<usize>>= vec![vec![3], vec![2, 1], vec![1, 1, 1]];
+    let expected: Vec<Vec<usize>> = vec![vec![3], vec![2, 1], vec![1, 1, 1]];
     let actual: Vec<Vec<usize>> = IntegerPartitions::new(3).collect();
     assert_eq!(actual, expected);
   }
 
   #[test]
   fn values_n4() {
-    let expected: Vec<Vec<usize>>= vec![vec![4], vec![3, 1], vec![2, 2], vec![2, 1, 1], vec![1; 4]];
+    let expected: Vec<Vec<usize>> =
+      vec![vec![4], vec![3, 1], vec![2, 2], vec![2, 1, 1], vec![1; 4]];
     let actual: Vec<Vec<usize>> = IntegerPartitions::new(4).collect();
     assert_eq!(actual, expected);
   }
 
   #[test]
   fn values_n8() {
-    let expected: Vec<Vec<usize>>= vec![
-    vec![8], vec![7, 1], vec![6, 2], vec![6, 1, 1], vec![5, 3], vec![5, 2, 1], vec![5, 1, 1, 1], vec![4, 4], 
-    vec![4, 3, 1], vec![4, 2, 2], vec![4, 2, 1, 1], vec![4, 1, 1, 1, 1], vec![3, 3, 2], vec![3, 3, 1, 1], 
-    vec![3, 2, 2, 1], vec![3, 2, 1, 1, 1], vec![3, 1, 1, 1, 1, 1], vec![2; 4], vec![2, 2, 2, 1, 1],
-    vec![2, 2, 1, 1, 1, 1], vec![2, 1, 1, 1, 1, 1, 1], vec![1; 8]];
+    let expected: Vec<Vec<usize>> = vec![
+      vec![8],
+      vec![7, 1],
+      vec![6, 2],
+      vec![6, 1, 1],
+      vec![5, 3],
+      vec![5, 2, 1],
+      vec![5, 1, 1, 1],
+      vec![4, 4],
+      vec![4, 3, 1],
+      vec![4, 2, 2],
+      vec![4, 2, 1, 1],
+      vec![4, 1, 1, 1, 1],
+      vec![3, 3, 2],
+      vec![3, 3, 1, 1],
+      vec![3, 2, 2, 1],
+      vec![3, 2, 1, 1, 1],
+      vec![3, 1, 1, 1, 1, 1],
+      vec![2; 4],
+      vec![2, 2, 2, 1, 1],
+      vec![2, 2, 1, 1, 1, 1],
+      vec![2, 1, 1, 1, 1, 1, 1],
+      vec![1; 8],
+    ];
     let actual: Vec<Vec<usize>> = IntegerPartitions::new(8).collect();
     assert_eq!(actual, expected);
   }
@@ -278,11 +297,20 @@ mod tests {
 
   #[test]
   fn values_n11_m4() {
-    let expected: Vec<Vec<usize>>= vec![vec![8,1,1,1], vec![7, 2, 1, 1], vec![6, 3, 1, 1], 
-      vec![5, 4, 1, 1], vec![6, 2, 2, 1], vec![5, 3, 2, 1], vec![4, 4, 2, 1], vec![4, 3, 3, 1],
-      vec![5, 2, 2, 2], vec![4, 3, 2, 2], vec![3, 3, 3, 2]];
+    let expected: Vec<Vec<usize>> = vec![
+      vec![8, 1, 1, 1],
+      vec![7, 2, 1, 1],
+      vec![6, 3, 1, 1],
+      vec![5, 4, 1, 1],
+      vec![6, 2, 2, 1],
+      vec![5, 3, 2, 1],
+      vec![4, 4, 2, 1],
+      vec![4, 3, 3, 1],
+      vec![5, 2, 2, 2],
+      vec![4, 3, 2, 2],
+      vec![3, 3, 3, 2],
+    ];
     let actual: Vec<Vec<usize>> = IntegerPartitionsIntoParts::new(11, 4).collect();
     assert_eq!(actual, expected);
   }
 }
-
