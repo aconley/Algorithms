@@ -7,7 +7,7 @@ authors = ["Alex Conley <alexanderconley@gmail.com>"]
 [dependencies]
 
 [dev-dependencies]
-criterion = "0.1.2"
+criterion = "0.3"
 
 [[bench]]
 name = "combinatoric_benchmark"
@@ -15,4 +15,8 @@ harness = false
 
 [[bench]]
 name = "nqueens_benchmark"
+harness = false
+
+[[bench]]
+name = "langford_benchmark"
 harness = false
