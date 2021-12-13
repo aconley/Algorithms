@@ -73,6 +73,70 @@ And we can keep doing this all the way down to ${\rm E}\, Z_0$.
 
 \sec {Basic Backtracking}
 
+\noindent The way that backtracking is implemented does not really square with
+modern programming pracitce.  Generally, we would probably want to implement
+backtracking as some form of iterator.  Furthermore, the use of gotos would
+be frowned upon.  In most cases in Knuth, it's relatively easy to replace gotos
+with if statements or for loops, but for Backtracking it is a bit more complicated
+because the different paths are not nested, but instead interlock in an interesting
+way.
+
+After much trial and error, I hit on the following approach.  The iterator has
+three states: New, Ready, and Done.  New and Done are self-describing, Ready
+means that the iterator is halted right after visiting a solution, and our goal
+is to continue to the next solution.
+
+This is a bit simpler in Walker's version, where we keep track of the available
+elements at each level in $S_l$.  When calling next on the iterator, we proceed as follows:
+
+\vskip 0.1in
+\noindent {\bf WI1} If the state is New, set $l \leftarrow 0$ and compute $S_0$.
+If it is ready, backtrack by setting $l \leftarrow l-1$ and $S_l \leftarrow S_l \ x_l$.
+If it is done, return the appropriate value (e.g., None in Rust).
+\vskip 0.05in
+\noindent {\bf WI2} Loop indefinitely on the below items.
+\vskip 0.05in
+\noindent {\bf WI3} If $S_l = \emptyset$ then there are no more values to try on
+this level. If $l = 0$ then set the state to Done and return the no-more-iterations
+value.  Otherwise backtrack by setting $l \leftarrow l-1$ and $S_l \leftarrow S_l \ x_l$
+and go back to {\bf WI2}.
+\vskip 0.05in
+\noindent {\bf WI4} Set $x_l \leftarrow {\rm min} S_l$, $l \leftarrow l + 1$.
+\vskip 0.05in
+\noindent {\bf WI5} If $l = n$, set the state to Ready and return $x_0 \ldots x_{n-1}$.
+\vskip 0.05in
+\noindent {\bf WI6} Compute $S_l$ and go back to {\bf WI2}.
+\vskip 0.1in
+
+Unfortunately, this isn't as easy to do in the non-Walker approach.  In some
+cases this can be avoided, but the general approach is to define some special
+value $m_l$ at each level which is not part of ${\cal D}_l$, which is less
+than ${\rm min} {\cal D}_l$, and whose successor is the minimum value.
+It is not valid in the sense that any evaluation of $P\left(\ldots, m_l, \ldots\right)$ 
+is false.  Upon calling next on the iterator, we proceed as follows:
+
+\vskip 0.1in
+\noindent {\bf BI1} If the state is New, set $l \leftarrow 0$, $x_0 \leftarrow m_0$.
+If the stead is Ready, backtrack by setting $l \leftarrow l - 1$ and downdating
+the datastructures.  If the state is Done, return whatever your iterator should
+return when it is done (e.g., None in Rust).
+\vskip 0.05in
+\noindent {\bf BI2} Now repeat the below steps indefinitely.
+\noindent {\bf BI3} If $x_l = {\rm max} {\cal D}_l$ then there are no more values
+  to try on this level.  If $l = 0$, then set the state to Done and return the
+  iteration-is-over value.  Otherwise, backtrack by setting $l \leftarrow l - 1$
+  and downdating the datastructures.  Return to {\bf BI2}.
+\vskip 0.05in
+\noindent {\bf BI4} If $P\left(x_0, \ldots, x_l\right)$ is false, then go to {\bf I6}
+  Otherwise set $l \leftarrow l + 1$.  If $l = n$, then set the state to Ready 
+  and return $x_0, \ldots, x_{n-1}$.
+\vskip 0.05in
+\noindent {\bf BI5} Update the data structures for $l + 1$, set $x_l \leftarrow m_l$,
+  and go back to {\bf L2}.
+\vskip 0.05in
+\noindent {\bf BI6} Set $x_l$ to the next element of ${\cal D}_l$ and go back to $I2$.
+\vskip 0.1in
+
 \noindent I implemented the N-Queens algorithms, including the optimizations
 discussed in the problems, in c++ and timed their performance using
 Google Benchmark.  The four methods were a  unoptimized
