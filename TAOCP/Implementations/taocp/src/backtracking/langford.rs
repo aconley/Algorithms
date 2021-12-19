@@ -2,6 +2,7 @@
 
 // TODO: Halve the amount of work by computing mirror.
 
+#[derive(PartialEq, Eq)]
 enum IteratorState {
   New,
   Ready,
@@ -26,7 +27,7 @@ pub struct LangfordIterator {
 
 impl LangfordIterator {
   pub fn new(n: u8) -> Self {
-    assert!(n > 0 && n < 128, "n not in valid range [0, 128)");
+    assert!(n > 0 && n <= 32, "n not in valid range (0, 32]");
     // There can only be solutions for n mod 4 = 0 or 3
     if n & 3 != 0 && n & 3 != 3 {
       LangfordIterator {
@@ -54,6 +55,28 @@ impl LangfordIterator {
   fn to_solution(&self) -> Vec<u8> {
     self.x.iter().map(|v| v.abs() as u8).collect()
   }
+
+  // Backtracks, returning the next element to try
+  fn backtrack(&mut self) -> u8 {
+    if self.l == 0 {
+      // No more options.
+      self.state = IteratorState::Done;
+      return 0;
+    }
+    self.l -= 1;
+
+    // Undo all elements that are second copies.
+    while self.x[self.l as usize] < 0 {
+      self.l -= 1;
+    }
+
+    // Now undo the previous move using y.
+    let k = self.x[self.l as usize] as u8;
+    self.x[self.l as usize] = 0;
+    self.x[(self.l + k + 1) as usize] = 0;
+    self.p[self.y[self.l as usize] as usize] = k;
+    k
+  }
 }
 
 impl Iterator for LangfordIterator {
@@ -72,26 +95,10 @@ impl Iterator for LangfordIterator {
 
     loop {
       if k == 0 {
-        // Backtrack.
-        if self.l == 0 {
-          // No more options.
-          self.state = IteratorState::Done;
+        j = self.backtrack();
+        if self.state == IteratorState::Done {
           return None;
         }
-        self.l -= 1;
-
-        // Undo all elements that are second copies.
-        while self.x[self.l as usize] < 0 {
-          self.l -= 1;
-        }
-
-        // Now undo the previous move using y.
-        k = self.x[self.l as usize] as u8;
-        self.x[self.l as usize] = 0;
-        self.x[(self.l + k + 1) as usize] = 0;
-        self.p[self.y[self.l as usize] as usize] = k;
-        // Move to the next element.
-        j = k;
         k = self.p[j as usize];
       } else if (self.l + k + 1) < two_n && (self.x[(self.l + k + 1) as usize] == 0) {
         // Take step.
@@ -150,6 +157,7 @@ mod tests {
   #[test]
   fn count_large_number_solutions() {
     assert_eq!(LangfordIterator::new(11).count(), 35584);
+    assert_eq!(LangfordIterator::new(12).count(), 216288);
   }
 
   #[test]
