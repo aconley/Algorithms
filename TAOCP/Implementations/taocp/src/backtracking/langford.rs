@@ -2,13 +2,14 @@
 
 // TODO: Halve the amount of work by computing mirror.
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 enum IteratorState {
   New,
   Ready,
   Done,
 }
 
+#[derive(Debug)]
 pub struct LangfordIterator {
   // Range of values is [1..n]
   n: u8,
@@ -17,6 +18,8 @@ pub struct LangfordIterator {
   x: Vec<i8>,
   // Pointer array for active values.
   p: Vec<u8>,
+  // Values that have not been used; a[k-1] is [k has not been used]
+  unused: Vec<bool>,
   // Backtracking array.
   y: Vec<u8>,
   // Current level.
@@ -34,6 +37,7 @@ impl LangfordIterator {
         n,
         x: Vec::with_capacity(0),
         p: Vec::with_capacity(0),
+        unused: Vec::with_capacity(0),
         y: Vec::with_capacity(0),
         l: 0,
         state: IteratorState::Done,
@@ -45,6 +49,7 @@ impl LangfordIterator {
         n,
         x: vec![0; 2 * (n as usize)],
         p,
+        unused: vec![true; n as usize],
         y: vec![0; 2 * (n as usize)],
         l: 0,
         state: IteratorState::New,
@@ -54,6 +59,35 @@ impl LangfordIterator {
 
   fn to_solution(&self) -> Vec<u8> {
     self.x.iter().map(|v| v.abs() as u8).collect()
+  }
+
+  fn set_used(&mut self, k: u8) {
+    self.x[self.l as usize] = k as i8;
+    self.x[(self.l + k + 1) as usize] = -(k as i8);
+    self.unused[k as usize - 1] = false;
+  }
+
+  fn set_unused(&mut self, k: u8) {
+    self.x[self.l as usize] = 0;
+    self.x[(self.l + k + 1) as usize] = 0;
+    self.p[self.y[self.l as usize] as usize] = k;
+    self.unused[k as usize - 1] = true;
+  }
+
+  // Takes a forward step.
+  fn take_step(&mut self, j: u8, k: u8) {
+    self.set_used(k);
+
+    // Set the undo.
+    self.y[self.l as usize] = j;
+    // Remove p[j]
+    self.p[j as usize] = self.p[k as usize];
+    self.l += 1;
+
+    // Advance over already already set positions.
+    while self.l < 2 * self.n && self.x[self.l as usize] != 0 {
+      self.l += 1;
+    }
   }
 
   // Backtracks, returning the next element to try
@@ -71,10 +105,9 @@ impl LangfordIterator {
     }
 
     // Now undo the previous move using y.
-    let k = self.x[self.l as usize] as u8;
-    self.x[self.l as usize] = 0;
-    self.x[(self.l + k + 1) as usize] = 0;
+    let k = self.x[self.l as usize] as u8; // Get next value.
     self.p[self.y[self.l as usize] as usize] = k;
+    self.set_unused(k);
     k
   }
 }
@@ -85,48 +118,71 @@ impl Iterator for LangfordIterator {
   fn next(&mut self) -> Option<Self::Item> {
     // k = p[j] is the next element we are going to try, with k = 0 indicating
     // that we are out of options at this level.
-    let (mut j, mut k) = match self.state {
+    let mut j = match self.state {
       IteratorState::Done => return None,
-      IteratorState::Ready => (0, 0), // This will cause backtrack.
-      IteratorState::New => (0, self.p[0]),
+      IteratorState::Ready => self.n, // This will cause backtrack.
+      IteratorState::New => 0,
     };
 
     let two_n = 2 * self.n;
 
     loop {
+      // We are always trying element j in the active list with p[j] = k.
+      let mut k = self.p[j as usize];
       if k == 0 {
+        // There are either no more values to try at this level, or the value
+        // of k doesn't fit.  since values of k only ever increase
+        //
         j = self.backtrack();
         if self.state == IteratorState::Done {
           return None;
         }
-        k = self.p[j as usize];
-      } else if (self.l + k + 1) < two_n && (self.x[(self.l + k + 1) as usize] == 0) {
-        // Take step.
-        self.x[self.l as usize] = k as i8;
-        self.x[(self.l + k + 1) as usize] = -(k as i8);
-        // Set the undo.
-        self.y[self.l as usize] = j;
-        // Remove p[j]
-        self.p[j as usize] = self.p[k as usize];
-        self.l += 1;
+        continue;
+      }
 
-        // Advance over already already set positions.
-        while self.l < two_n && self.x[self.l as usize] != 0 {
-          self.l += 1;
+      if self.l + k + 1 >= two_n {
+        // k won't fit, so advance.  Even if we force below, we will only
+        // increase k.
+        j = k;
+        continue;
+      }
+
+      if self.l >= self.n - 2 && self.unused[(two_n - self.l - 3) as usize] {
+        if self.x[two_n as usize - 1] != 0 {
+          // Last slot already full, we have to backtrack.
+          j = self.backtrack();
+          if self.state == IteratorState::Done {
+            return None;
+          }
+          continue;
         }
 
-        // Check to see if we are done.
+        // The value of k is forced or else there won't be room to include k
+        // in the array.
+        let forced_k = two_n - self.l - 2;
+        // Advance until we find the forced value.  We know it's present
+        // because it wasn't set in a in the test above.
+        while k != forced_k {
+          j = k;
+          k = self.p[j as usize];
+        }
+      }
+
+      if self.x[(self.l + k + 1) as usize] == 0 {
+        // Try k.
+        self.take_step(j, k);
+
+        // Check if we are done.
         if self.l == two_n {
           self.state = IteratorState::Ready;
           return Some(self.to_solution());
         }
 
+        // Go back to the start of the available elements.
         j = 0;
-        k = self.p[0];
       } else {
         // Try the next j, k pair.
         j = k;
-        k = self.p[j as usize];
       }
     }
   }
@@ -147,9 +203,13 @@ mod tests {
   }
 
   #[test]
-  fn count_with_solutions() {
+  fn count_small_with_solutions() {
     assert_eq!(LangfordIterator::new(3).count(), 2);
     assert_eq!(LangfordIterator::new(4).count(), 2);
+  }
+
+  #[test]
+  fn count_medium_with_solutions() {
     assert_eq!(LangfordIterator::new(7).count(), 52);
     assert_eq!(LangfordIterator::new(8).count(), 300);
   }
