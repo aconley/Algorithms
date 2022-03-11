@@ -210,33 +210,36 @@ impl SolutionState {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
-  use std::fmt::Write;
-
+  // A fully solved sudoku square.
   const SOL: [u8; 81] = [
     5, 3, 4, 6, 7, 8, 9, 1, 2, 6, 7, 2, 1, 9, 5, 3, 4, 8, 1, 9, 8, 3, 4, 2, 5, 6, 7, 8, 5, 9, 7, 6,
     1, 4, 2, 3, 4, 2, 6, 8, 5, 3, 7, 9, 1, 7, 1, 3, 9, 2, 4, 8, 5, 6, 9, 6, 1, 5, 3, 7, 2, 8, 4, 2,
     8, 7, 4, 1, 9, 6, 3, 5, 3, 4, 5, 2, 8, 6, 1, 7, 9,
   ];
 
-  #[test]
-  fn normal_and_bitencoded_create_agree() {
-    let base = SudokuSolution::create(&SOL);
-    let encoded_sol: Vec<u16> = SOL.iter().map(|v| VALUES[*v as usize]).collect();
-    let bit: SudokuSolution = unsafe { SudokuSolution::create_from_bitencoded(&encoded_sol) };
+  mod sudoku_solution {
+    use super::SOL;
+    use crate::backtracking::sudoku::{SudokuSolution, VALUES};
+    use std::fmt::Write;
 
-    assert_eq!(base, bit);
-  }
+    #[test]
+    fn normal_and_bitencoded_create_agree() {
+      let base = SudokuSolution::create(&SOL);
+      let encoded_sol: Vec<u16> = SOL.iter().map(|v| VALUES[*v as usize]).collect();
+      let bit: SudokuSolution = unsafe { SudokuSolution::create_from_bitencoded(&encoded_sol) };
 
-  #[test]
-  fn formatter_produces_expected_output() {
-    let encoded_sol: Vec<u16> = SOL.iter().map(|v| VALUES[*v as usize]).collect();
-    let s = unsafe { SudokuSolution::create_from_bitencoded(&encoded_sol) };
+      assert_eq!(base, bit);
+    }
 
-    let mut buf = String::new();
-    write!(&mut buf, "{}", s);
+    #[test]
+    fn formatter_produces_expected_output() {
+      let encoded_sol: Vec<u16> = SOL.iter().map(|v| VALUES[*v as usize]).collect();
+      let s = unsafe { SudokuSolution::create_from_bitencoded(&encoded_sol) };
 
-    let expected = "+---+---+---+\n\
+      let mut buf = String::new();
+      write!(&mut buf, "{}", s);
+
+      let expected = "+---+---+---+\n\
                     |534|678|912|\n\
                     |672|195|348|\n\
                     |198|342|567|\n\
@@ -249,82 +252,88 @@ mod tests {
                     |287|419|635|\n\
                     |345|286|179|\n\
                     +---+---+---+";
-    assert_eq!(buf, expected);
-  }
-
-  #[test]
-  fn full_solution_input() {
-    match SolutionState::create(&SOL) {
-      Ok(s) => {
-        assert_eq!(s.n_active, 0);
-        assert_eq!(s.c_row, vec![0; 9]);
-        assert_eq!(s.c_col, vec![0; 9]);
-        assert_eq!(s.c_box, vec![0; 9]);
-      }
-      Err(e) => assert!(
-        false,
-        "Valid solution should be acceptable initialization, got error {}",
-        e
-      ),
+      assert_eq!(buf, expected);
     }
   }
 
-  #[test]
-  fn invalid_input_value() {
-    let mut bad_input = vec![10];
-    bad_input.resize_with(81, Default::default);
+  mod solution_state {
+    use super::SOL;
+    use crate::backtracking::sudoku::{SolutionState, VALUES};
 
-    match SolutionState::create(&bad_input) {
-      Ok(_) => assert!(false, "Expected input error."),
-      Err(e) => assert_eq!(e.to_string(), "Invalid input value 10 at position 0."),
-    };
-  }
-
-  #[test]
-  fn conflicting_input() {
-    let mut bad_input = vec![0, 1, 1, 2, 3, 4, 5, 6, 7];
-    bad_input.resize_with(81, Default::default);
-
-    match SolutionState::create(&bad_input) {
-      Ok(_) => assert!(false, "Expected input error."),
-      Err(e) => assert_eq!(e.to_string(), "Invalid input; can't have 1 at pos 2."),
-    };
-  }
-
-  #[test]
-  fn select_single_move_row() {
-    let mut input = vec![1, 3, 4, 5, 0, 7, 6, 8, 9];
-    input.resize_with(81, Default::default);
-    let s = SolutionState::create(&input).unwrap();
-
-    match s.select_move() {
-      Some(m) => {
-        assert_eq!(m.pos, 4);
-        assert_eq!(m.avail, VALUES[2]);
+    #[test]
+    fn full_solution_input() {
+      match SolutionState::create(&SOL) {
+        Ok(s) => {
+          assert_eq!(s.n_active, 0);
+          assert_eq!(s.c_row, vec![0; 9]);
+          assert_eq!(s.c_col, vec![0; 9]);
+          assert_eq!(s.c_box, vec![0; 9]);
+        }
+        Err(e) => assert!(
+          false,
+          "Valid solution should be acceptable initialization, got error {}",
+          e
+        ),
       }
-      None => assert!(false, "Expected to select move"),
-    };
-  }
-
-  #[test]
-  fn select_only_possible_move() {
-    let mut almost_sol = SOL.clone();
-    // unset one position.
-    almost_sol[21] = 0;
-
-    let s = SolutionState::create(&almost_sol).unwrap();
-    match s.select_move() {
-      Some(m) => {
-        assert_eq!(m.pos, 21);
-        assert_eq!(m.avail, VALUES[SOL[21] as usize]);
-      }
-      None => assert!(false, "Should have selected only possible move."),
     }
-  }
 
-  #[test]
-  fn select_when_no_possible_move() {
-    let s = SolutionState::create(&SOL).unwrap();
-    assert_eq!(s.select_move(), None, "No move possible.");
+    #[test]
+    fn invalid_input_value() {
+      let mut bad_input = vec![10];
+      bad_input.resize_with(81, Default::default);
+
+      match SolutionState::create(&bad_input) {
+        Ok(_) => assert!(false, "Expected input error."),
+        Err(e) => assert_eq!(e.to_string(), "Invalid input value 10 at position 0."),
+      };
+    }
+
+    #[test]
+    fn conflicting_input() {
+      let mut bad_input = vec![0, 1, 1, 2, 3, 4, 5, 6, 7];
+      bad_input.resize_with(81, Default::default);
+
+      match SolutionState::create(&bad_input) {
+        Ok(_) => assert!(false, "Expected input error."),
+        Err(e) => assert_eq!(e.to_string(), "Invalid input; can't have 1 at pos 2."),
+      };
+    }
+
+    #[test]
+    fn select_single_move_row() {
+      let mut input = vec![1, 3, 4, 5, 0, 7, 6, 8, 9];
+      input.resize_with(81, Default::default);
+      let s = SolutionState::create(&input).unwrap();
+
+      match s.select_move() {
+        Some(m) => {
+          assert_eq!(m.pos, 4);
+          assert_eq!(m.avail, VALUES[2]);
+        }
+        None => assert!(false, "Expected to select move"),
+      };
+    }
+
+    #[test]
+    fn select_only_possible_move() {
+      let mut almost_sol = SOL.clone();
+      // unset one position.
+      almost_sol[21] = 0;
+
+      let s = SolutionState::create(&almost_sol).unwrap();
+      match s.select_move() {
+        Some(m) => {
+          assert_eq!(m.pos, 21);
+          assert_eq!(m.avail, VALUES[SOL[21] as usize]);
+        }
+        None => assert!(false, "Should have selected only possible move."),
+      }
+    }
+
+    #[test]
+    fn select_when_no_possible_move() {
+      let s = SolutionState::create(&SOL).unwrap();
+      assert_eq!(s.select_move(), None, "No move possible.");
+    }
   }
 }
