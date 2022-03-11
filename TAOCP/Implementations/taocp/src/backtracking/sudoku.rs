@@ -91,7 +91,7 @@ fn translate_position(pos: usize) -> (usize, usize, usize) {
 // Errors for bad inputs.
 
 #[derive(Debug)]
-struct SudokuError {
+pub struct SudokuError {
   details: String,
 }
 
@@ -117,9 +117,15 @@ impl fmt::Display for SudokuError {
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 struct Move {
-  pos: u8,    // Position in sudoku, [0, 81)
-  value: u16, // Bitwise encoded current value at position.
-  avail: u16, // Bitwise encoded other available moves at position.
+  pos: u8,            // Position in sudoku, [0, 81)
+  encoded_value: u16, // Bitwise encoded current value at position.
+  avail: u16,         // Bitwise encoded other available moves at position.
+}
+
+impl Move {
+  fn value(&self) -> u8 {
+    (16 - self.encoded_value.leading_zeros()) as u8
+  }
 }
 
 #[derive(Debug)]
@@ -192,20 +198,48 @@ impl SolutionState {
   // is selected.  Returns none if no move is possible, either because there
   // are no unset squares or because one square has no options.
   fn select_move(&self) -> Option<Move> {
-    self.m[..self.n_active]
-      .iter()
-      .map(|&mv| self.get_move(mv))
-      .min_by_key(|&mv| mv.avail.count_ones())
-  }
-
-  fn get_move(&self, pos: u8) -> Move {
-    let (r, c, b) = translate_position(pos as usize);
-    Move {
-      pos,
-      value: 0,
-      avail: self.c_row[r] & self.c_col[c] & self.c_box[b],
+    if self.n_active == 0 {
+      return None;
     }
+    struct MoveCandidate {
+      pos: u8,
+      avail: u16,
+      num_avail: u32,
+    }
+    let mut best_so_far = MoveCandidate {
+      pos: 82,
+      avail: 0,
+      num_avail: u32::MAX,
+    };
+    for candidate_position in self.m[..self.n_active].iter() {
+      let (r, c, b) = translate_position(*candidate_position as usize);
+      let avail = self.c_row[r] & self.c_col[c] & self.c_box[b];
+      if avail == 0 {
+        // We found a square with no available moves, we need to backtrack.
+        return None;
+      }
+      let num_avail = avail.count_ones();
+      if num_avail < best_so_far.num_avail {
+        best_so_far.pos = *candidate_position;
+        best_so_far.avail = avail;
+        best_so_far.num_avail = num_avail;
+      }
+    }
+    Some(Move {
+      pos: best_so_far.pos,
+      encoded_value: best_so_far.avail & (!best_so_far.avail + 1),
+      avail: best_so_far.avail & (best_so_far.avail - 1),
+    })
   }
+}
+
+pub fn solve(mut initial_position: Vec<u8>) -> Result<SudokuSolution, SudokuError> {
+  let mut state = SolutionState::create(&initial_position)?;
+
+  while state.n_active > 0 {}
+
+  // Construct and return solution.
+  todo!();
 }
 
 #[cfg(test)]
@@ -258,7 +292,7 @@ mod tests {
 
   mod solution_state {
     use super::SOL;
-    use crate::backtracking::sudoku::{SolutionState, VALUES};
+    use crate::backtracking::sudoku::{Move, SolutionState, VALUES};
 
     #[test]
     fn full_solution_input() {
@@ -308,7 +342,7 @@ mod tests {
       match s.select_move() {
         Some(m) => {
           assert_eq!(m.pos, 4);
-          assert_eq!(m.avail, VALUES[2]);
+          assert_eq!(m.avail, 0);
         }
         None => assert!(false, "Expected to select move"),
       };
@@ -324,15 +358,65 @@ mod tests {
       match s.select_move() {
         Some(m) => {
           assert_eq!(m.pos, 21);
-          assert_eq!(m.avail, VALUES[SOL[21] as usize]);
+          assert_eq!(m.avail, 0);
         }
         None => assert!(false, "Should have selected only possible move."),
       }
     }
 
     #[test]
-    fn select_when_no_possible_move() {
+    fn select_most_constrained_move_with_single_choice() {
+      let mut input = Vec::with_capacity(81);
+      input.extend([0, 2, 3, 0, 5, 6, 7, 8, 9]);
+      input.extend([0, 7, 8, 1, 2, 3, 4, 5, 6]);
+      input.resize_with(81, Default::default);
+
+      let s = SolutionState::create(&input).unwrap();
+      let expected_move = Move {
+        pos: 3,
+        encoded_value: VALUES[4],
+        avail: 0,
+      };
+      match s.select_move() {
+        Some(m) => assert_eq!(m, expected_move),
+        None => assert!(false, "Should have selected move."),
+      }
+    }
+
+    #[test]
+    fn select_most_constrained_move() {
+      let mut input = Vec::with_capacity(81);
+      input.extend([0, 2, 3, 0, 5, 0, 7, 8, 9]);
+      input.extend([0, 0, 0, 1, 2, 0, 4, 5, 6]);
+      input.resize_with(81, Default::default);
+
+      let s = SolutionState::create(&input).unwrap();
+      let expected_move = Move {
+        pos: 3,
+        encoded_value: VALUES[4],
+        avail: VALUES[6],
+      };
+      match s.select_move() {
+        Some(m) => assert_eq!(m, expected_move),
+        None => assert!(false, "Should have selected move."),
+      }
+    }
+
+    #[test]
+    fn select_when_none_available() {
       let s = SolutionState::create(&SOL).unwrap();
+      assert_eq!(s.select_move(), None, "No move possible.");
+    }
+
+    #[test]
+    fn select_when_no_move() {
+      let mut input = Vec::with_capacity(81);
+      input.extend([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      input.extend([4, 5, 6, 7, 8, 3, 1, 2, 0]);
+      input.extend([7, 8, 0, 1, 2, 0, 4, 5, 6]);
+      input.resize_with(81, Default::default);
+
+      let s = SolutionState::create(&input).unwrap();
       assert_eq!(s.select_move(), None, "No move possible.");
     }
   }
