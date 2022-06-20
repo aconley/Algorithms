@@ -131,8 +131,7 @@ impl Iterator for LangfordIterator {
       let mut k = self.p[j as usize];
       if k == 0 {
         // There are either no more values to try at this level, or the value
-        // of k doesn't fit.  since values of k only ever increase
-        //
+        // of k doesn't fit.
         j = self.backtrack();
         if self.state == IteratorState::Done {
           return None;
@@ -191,6 +190,7 @@ impl Iterator for LangfordIterator {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::collections::HashSet;
 
   #[test]
   fn count_no_solutions() {
@@ -234,5 +234,11 @@ mod tests {
       LangfordIterator::new(4).collect::<Vec<_>>(),
       vec![vec![2, 3, 4, 2, 1, 3, 1, 4], vec![4, 1, 3, 1, 2, 4, 3, 2]]
     );
+  }
+
+  #[test]
+  fn number_unique_solutions_medium() {
+    assert_eq!(LangfordIterator::new(7).collect::<HashSet<_>>().len(), 52);
+    assert_eq!(LangfordIterator::new(8).collect::<HashSet<_>>().len(), 300);
   }
 }
