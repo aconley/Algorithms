@@ -120,7 +120,7 @@ impl Iterator for LangfordIterator {
     // that we are out of options at this level.
     let mut j = match self.state {
       IteratorState::Done => return None,
-      IteratorState::Ready => self.n, // This will cause backtrack.
+      IteratorState::Ready => self.n, // This will cause backtrack since p[n] == 0.
       IteratorState::New => 0,
     };
 

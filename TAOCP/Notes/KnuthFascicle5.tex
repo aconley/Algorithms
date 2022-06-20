@@ -45,7 +45,9 @@ Now, the inner sum is just one, since it is just the definition of $Pr\left(Y = 
 over all events $\omega$.  So this is just $E\left(E\left(X|Y\right)\right) = \sum_\omega X\left(\omega\right)
 Pr \left(\omega\right) = E\left(X\right)$, as claimed.
 
+\vskip 0.1in
 \noindent {\bf Inequalities}
+\vskip 0.05in
 
 \noindent [p 5] Formula (23): derivation of the second moment principle.  The
 final step again takes advantage of ${\rm E}\left(X | X > 0\right) = {\rm E} \left(X | X > 0\right)
@@ -53,7 +55,9 @@ final step again takes advantage of ${\rm E}\left(X | X > 0\right) = {\rm E} \le
 {\rm Pr}\left(X > 0\right)$, and therefore $\left( {\rm E} \left(X | X > 0\right) \right)^2 = 
 \left({\rm E} \left(X \right) / {\rm Pr}\left(X > 0\right) \right)^2$.
 
+\vskip 0.1in
 \noindent {\bf Martingales}
+\vskip 0.05in
 
 \noindent Something that goes oddly unmentioned, but is used, is that
 ${\rm E} Z_n = {\rm E} Z_0$ for any martingale.  For example, it gets used in the stopping rule
@@ -75,66 +79,60 @@ And we can keep doing this all the way down to ${\rm E}\, Z_0$.
 
 \noindent The way that backtracking is implemented does not really square with
 modern programming pracitce.  Generally, we would probably want to implement
-backtracking as some form of iterator.  Furthermore, the use of gotos would
-be frowned upon.  In most cases in Knuth, it's relatively easy to replace gotos
+backtracking as some form of iterator.  Furthermore, the use of gotos is generally
+frowned upon.  In most cases in Knuth, it's relatively easy to replace gotos
 with if statements or for loops, but for Backtracking it is a bit more complicated
 because the different paths are not nested, but instead interlock in an interesting
 way.
 
-After much trial and error, I hit on the following approach.  The iterator has
-three states: New, Ready, and Done.  New and Done are self-describing, Ready
-means that the iterator is halted right after visiting a solution, and our goal
-is to continue to the next solution.
-
-This is a bit simpler in Walker's version, where we keep track of the available
-elements at each level in $S_l$.  When calling next on the iterator, we proceed as follows:
+This is easiest in Walker's approach, where we maintain the available values at
+each level.  The iterator has three states: NEW, READY, and DONE.  A new iterator
+starts in the NEW state.  The interesting stuff happens when we call Next.
+Here I assume something like the Rust model, where we return None if there are no
+more solutions, and Some(vector) for a solution.
 
 \vskip 0.1in
-\noindent {\bf WI1} If the state is New, set $l \leftarrow 0$ and compute $S_0$.
-If it is ready, backtrack by setting $l \leftarrow l-1$ and $S_l \leftarrow S_l \ x_l$.
-If it is done, return the appropriate value (e.g., None in Rust).
+\noindent {\bf WI1}\hfil\break 
+\phantom{1}\hskip1em If the iterator state is DONE, return None.\hfil\break
+\phantom{2}\hskip1em If the iterator state is READY, set $l \leftarrow l - 1.$\hfil\break
+\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, compute $S_0$, and set
+the state to READY.\hfil\break
+\noindent {\bf WI2} Repeat this step while $S_l = \emptyset$: if $l = 0$ then set 
+the state to DONE and return None.  Otherwise, $l \leftarrow l - 1$.
 \vskip 0.05in
-\noindent {\bf WI2} Loop indefinitely on the below items.
+\noindent {\bf WI3} Set $x_l \leftarrow {\rm min}\, S_l$, $S_l \leftarrow S_l / x_l$, and 
+$l \leftarrow l + 1$.
 \vskip 0.05in
-\noindent {\bf WI3} If $S_l = \emptyset$ then there are no more values to try on
-this level. If $l = 0$ then set the state to Done and return the no-more-iterations
-value.  Otherwise backtrack by setting $l \leftarrow l-1$ and $S_l \leftarrow S_l \ x_l$
-and go back to {\bf WI2}.
+\noindent {\bf WI4} If $l = n$, then return ${\rm Some}\left(x_0, \ldots, x_{n-1}\right)$.
 \vskip 0.05in
-\noindent {\bf WI4} Set $x_l \leftarrow {\rm min} S_l$, $l \leftarrow l + 1$.
-\vskip 0.05in
-\noindent {\bf WI5} If $l = n$, set the state to Ready and return $x_0 \ldots x_{n-1}$.
-\vskip 0.05in
-\noindent {\bf WI6} Compute $S_l$ and go back to {\bf WI2}.
+\noindent {\bf WI5} Compute $S_l$ and return to {\bf WI2}.
 \vskip 0.1in
 
 Unfortunately, this isn't as easy to do in the non-Walker approach.  In some
 cases this can be avoided, but the general approach is to define some special
-value $m_l$ at each level which is not part of ${\cal D}_l$, which is less
-than ${\rm min} {\cal D}_l$, and whose successor is the minimum value.
-It is not valid in the sense that any evaluation of $P\left(\ldots, m_l, \ldots\right)$ 
-is false.  Upon calling next on the iterator, we proceed as follows:
+sentinel value $s_l$ at each level which is not part of ${\cal D}_l$, and which is
+more than any valid value and which is the sucessor of the maximum valid ${\cal D}_l$.
+For example, for Sudoku we could use 10 as a maximum sentinel, for Langford pairs
+or for $n$-queens we could use $n+1$, etc.  Rather than using a maximum sentinel value, 
+one can use a minimum instead.
+
+A new iterator is created in the NEW state.
 
 \vskip 0.1in
-\noindent {\bf BI1} If the state is New, set $l \leftarrow 0$, $x_0 \leftarrow m_0$.
-If the stead is Ready, backtrack by setting $l \leftarrow l - 1$ and downdating
-the datastructures.  If the state is Done, return whatever your iterator should
-return when it is done (e.g., None in Rust).
+\noindent {\bf BI1}\hfil\break 
+\phantom{1}\hskip1em If the iterator state is DONE, return None.\hfil\break
+\phantom{2}\hskip1em If the iterator state is READY, set $l \leftarrow l - 1.$\hfil\break
+\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, compute $S_0$, and set
+the state to READY.\hfil\break
+\noindent {\bf BI2} If $x_l = s_l$ then: if $l == 0$, set the state to DONE and return None.
+  Otherwise, backtrack by setting $l \leftarrow l - 1$, downdate the datastructures appropriately,
+  set $x_l \leftarrow {\rm next} {\cal D}_l$, and repeat this step.
 \vskip 0.05in
-\noindent {\bf BI2} Now repeat the below steps indefinitely.
-\noindent {\bf BI3} If $x_l = {\rm max} {\cal D}_l$ then there are no more values
-  to try on this level.  If $l = 0$, then set the state to Done and return the
-  iteration-is-over value.  Otherwise, backtrack by setting $l \leftarrow l - 1$
-  and downdating the datastructures.  Return to {\bf BI2}.
-\vskip 0.05in
-\noindent {\bf BI4} If $P\left(x_0, \ldots, x_l\right)$ is false, then go to {\bf I6}
-  Otherwise set $l \leftarrow l + 1$.  If $l = n$, then set the state to Ready 
-  and return $x_0, \ldots, x_{n-1}$.
-\vskip 0.05in
-\noindent {\bf BI5} Update the data structures for $l + 1$, set $x_l \leftarrow m_l$,
-  and go back to {\bf L2}.
-\vskip 0.05in
-\noindent {\bf BI6} Set $x_l$ to the next element of ${\cal D}_l$ and go back to $I2$.
+\noindent {\bf BI3} If $P\left(x_0, \ldots, x_l\right)$ then set $l \leftarrow l + 1$.  If
+  $l = n$ than return ${\rm Some}\left(x_0, \ldots, x_{n-1}\right)$.  Otherwise
+  update the datastructures for the new level, set $x_l \leftarrow {\rm min} {\cal D}_l$,
+  and return to {\bf BI2}.
+\noindent {\bf BI4} Set $x_l \leftarrow {\rm next} {\cal D}_l$ and return to {\bf BI2}.
 \vskip 0.1in
 
 \noindent I implemented the N-Queens algorithms, including the optimizations
@@ -152,13 +150,14 @@ Walkers method is by far the fastest.
 \noindent In this algorithm, $1 \le l \le 2n$, and $l$ simply indicates the position
 we are trying to set.  $k$ is the value we are trying, and $k = p_j$.
 $y_l$ is the $j$ that we chose.  $x_i = 0$ means the value is unset,
-and $x_i < 0$ means that value was already used earlier.
+and $x_i < 0$ means that value was already used earlier. 
 
 \vskip 0.1in
 \noindent {\bf Optimized Algorithm L}
 
 \noindent It's useful to have the fully optimized Algorithm~L in one place, 
-incorporating the improvements from exercises (20) and (21).  
+incorporating the improvements from exercises (20) and (21).   However, this
+is not the Iterator based approach as discussed above.
 
 \noindent This uses auxillary arrays $p_0 p_1 \ldots p_n$, $y_1 \ldots y_{2n}$, 
 and $a_1 \ldots a_n$.
@@ -194,8 +193,9 @@ $l \leftarrow l - 1$.  Then set $k \leftarrow x_l$, $x_l \leftarrow 0$,
 $x_{l + k + 1} \leftarrow 0$, $a_k \leftarrow 0$, $j \leftarrow y_l$, 
 $p_j \leftarrow k$.  If $l = \lfloor n / 2 \rfloor$ and $k = n^{\prime}$
 goto {\bf L5}, otherwise goto {\bf L4}.
+\vskip 0.1in
 
-When implemented in c++, the relative timings are 16 $\mu$s and 7.3 $\mu$s 
+\noindent When implemented in c++, the relative timings are 16 $\mu$s and 7.3 $\mu$s 
 for $n = 7$ for the raw and optimized Algorithm~L (both visiting both the 
 forward and reversed solutions), and 60 ms vs.\ 18 ms for $n = 11$.
 
