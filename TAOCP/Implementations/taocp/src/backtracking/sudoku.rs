@@ -94,6 +94,10 @@ impl InitialPosition {
       })
       .collect()
   }
+
+  fn box_index(&self) -> usize {
+    (3 * (self.row / 3) + self.col / 3) as usize
+  }
 }
 
 // Bitwise encoded moves are represented as 1 << val where val is in [1, 9]
@@ -149,7 +153,7 @@ impl SolutionState {
         // Invalid initial input.
         return None;
       }
-      let b = (3 * (pos.row / 3) + pos.col / 3) as usize;
+      let b = pos.box_index();
       let value = 1u16 << pos.value;
       if c_row[pos.row as usize] & c_col[pos.col as usize] & c_box[b] & value == 0 {
         // Conflict, no solution.
@@ -167,11 +171,15 @@ impl SolutionState {
       // solution.  The implementation won't quite work right with that,
       // so we need to artifically leave one of the moves off.
       let final_move = initial_position.pop().unwrap();
+      let available_move = 1u16 << final_move.value;
       m = vec![Move {
         pos: 9 * final_move.row + final_move.col,
         current_move: 0,
-        available_moves: 1u16 << final_move.value,
+        available_moves: available_move,
       }];
+      c_row[final_move.row as usize] = available_move;
+      c_col[final_move.col as usize] = available_move;
+      c_box[final_move.box_index()] = available_move;
     } else {
       m = unused
         .iter()
@@ -347,11 +355,32 @@ impl Iterator for SudokuIterator {
 
 #[cfg(test)]
 mod tests {
-  // A fully solved sudoku square.
+  // A fully solved sudoku puzzle.
+  #[rustfmt::skip]
   const SOL: [u8; 81] = [
-    5, 3, 4, 6, 7, 8, 9, 1, 2, 6, 7, 2, 1, 9, 5, 3, 4, 8, 1, 9, 8, 3, 4, 2, 5, 6, 7, 8, 5, 9, 7, 6,
-    1, 4, 2, 3, 4, 2, 6, 8, 5, 3, 7, 9, 1, 7, 1, 3, 9, 2, 4, 8, 5, 6, 9, 6, 1, 5, 3, 7, 2, 8, 4, 2,
-    8, 7, 4, 1, 9, 6, 3, 5, 3, 4, 5, 2, 8, 6, 1, 7, 9,
+    5, 3, 4, 6, 7, 8, 9, 1, 2, 
+    6, 7, 2, 1, 9, 5, 3, 4, 8, 
+    1, 9, 8, 3, 4, 2, 5, 6, 7, 
+    8, 5, 9, 7, 6, 1, 4, 2, 3, 
+    4, 2, 6, 8, 5, 3, 7, 9, 1, 
+    7, 1, 3, 9, 2, 4, 8, 5, 6, 
+    9, 6, 1, 5, 3, 7, 2, 8, 4, 
+    2, 8, 7, 4, 1, 9, 6, 3, 5, 
+    3, 4, 5, 2, 8, 6, 1, 7, 9,
+  ];
+
+  // A partially solved sudoku puzzle.
+  #[rustfmt::skip]
+  const PARTIAL: [u8; 81] = [
+    0, 6, 9, 0, 1, 3, 7, 8, 0, 
+    0, 7, 3, 0, 0, 8, 6, 0, 0, 
+    8, 2, 0, 0, 9, 0, 3, 0, 0, 
+    7, 0, 0, 9, 3, 1, 2, 6, 8, 
+    1, 9, 6, 0, 8, 2, 4, 0, 3, 
+    3, 8, 2, 4, 0, 0, 0, 0, 0, 
+    6, 1, 7, 3, 2, 0, 8, 0, 4, 
+    9, 3, 0, 8, 7, 0, 1, 2, 6, 
+    2, 0, 8, 1, 0, 0, 0, 3, 7,
   ];
 
   mod move_type {
@@ -410,8 +439,8 @@ mod tests {
   }
 
   mod solution_state {
-    use super::SOL;
-    use crate::backtracking::sudoku::{InitialPosition, SolutionState};
+    use super::{PARTIAL, SOL};
+    use crate::backtracking::sudoku::{InitialPosition, NextMove, SolutionState};
 
     #[test]
     fn invalid_input_value() {
@@ -513,6 +542,24 @@ mod tests {
     }
 
     #[test]
+    fn select_next_move_from_partial_puzzle() {
+      // Try selecting from a real puzzle.
+      let initial_position = InitialPosition::create_from_values(&PARTIAL);
+      let s = SolutionState::create(initial_position).unwrap();
+
+      let next_move = s.next_move();
+      assert_eq!(
+        s.m[next_move.idx].pos, 0,
+        "Unexpected position for next move"
+      );
+      assert_eq!(
+        next_move.available_moves,
+        (1u16 << 4 | 1u16 << 5),
+        "Unexpected available moves"
+      );
+    }
+
+    #[test]
     fn select_when_no_move() {
       // Test what happens when we get into a corner where no move is available.
       // The last element on the second row has no available value.
@@ -530,6 +577,37 @@ mod tests {
         s.m[next_move.idx].pos, 17,
         "Unexpected position for next move"
       );
+    }
+
+    #[test]
+    fn already_solved_puzzle_should_force_single_move() {
+      let initial_position = InitialPosition::create_from_values(&SOL);
+      match SolutionState::create(initial_position) {
+        None => panic!("Should have been able to initialize from completed solution"),
+        Some(state) => {
+          assert_eq!(state.m.len(), 1, "Should be single move in m");
+          println!("State: {:?}", state);
+          assert_eq!(
+            state.next_move(),
+            NextMove {
+              idx: 0,
+              available_moves: 1u16 << SOL[state.m[0].pos as usize]
+            }
+          );
+        }
+      }
+    }
+  }
+
+  mod iterator {
+    use super::{PARTIAL, SOL};
+    use crate::backtracking::sudoku::{InitialPosition, IteratorState, SudokuIterator};
+
+    #[test]
+    fn solves_already_solved_puzzle() {
+      let initial_position = InitialPosition::create_from_values(&SOL);
+      let iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(iterator.state, IteratorState::NEW(_)));
     }
   }
 }
