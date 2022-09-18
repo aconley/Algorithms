@@ -2,22 +2,8 @@
 //
 // If there is more than one solution, this will return an arbitrary one.
 
-use std::error::Error;
 use std::fmt;
-
-// How the values in the puzzle are represented.
-const VALUES: [u16; 10] = [
-  0, // Not used.
-  1,
-  1 << 1,
-  1 << 2,
-  1 << 3,
-  1 << 4,
-  1 << 5,
-  1 << 6,
-  1 << 7,
-  1 << 8,
-];
+use std::mem;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct SudokuSolution {
@@ -25,24 +11,11 @@ pub struct SudokuSolution {
 }
 
 impl SudokuSolution {
-  // This checks that the inputs are the right size and in range, but does not
-  // validate that the solution is valid.
-  pub fn create(values: &[u8]) -> Self {
+  fn create(values: &[u8]) -> Self {
     assert_eq!(values.len(), 81);
     let mut result: Vec<Vec<u8>> = Vec::with_capacity(9);
     for row in values.chunks(9) {
-      assert!(*row.iter().min().unwrap() >= 1);
-      assert!(*row.iter().max().unwrap() <= 9);
       result.push(row.to_vec());
-    }
-    SudokuSolution { rows: result }
-  }
-
-  // Unsafe because the inputs are not checked.
-  unsafe fn create_from_bitencoded(values: &[u16]) -> Self {
-    let mut result: Vec<Vec<u8>> = Vec::with_capacity(9);
-    for row in values.chunks(9) {
-      result.push(row.iter().map(|v| (16 - v.leading_zeros()) as u8).collect());
     }
     SudokuSolution { rows: result }
   }
@@ -67,179 +40,309 @@ impl fmt::Display for SudokuSolution {
 // Each box has a postion [0, 81) where the numbering starts in the top left
 // of the sudoku and increases along columns then rows.  The positions are
 // therefore:
-//    0  1  2  3  4  5  6  7  8
-//    9 10 11 12 13 14 15 16 17
-//   18 19 20 21 22 23 24 25 26
-//   27 28 29 30 31 32 33 34 35
-//   36 37 38 39 40 41 42 43 44
-//   45 46 47 48 49 50 51 52 53
-//   54 55 56 57 58 59 60 61 62
-//   63 64 65 66 67 68 69 70 71
-//   72 73 74 75 76 77 78 79 80
+// +----------+----------+----------+
+// |  0  1  2 |  3  4  5 |  6  7  8 |
+// |  9 10 11 | 12 13 14 | 15 16 17 |
+// | 18 19 20 | 21 22 23 | 24 25 26 |
+// +----------+----------+----------+
+// | 27 28 29 | 30 31 32 | 33 34 35 |
+// | 36 37 38 | 39 40 41 | 42 43 44 |
+// | 45 46 47 | 48 49 50 | 51 52 53 |
+// +----------+----------+----------+
+// | 54 55 56 | 57 58 59 | 60 61 62 |
+// | 63 64 65 | 66 67 68 | 69 70 71 |
+// | 72 73 74 | 75 76 77 | 78 79 80 |
+// +----------+----------+----------+
 //
 // The row, column, and box can be found via:
 //   row = pos / 9
 //   col = pos mod 9
-//   box = 3 * (row / 3) + (col / 3) = 3 pos / 27 + (pos mod 9) / 3
-
-fn translate_position(pos: usize) -> (usize, usize, usize) {
-  let r = pos / 9;
-  let c = pos % 9;
-  (r, c, 3 * (r / 3) + c / 3)
-}
-
-// Errors for bad inputs.
-
-#[derive(Debug)]
-pub struct SudokuError {
-  details: String,
-}
-
-impl SudokuError {
-  fn new(msg: String) -> Self {
-    SudokuError { details: msg }
-  }
-
-  fn from_str(msg: &str) -> Self {
-    SudokuError {
-      details: msg.to_string(),
-    }
-  }
-}
-
-impl Error for SudokuError {}
-
-impl fmt::Display for SudokuError {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{}", self.details)
-  }
-}
+//   box = 3 * (row / 3) + (col / 3) =  3 * (pos / 27) + (pos mod 9) / 3
 
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+pub struct InitialPosition {
+  pub row: u8,   // Row number [0, 8]
+  pub col: u8,   // Col number [0, 8]
+  pub value: u8, // Value [1, 9]
+}
+
+impl InitialPosition {
+  // Create a vector of initial positions from a 81 element array that is either
+  // 0 (indicating an unset value) or gives the value at that position.
+  pub fn create_from_values(values: &[u8; 81]) -> Vec<InitialPosition> {
+    values
+      .iter()
+      .enumerate()
+      .filter(|(_, &val)| val != 0)
+      .map(|(idx, val)| InitialPosition {
+        row: (idx / 9) as u8,
+        col: (idx % 9) as u8,
+        value: *val,
+      })
+      .collect()
+  }
+
+  pub fn create_from_vec(values: &Vec<u8>) -> Vec<InitialPosition> {
+    values
+      .iter()
+      .enumerate()
+      .filter(|(_, &val)| val != 0)
+      .map(|(idx, val)| InitialPosition {
+        row: (idx / 9) as u8,
+        col: (idx % 9) as u8,
+        value: *val,
+      })
+      .collect()
+  }
+}
+
+// Bitwise encoded moves are represented as 1 << val where val is in [1, 9]
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 struct Move {
-  pos: u8,            // Position in sudoku, [0, 81)
-  encoded_value: u16, // Bitwise encoded current value at position.
-  avail: u16,         // Bitwise encoded other available moves at position.
+  pos: u8,              // Position [0, 80]
+  current_move: u16,    // Bitwise encoded current move
+  available_moves: u16, // Bitwise or of all available moves, excluding current.
 }
 
 impl Move {
+  // Converts the current position into row, column, box form.
+  fn translate_position(&self) -> (usize, usize, usize) {
+    let r = self.pos as usize / 9;
+    let c = self.pos as usize % 9;
+    (r, c, 3 * (r / 3) + c / 3)
+  }
+
+  // Converts the encoded current_move to the normal value [1, 9]
   fn value(&self) -> u8 {
-    (16 - self.encoded_value.leading_zeros()) as u8
+    self.current_move.trailing_zeros() as u8
   }
 }
 
 #[derive(Debug)]
 struct SolutionState {
-  l: usize,        // Current level.
-  x: Vec<Move>,    // Current moves.  Only elements [0, l) are valid.
-  c_row: Vec<u16>, // Available values for each row.
-  c_col: Vec<u16>, // Available values for each column.
-  c_box: Vec<u16>, // Available values for each box.
-  n_active: usize, // Number of active (available) values in m.
-  m: Vec<u8>,      // All currently free (unset) squares. Elements [0, n_active) are valid.
+  n: u8,        // Number of levels.  Length of m.
+  l: u8,        // Current level.
+  m: Vec<Move>, // Moves.  [0, l) are settled, l is under consideration.
+  initial_position: Vec<InitialPosition>,
+  c_row: [u16; 9], // Available moves per row
+  c_col: [u16; 9], // Available moves per col
+  c_box: [u16; 9], // Available moves per box
+}
+
+#[derive(Debug, Eq, PartialEq)]
+struct NextMove {
+  idx: usize,
+  available_moves: u16,
 }
 
 impl SolutionState {
-  // Creates a new solution.  The input is a vector of length 81 containing
-  // the values [1, 9] for pre-filled squares and 0 for an empty square.
-  pub fn create(input: &[u8]) -> Result<SolutionState, SudokuError> {
-    if input.len() != 81 {
-      return Err(SudokuError::new(format!(
-        "Invalid input length {} != 81",
-        input.len()
-      )));
+  fn create(mut initial_position: Vec<InitialPosition>) -> Option<Self> {
+    if initial_position.len() > 81 {
+      return None;
     }
-    let mut unused = vec![true; 81];
-    let mut c_row = vec![(1 << 9) - 1; 9];
+    let mut unused = [true; 81];
+    let mut c_row = [0b1111111110u16; 9];
     let mut c_col = c_row.clone();
     let mut c_box = c_row.clone();
-    for (pos, val) in input.iter().enumerate().filter(|(_, &v)| v > 0) {
-      if *val > 9 {
-        return Err(SudokuError::new(format!(
-          "Invalid input value {} at position {}.",
-          *val, pos
-        )));
+    for pos in &initial_position {
+      if pos.row > 8 || pos.col > 8 || pos.value < 1 || pos.value > 9 {
+        // Invalid initial input.
+        return None;
       }
-      let encoded = VALUES[*val as usize];
-      let (r, c, b) = translate_position(pos);
-      if c_row[r] & c_col[c] & c_box[b] & encoded == 0 {
-        return Err(SudokuError::new(format!(
-          "Invalid input; can't have {} at pos {}.",
-          *val, pos
-        )));
+      let b = (3 * (pos.row / 3) + pos.col / 3) as usize;
+      let value = 1u16 << pos.value;
+      if c_row[pos.row as usize] & c_col[pos.col as usize] & c_box[b] & value == 0 {
+        // Conflict, no solution.
+        return None;
       }
-      c_row[r] &= !encoded;
-      c_col[c] &= !encoded;
-      c_box[b] &= !encoded;
-      unused[pos] = false;
+      c_row[pos.row as usize] &= !value;
+      c_col[pos.col as usize] &= !value;
+      c_box[b] &= !value;
+      unused[9 * pos.row as usize + pos.col as usize] = false;
     }
 
-    let m: Vec<u8> = unused
-      .iter()
-      .enumerate()
-      .filter(|(_, &v)| v)
-      .map(|(p, _)| p as u8)
-      .collect();
-    let n_active = m.len();
-    let mut x = Vec::with_capacity(n_active);
-    x.resize_with(n_active, Default::default);
-    Ok(SolutionState {
+    let m: Vec<Move>;
+    if initial_position.len() == 81 {
+      // This is a little tricky -- somebody gave us an already complete
+      // solution.  The implementation won't quite work right with that,
+      // so we need to artifically leave one of the moves off.
+      let final_move = initial_position.pop().unwrap();
+      m = vec![Move {
+        pos: 9 * final_move.row + final_move.col,
+        current_move: 0,
+        available_moves: 1u16 << final_move.value,
+      }];
+    } else {
+      m = unused
+        .iter()
+        .enumerate()
+        .filter(|(_, &v)| v)
+        .map(|(idx, _)| Move {
+          pos: idx as u8,
+          current_move: 0,
+          available_moves: 0,
+        })
+        .collect();
+    }
+
+    Some(SolutionState {
+      n: m.len() as u8,
       l: 0,
-      x: x,
+      m: m,
+      initial_position: initial_position,
       c_row: c_row,
       c_col: c_col,
       c_box: c_box,
-      n_active: n_active,
-      m: m,
     })
   }
 
-  // Selects the next move.  The move with the fewest possible options
-  // is selected.  Returns none if no move is possible, either because there
-  // are no unset squares or because one square has no options.
-  fn select_move(&self) -> Option<Move> {
-    if self.n_active == 0 {
-      return None;
+  fn to_solution(&self) -> SudokuSolution {
+    let mut sol = [0u8; 81];
+    for p in &self.initial_position {
+      sol[(9 * p.row + p.col) as usize] = p.value;
     }
-    struct MoveCandidate {
-      pos: u8,
-      avail: u16,
-      num_avail: u32,
+    for mv in &self.m {
+      sol[mv.pos as usize] = mv.value();
     }
-    let mut best_so_far = MoveCandidate {
-      pos: 82,
-      avail: 0,
-      num_avail: u32::MAX,
-    };
-    for candidate_position in self.m[..self.n_active].iter() {
-      let (r, c, b) = translate_position(*candidate_position as usize);
+    SudokuSolution::create(&sol)
+  }
+
+  fn next_move(&self) -> NextMove {
+    let (r, c, b) = self.m[self.l as usize].translate_position();
+    let mut avail_best = self.c_row[r] & self.c_col[c] & self.c_box[b];
+    if avail_best == 0 {
+      return NextMove {
+        idx: self.l as usize,
+        available_moves: 0,
+      };
+    }
+    let mut mrv_best = avail_best.count_ones();
+    let mut idx_best = self.l as usize;
+    for (idx, mv) in self.m.iter().enumerate().skip(1) {
+      let (r, c, b) = mv.translate_position();
       let avail = self.c_row[r] & self.c_col[c] & self.c_box[b];
       if avail == 0 {
-        // We found a square with no available moves, we need to backtrack.
-        return None;
+        return NextMove {
+          idx: idx,
+          available_moves: 0,
+        };
       }
-      let num_avail = avail.count_ones();
-      if num_avail < best_so_far.num_avail {
-        best_so_far.pos = *candidate_position;
-        best_so_far.avail = avail;
-        best_so_far.num_avail = num_avail;
+      let mrv = avail.count_ones();
+      if mrv < mrv_best {
+        idx_best = idx;
+        mrv_best = mrv;
+        avail_best = avail;
       }
     }
-    Some(Move {
-      pos: best_so_far.pos,
-      encoded_value: best_so_far.avail & (!best_so_far.avail + 1),
-      avail: best_so_far.avail & (best_so_far.avail - 1),
-    })
+
+    NextMove {
+      idx: idx_best,
+      available_moves: avail_best,
+    }
   }
 }
 
-pub fn solve(mut initial_position: Vec<u8>) -> Result<SudokuSolution, SudokuError> {
-  let mut state = SolutionState::create(&initial_position)?;
+impl Iterator for SolutionState {
+  type Item = SudokuSolution;
 
-  while state.n_active > 0 {}
+  fn next(&mut self) -> Option<Self::Item> {
+    loop {
+      // Backtrack from current position.
+      while self.m[self.l as usize].available_moves == 0 {
+        if self.l == 0 {
+          return None;
+        }
+        let (r, c, b) = self.m[self.l as usize].translate_position();
+        self.c_row[r] |= self.m[self.l as usize].current_move;
+        self.c_col[c] |= self.m[self.l as usize].current_move;
+        self.c_box[b] |= self.m[self.l as usize].current_move;
+        self.l -= 1;
+      }
 
-  // Construct and return solution.
-  todo!();
+      // Chose next move.  We are already guaranteed avail is not 0.
+      let avail = self.m[self.l as usize].available_moves as i16;
+      let v = (avail & -avail) as u16;
+      self.m[self.l as usize].current_move = v;
+      self.m[self.l as usize].available_moves &= !v;
+      let (r, c, b) = self.m[self.l as usize].translate_position();
+      self.c_row[r] &= !v;
+      self.c_col[c] &= !v;
+      self.c_box[b] &= !v;
+      self.l += 1;
+
+      // Are we done?
+      if self.l == self.n {
+        return Some(self.to_solution());
+      }
+
+      // Chose the next move and swap it into place.
+      let next_move = self.next_move();
+      self.m.swap(self.l as usize, next_move.idx);
+      self.m[self.l as usize].available_moves = next_move.available_moves;
+    }
+  }
+}
+
+enum IteratorState {
+  DONE,
+  NEW(Vec<InitialPosition>),
+  READY(SolutionState),
+}
+
+pub struct SudokuIterator {
+  state: IteratorState,
+}
+
+impl SudokuIterator {
+  pub fn create(input: Vec<InitialPosition>) -> Self {
+    SudokuIterator {
+      state: IteratorState::NEW(input),
+    }
+  }
+}
+
+impl Iterator for SudokuIterator {
+  type Item = SudokuSolution;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    match &mut self.state {
+      IteratorState::NEW(initial_position) => {
+        if initial_position.len() != 81 {
+          self.state = IteratorState::DONE;
+          return None;
+        }
+        // We need to take ownership of the initial position.
+        let init_pos = mem::replace(initial_position, Vec::new());
+        match SolutionState::create(init_pos) {
+          None => {
+            self.state = IteratorState::DONE;
+            None
+          }
+          Some(mut solution_state) => {
+            let result = solution_state.next();
+            match result {
+              None => {
+                self.state = IteratorState::DONE;
+              }
+              Some(ref _sol) => {
+                self.state = IteratorState::READY(solution_state);
+              }
+            }
+            result
+          }
+        }
+      }
+      IteratorState::READY(ref mut solution_state) => {
+        solution_state.l -= 1;
+        let result = solution_state.next();
+        if result.is_none() {
+          self.state = IteratorState::DONE;
+        }
+        result
+      }
+      IteratorState::DONE => None,
+    }
+  }
 }
 
 #[cfg(test)]
@@ -251,173 +354,182 @@ mod tests {
     8, 7, 4, 1, 9, 6, 3, 5, 3, 4, 5, 2, 8, 6, 1, 7, 9,
   ];
 
+  mod move_type {
+    use crate::backtracking::sudoku::Move;
+
+    #[test]
+    fn positions() {
+      let mut mv = Move {
+        pos: 0,
+        current_move: 0,
+        available_moves: 0,
+      };
+      assert_eq!(mv.translate_position(), (0, 0, 0));
+      mv.pos = 2;
+      assert_eq!(mv.translate_position(), (0, 2, 0));
+      mv.pos = 4;
+      assert_eq!(mv.translate_position(), (0, 4, 1));
+      mv.pos = 21;
+      assert_eq!(mv.translate_position(), (2, 3, 1));
+      mv.pos = 50;
+      assert_eq!(mv.translate_position(), (5, 5, 4));
+      mv.pos = 51;
+      assert_eq!(mv.translate_position(), (5, 6, 5));
+      mv.pos = 80;
+      assert_eq!(mv.translate_position(), (8, 8, 8));
+    }
+  }
+
   mod sudoku_solution {
     use super::SOL;
-    use crate::backtracking::sudoku::{SudokuSolution, VALUES};
+    use crate::backtracking::sudoku::SudokuSolution;
     use std::fmt::Write;
 
     #[test]
-    fn normal_and_bitencoded_create_agree() {
-      let base = SudokuSolution::create(&SOL);
-      let encoded_sol: Vec<u16> = SOL.iter().map(|v| VALUES[*v as usize]).collect();
-      let bit: SudokuSolution = unsafe { SudokuSolution::create_from_bitencoded(&encoded_sol) };
-
-      assert_eq!(base, bit);
-    }
-
-    #[test]
     fn formatter_produces_expected_output() {
-      let encoded_sol: Vec<u16> = SOL.iter().map(|v| VALUES[*v as usize]).collect();
-      let s = unsafe { SudokuSolution::create_from_bitencoded(&encoded_sol) };
+      let s = SudokuSolution::create(&SOL);
 
       let mut buf = String::new();
-      write!(&mut buf, "{}", s);
+      write!(&mut buf, "{}", s).ok();
 
       let expected = "+---+---+---+\n\
-                    |534|678|912|\n\
-                    |672|195|348|\n\
-                    |198|342|567|\n\
-                    +---+---+---+\n\
-                    |859|761|423|\n\
-                    |426|853|791|\n\
-                    |713|924|856|\n\
-                    +---+---+---+\n\
-                    |961|537|284|\n\
-                    |287|419|635|\n\
-                    |345|286|179|\n\
-                    +---+---+---+";
+                      |534|678|912|\n\
+                      |672|195|348|\n\
+                      |198|342|567|\n\
+                      +---+---+---+\n\
+                      |859|761|423|\n\
+                      |426|853|791|\n\
+                      |713|924|856|\n\
+                      +---+---+---+\n\
+                      |961|537|284|\n\
+                      |287|419|635|\n\
+                      |345|286|179|\n\
+                      +---+---+---+";
       assert_eq!(buf, expected);
     }
   }
 
   mod solution_state {
     use super::SOL;
-    use crate::backtracking::sudoku::{Move, SolutionState, VALUES};
-
-    #[test]
-    fn full_solution_input() {
-      match SolutionState::create(&SOL) {
-        Ok(s) => {
-          assert_eq!(s.n_active, 0);
-          assert_eq!(s.c_row, vec![0; 9]);
-          assert_eq!(s.c_col, vec![0; 9]);
-          assert_eq!(s.c_box, vec![0; 9]);
-        }
-        Err(e) => assert!(
-          false,
-          "Valid solution should be acceptable initialization, got error {}",
-          e
-        ),
-      }
-    }
+    use crate::backtracking::sudoku::{InitialPosition, SolutionState};
 
     #[test]
     fn invalid_input_value() {
-      let mut bad_input = vec![10];
-      bad_input.resize_with(81, Default::default);
+      let mut bad_input = SOL;
+      bad_input[10] = 10;
 
-      match SolutionState::create(&bad_input) {
-        Ok(_) => assert!(false, "Expected input error."),
-        Err(e) => assert_eq!(e.to_string(), "Invalid input value 10 at position 0."),
-      };
+      assert!(SolutionState::create(InitialPosition::create_from_values(&bad_input)).is_none());
     }
 
     #[test]
-    fn conflicting_input() {
-      let mut bad_input = vec![0, 1, 1, 2, 3, 4, 5, 6, 7];
-      bad_input.resize_with(81, Default::default);
+    fn conflicting_input_row() {
+      let bad_input = vec![0, 1, 1, 2, 3, 4, 5, 6, 7];
 
-      match SolutionState::create(&bad_input) {
-        Ok(_) => assert!(false, "Expected input error."),
-        Err(e) => assert_eq!(e.to_string(), "Invalid input; can't have 1 at pos 2."),
-      };
+      assert!(SolutionState::create(InitialPosition::create_from_vec(&bad_input)).is_none());
     }
 
     #[test]
-    fn select_single_move_row() {
-      let mut input = vec![1, 3, 4, 5, 0, 7, 6, 8, 9];
-      input.resize_with(81, Default::default);
-      let s = SolutionState::create(&input).unwrap();
+    fn select_position_from_almost_full_row() {
+      let input = vec![1, 3, 4, 5, 0, 7, 6, 8, 9];
+      let initial_position = InitialPosition::create_from_vec(&input);
+      let s = SolutionState::create(initial_position).unwrap();
 
-      match s.select_move() {
-        Some(m) => {
-          assert_eq!(m.pos, 4);
-          assert_eq!(m.avail, 0);
-        }
-        None => assert!(false, "Expected to select move"),
-      };
+      let next_move = s.next_move();
+      assert_eq!(
+        next_move.available_moves,
+        1u16 << 2,
+        "Unexpected available moves"
+      );
+      assert_eq!(
+        s.m[next_move.idx].pos, 4,
+        "Unexpected position for next move"
+      );
     }
 
     #[test]
     fn select_only_possible_move() {
-      let mut almost_sol = SOL.clone();
+      let mut almost_sol = SOL;
       // unset one position.
-      almost_sol[21] = 0;
+      almost_sol[21] = 0; // was 3.
 
-      let s = SolutionState::create(&almost_sol).unwrap();
-      match s.select_move() {
-        Some(m) => {
-          assert_eq!(m.pos, 21);
-          assert_eq!(m.avail, 0);
-        }
-        None => assert!(false, "Should have selected only possible move."),
-      }
+      let s = SolutionState::create(InitialPosition::create_from_values(&almost_sol)).unwrap();
+      let next_move = s.next_move();
+      assert_eq!(
+        next_move.available_moves,
+        1u16 << 3,
+        "Unexpected available moves"
+      );
+      assert_eq!(
+        s.m[next_move.idx].pos, 21,
+        "Unexpected position for next move"
+      );
     }
 
     #[test]
     fn select_most_constrained_move_with_single_choice() {
-      let mut input = Vec::with_capacity(81);
+      // The most constrained open space is the second 0 in the first row.
+      let mut input = Vec::with_capacity(18);
       input.extend([0, 2, 3, 0, 5, 6, 7, 8, 9]);
-      input.extend([0, 7, 8, 1, 2, 3, 4, 5, 6]);
-      input.resize_with(81, Default::default);
+      input.extend([0, 7, 8, 1, 2, 3, 4, 5, 0]);
 
-      let s = SolutionState::create(&input).unwrap();
-      let expected_move = Move {
-        pos: 3,
-        encoded_value: VALUES[4],
-        avail: 0,
-      };
-      match s.select_move() {
-        Some(m) => assert_eq!(m, expected_move),
-        None => assert!(false, "Should have selected move."),
-      }
+      let initial_position = InitialPosition::create_from_vec(&input);
+      let s = SolutionState::create(initial_position).unwrap();
+
+      let next_move = s.next_move();
+      assert_eq!(
+        next_move.available_moves,
+        1u16 << 4,
+        "Unexpected available moves"
+      );
+      assert_eq!(
+        s.m[next_move.idx].pos, 3,
+        "Unexpected position for next move"
+      );
     }
 
     #[test]
-    fn select_most_constrained_move() {
-      let mut input = Vec::with_capacity(81);
+    fn select_most_constrained_move_with_multiple_choices() {
+      // Similar to the previous test but with more unset values with
+      // multiple valid choices in second row.
+      // The best choice should be the second 0 in the first row with
+      // available values 4, 6
+      let mut input = Vec::with_capacity(18);
       input.extend([0, 2, 3, 0, 5, 0, 7, 8, 9]);
       input.extend([0, 0, 0, 1, 2, 0, 4, 5, 6]);
-      input.resize_with(81, Default::default);
 
-      let s = SolutionState::create(&input).unwrap();
-      let expected_move = Move {
-        pos: 3,
-        encoded_value: VALUES[4],
-        avail: VALUES[6],
-      };
-      match s.select_move() {
-        Some(m) => assert_eq!(m, expected_move),
-        None => assert!(false, "Should have selected move."),
-      }
-    }
+      let initial_position = InitialPosition::create_from_vec(&input);
+      let s = SolutionState::create(initial_position).unwrap();
 
-    #[test]
-    fn select_when_none_available() {
-      let s = SolutionState::create(&SOL).unwrap();
-      assert_eq!(s.select_move(), None, "No move possible.");
+      let next_move = s.next_move();
+      assert_eq!(
+        s.m[next_move.idx].pos, 3,
+        "Unexpected position for next move"
+      );
+      assert_eq!(
+        next_move.available_moves,
+        (1u16 << 4 | 1u16 << 6),
+        "Unexpected available moves"
+      );
     }
 
     #[test]
     fn select_when_no_move() {
-      let mut input = Vec::with_capacity(81);
+      // Test what happens when we get into a corner where no move is available.
+      // The last element on the second row has no available value.
+      let mut input = Vec::with_capacity(27);
       input.extend([1, 2, 3, 4, 5, 6, 7, 8, 9]);
       input.extend([4, 5, 6, 7, 8, 3, 1, 2, 0]);
       input.extend([7, 8, 0, 1, 2, 0, 4, 5, 6]);
-      input.resize_with(81, Default::default);
 
-      let s = SolutionState::create(&input).unwrap();
-      assert_eq!(s.select_move(), None, "No move possible.");
+      let initial_position = InitialPosition::create_from_vec(&input);
+      let s = SolutionState::create(initial_position).unwrap();
+
+      let next_move = s.next_move();
+      assert_eq!(next_move.available_moves, 0, "Should be no available moves");
+      assert_eq!(
+        s.m[next_move.idx].pos, 17,
+        "Unexpected position for next move"
+      );
     }
   }
 }
