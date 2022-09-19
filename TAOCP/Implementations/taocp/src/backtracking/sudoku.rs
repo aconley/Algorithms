@@ -210,12 +210,49 @@ impl SolutionState {
       sol[(9 * p.row + p.col) as usize] = p.value;
     }
     for mv in &self.m {
-      sol[mv.pos as usize] = mv.value();
+      let v = mv.value();
+      sol[mv.pos as usize] = if v == 16 { 0 } else { v };
     }
     SudokuSolution::create(&sol)
   }
 
-  fn next_move(&self) -> NextMove {
+  // Applies the move in m[l] to the state.
+  // Assumes that self.l is in the range [0, n) and that m[l].available_moves
+  // is not zero (that is, there is an available move).
+  unsafe fn apply_next_move(&mut self) {
+    // Assumed non-zero.
+    let avail = self.m[self.l as usize].available_moves as i16;
+
+    let v = (avail & -avail) as u16;
+    self.m[self.l as usize].current_move = v;
+    self.m[self.l as usize].available_moves &= !v;
+
+    let (r, c, b) = self.m[self.l as usize].translate_position();
+    self.c_row[r] &= !v;
+    self.c_col[c] &= !v;
+    self.c_box[b] &= !v;
+  }
+
+  // Undoes the move in position m[l].  Assumes self.l is in the range [0, n)
+  unsafe fn undo_current_move(&mut self) {
+    let (r, c, b) = self.m[self.l as usize].translate_position();
+    self.c_row[r] |= self.m[self.l as usize].current_move;
+    self.c_col[c] |= self.m[self.l as usize].current_move;
+    self.c_box[b] |= self.m[self.l as usize].current_move;
+  }
+
+  // Chooses the next move and swaps it into place as m[l].
+  // Assumes that self.l is in the range [0, n)
+  unsafe fn choose_next_move(&mut self) -> () {
+    let next_move = self.suggest_next_move();
+    self.m.swap(self.l as usize, next_move.idx);
+    self.m[self.l as usize].current_move = 0;
+    self.m[self.l as usize].available_moves = next_move.available_moves;
+  }
+
+  // Returns the next move that should be made.  Assumes that self.l is in
+  // the range [0, n)
+  unsafe fn suggest_next_move(&self) -> NextMove {
     let (r, c, b) = self.m[self.l as usize].translate_position();
     let mut avail_best = self.c_row[r] & self.c_col[c] & self.c_box[b];
     if avail_best == 0 {
@@ -226,7 +263,7 @@ impl SolutionState {
     }
     let mut mrv_best = avail_best.count_ones();
     let mut idx_best = self.l as usize;
-    for (idx, mv) in self.m.iter().enumerate().skip(1) {
+    for (idx, mv) in self.m.iter().enumerate().skip(self.l as usize + 1) {
       let (r, c, b) = mv.translate_position();
       let avail = self.c_row[r] & self.c_col[c] & self.c_box[b];
       if avail == 0 {
@@ -260,22 +297,18 @@ impl Iterator for SolutionState {
         if self.l == 0 {
           return None;
         }
-        let (r, c, b) = self.m[self.l as usize].translate_position();
-        self.c_row[r] |= self.m[self.l as usize].current_move;
-        self.c_col[c] |= self.m[self.l as usize].current_move;
-        self.c_box[b] |= self.m[self.l as usize].current_move;
+        unsafe {
+          self.undo_current_move();
+        }
         self.l -= 1;
       }
 
-      // Chose next move.  We are already guaranteed avail is not 0.
-      let avail = self.m[self.l as usize].available_moves as i16;
-      let v = (avail & -avail) as u16;
-      self.m[self.l as usize].current_move = v;
-      self.m[self.l as usize].available_moves &= !v;
-      let (r, c, b) = self.m[self.l as usize].translate_position();
-      self.c_row[r] &= !v;
-      self.c_col[c] &= !v;
-      self.c_box[b] &= !v;
+      // Undo the current move, then apply the next one.
+      // Apply the move in position m[l] and advance l.
+      unsafe {
+        self.undo_current_move();
+        self.apply_next_move();
+      }
       self.l += 1;
 
       // Are we done?
@@ -283,10 +316,10 @@ impl Iterator for SolutionState {
         return Some(self.to_solution());
       }
 
-      // Chose the next move and swap it into place.
-      let next_move = self.next_move();
-      self.m.swap(self.l as usize, next_move.idx);
-      self.m[self.l as usize].available_moves = next_move.available_moves;
+      // Chose the next move and put it in m[l].
+      unsafe {
+        self.choose_next_move();
+      }
     }
   }
 }
@@ -315,10 +348,6 @@ impl Iterator for SudokuIterator {
   fn next(&mut self) -> Option<Self::Item> {
     match &mut self.state {
       IteratorState::NEW(initial_position) => {
-        if initial_position.len() != 81 {
-          self.state = IteratorState::DONE;
-          return None;
-        }
         // We need to take ownership of the initial position.
         let init_pos = mem::replace(initial_position, Vec::new());
         match SolutionState::create(init_pos) {
@@ -327,6 +356,9 @@ impl Iterator for SudokuIterator {
             None
           }
           Some(mut solution_state) => {
+            unsafe {
+              solution_state.choose_next_move();
+            }
             let result = solution_state.next();
             match result {
               None => {
@@ -463,7 +495,7 @@ mod tests {
       let initial_position = InitialPosition::create_from_vec(&input);
       let s = SolutionState::create(initial_position).unwrap();
 
-      let next_move = s.next_move();
+      let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
         next_move.available_moves,
         1u16 << 2,
@@ -482,7 +514,7 @@ mod tests {
       almost_sol[21] = 0; // was 3.
 
       let s = SolutionState::create(InitialPosition::create_from_values(&almost_sol)).unwrap();
-      let next_move = s.next_move();
+      let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
         next_move.available_moves,
         1u16 << 3,
@@ -504,7 +536,7 @@ mod tests {
       let initial_position = InitialPosition::create_from_vec(&input);
       let s = SolutionState::create(initial_position).unwrap();
 
-      let next_move = s.next_move();
+      let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
         next_move.available_moves,
         1u16 << 4,
@@ -529,7 +561,7 @@ mod tests {
       let initial_position = InitialPosition::create_from_vec(&input);
       let s = SolutionState::create(initial_position).unwrap();
 
-      let next_move = s.next_move();
+      let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
         s.m[next_move.idx].pos, 3,
         "Unexpected position for next move"
@@ -547,7 +579,7 @@ mod tests {
       let initial_position = InitialPosition::create_from_values(&PARTIAL);
       let s = SolutionState::create(initial_position).unwrap();
 
-      let next_move = s.next_move();
+      let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
         s.m[next_move.idx].pos, 0,
         "Unexpected position for next move"
@@ -571,7 +603,7 @@ mod tests {
       let initial_position = InitialPosition::create_from_vec(&input);
       let s = SolutionState::create(initial_position).unwrap();
 
-      let next_move = s.next_move();
+      let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(next_move.available_moves, 0, "Should be no available moves");
       assert_eq!(
         s.m[next_move.idx].pos, 17,
@@ -586,9 +618,8 @@ mod tests {
         None => panic!("Should have been able to initialize from completed solution"),
         Some(state) => {
           assert_eq!(state.m.len(), 1, "Should be single move in m");
-          println!("State: {:?}", state);
           assert_eq!(
-            state.next_move(),
+            unsafe { state.suggest_next_move() },
             NextMove {
               idx: 0,
               available_moves: 1u16 << SOL[state.m[0].pos as usize]
@@ -601,13 +632,345 @@ mod tests {
 
   mod iterator {
     use super::{PARTIAL, SOL};
-    use crate::backtracking::sudoku::{InitialPosition, IteratorState, SudokuIterator};
+    use crate::backtracking::sudoku::{
+      InitialPosition, IteratorState, SudokuIterator, SudokuSolution,
+    };
 
     #[test]
     fn solves_already_solved_puzzle() {
       let initial_position = InitialPosition::create_from_values(&SOL);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+
+      match iterator.next() {
+        None => panic!("Should have found solution"),
+        Some(solution) => {
+          let expected_solution = SudokuSolution::create(&SOL);
+          assert_eq!(solution, expected_solution, "Did not get expected solution");
+        }
+      }
+
+      assert_eq!(
+        iterator.next(),
+        None,
+        "DONE iterator should produce no more solutions"
+      );
+      assert!(
+        matches!(iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
+      );
+    }
+
+    #[test]
+    fn solves_using_only_forced_moves() {
+      // Take the last row of the full solution and remove all the values
+      // on the bottom row.  As a result, all moves will be forced.
+      let mut puzzle = SOL;
+      for i in 72..81 {
+        puzzle[i] = 0;
+      }
+      let initial_position = InitialPosition::create_from_values(&puzzle);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(
+        matches!(iterator.state, IteratorState::NEW(_)),
+        "Iterator not in initial state"
+      );
+
+      match iterator.next() {
+        None => panic!("Should have found solution"),
+        Some(solution) => {
+          let expected_solution = SudokuSolution::create(&SOL);
+          assert_eq!(solution, expected_solution, "Did not get expected solution");
+        }
+      }
+
+      assert_eq!(
+        iterator.next(),
+        None,
+        "DONE iterator should produce no more solutions"
+      );
+      assert!(
+        matches!(iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
+      );
+    }
+
+    #[test]
+    fn solves_partial_solution() {
+      #[rustfmt::skip]
+      let expected_solution : [u8; 81] = [
+          4, 6, 9, 5, 1, 3, 7, 8, 2, 
+          5, 7, 3, 2, 4, 8, 6, 1, 9, 
+          8, 2, 1, 6, 9, 7, 3, 4, 5, 
+          7, 5, 4, 9, 3, 1, 2, 6, 8, 
+          1, 9, 6, 7, 8, 2, 4, 5, 3, 
+          3, 8, 2, 4, 5, 6, 9, 7, 1, 
+          6, 1, 7, 3, 2, 5, 8, 9, 4, 
+          9, 3, 5, 8, 7, 4, 1, 2, 6, 
+          2, 4, 8, 1, 6, 9, 5, 3, 7,
+        ];
+
+      let initial_position = InitialPosition::create_from_values(&PARTIAL);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+
+      match iterator.next() {
+        None => panic!("Should have found solution"),
+        Some(solution) => {
+          let expected_solution = SudokuSolution::create(&expected_solution);
+          assert_eq!(solution, expected_solution, "Did not get expected solution");
+        }
+      }
+
+      assert_eq!(
+        iterator.next(),
+        None,
+        "DONE iterator should produce no more solutions"
+      );
+      assert!(
+        matches!(iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
+      );
+    }
+
+    #[test]
+    fn solves_medium_problem() {
+      #[rustfmt::skip]
+      let problem : [u8; 81] = [
+        0, 2, 0, 0, 6, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 1, 9, 5, 2,
+        9, 0, 0, 8, 5, 2, 4, 7, 0,
+        0, 0, 6, 4, 0, 0, 0, 0, 9,
+        0, 0, 0, 0, 2, 0, 8, 0, 0,
+        1, 0, 0, 0, 0, 8, 3, 6, 7,
+        0, 0, 9, 7, 3, 0, 6, 0, 0,
+        7, 0, 0, 0, 0, 0, 5, 9, 0,
+        0, 0, 0, 6, 8, 9, 7, 0, 4
+      ];
+      #[rustfmt::skip]
+      let expected_solution : [u8; 81] = [
+          5, 2, 4, 9, 6, 7, 1, 8, 3,
+          6, 7, 8, 3, 4, 1, 9, 5, 2,
+          9, 3, 1, 8, 5, 2, 4, 7, 6,
+          8, 5, 6, 4, 7, 3, 2, 1, 9,
+          3, 9, 7, 1, 2, 6, 8, 4, 5,
+          1, 4, 2, 5, 9, 8, 3, 6, 7,
+          4, 8, 9, 7, 3, 5, 6, 2, 1,
+          7, 6, 3, 2, 1, 4, 5, 9, 8,
+          2, 1, 5, 6, 8, 9, 7, 3, 4
+       ];
+
+      let initial_position = InitialPosition::create_from_values(&problem);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+
+      match iterator.next() {
+        None => panic!("Should have found solution"),
+        Some(solution) => {
+          let expected_solution = SudokuSolution::create(&expected_solution);
+          assert_eq!(solution, expected_solution, "Did not get expected solution");
+        }
+      }
+
+      assert_eq!(
+        iterator.next(),
+        None,
+        "DONE iterator should produce no more solutions"
+      );
+      assert!(
+        matches!(iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
+      );
+    }
+
+    #[test]
+    fn solves_extreme_problem() {
+      #[rustfmt::skip]
+      let problem : [u8; 81] = [
+        4, 0, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 4, 0, 2, 3, 0, 0,
+        8, 3, 6, 0, 1, 0, 0, 0, 0,
+        2, 0, 0, 0, 6, 0, 0, 5, 7,
+        0, 9, 0, 5, 0, 0, 6, 0, 1,
+        0, 0, 7, 1, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 8, 6, 0, 0, 3,
+        7, 0, 0, 0, 0, 0, 0, 0, 0,
+        6, 4, 0, 0, 7, 0, 0, 0, 2
+     ];
+      #[rustfmt::skip]
+      let expected_solution : [u8; 81] = [
+        4, 2, 9, 6, 3, 8, 7, 1, 5,
+        1, 7, 5, 4, 9, 2, 3, 6, 8,
+        8, 3, 6, 7, 1, 5, 2, 4, 9,
+        2, 1, 4, 8, 6, 3, 9, 5, 7,
+        3, 9, 8, 5, 4, 7, 6, 2, 1,
+        5, 6, 7, 1, 2, 9, 8, 3, 4,
+        9, 5, 1, 2, 8, 6, 4, 7, 3,
+        7, 8, 2, 3, 5, 4, 1, 9, 6,
+        6, 4, 3, 9, 7, 1, 5, 8, 2
+       ];
+
+      let initial_position = InitialPosition::create_from_values(&problem);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+
+      match iterator.next() {
+        None => panic!("Should have found solution"),
+        Some(solution) => {
+          let expected_solution = SudokuSolution::create(&expected_solution);
+          assert_eq!(solution, expected_solution, "Did not get expected solution");
+        }
+      }
+
+      assert_eq!(
+        iterator.next(),
+        None,
+        "DONE iterator should produce no more solutions"
+      );
+      assert!(
+        matches!(iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
+      );
+    }
+
+    #[test]
+    fn solves_minimum_clue_problem() {
+      // This problem has only 17 clues, the minimum possible for the solution
+      // to be unique.
+      #[rustfmt::skip]
+      let problem : [u8; 81] = [
+        0, 0, 0, 0, 0, 0, 3, 0, 0,
+        1, 0, 0, 4, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 1, 0, 5,
+        9, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 2, 6, 0, 0,
+        0, 0, 0, 0, 5, 3, 0, 0, 0,
+        0, 5, 0, 8, 0, 0, 0, 0, 0,
+        0, 0, 0, 9, 0, 0, 0, 7, 0,
+        0, 8, 3, 0, 0, 0, 0, 4, 0
+      ];
+      #[rustfmt::skip]
+      let expected_solution : [u8; 81] = [
+        5, 9, 7, 2, 1, 8, 3, 6, 4,
+        1, 3, 2, 4, 6, 5, 8, 9, 7,
+        8, 6, 4, 3, 7, 9, 1, 2, 5,
+        9, 1, 5, 6, 8, 4, 7, 3, 2,
+        3, 4, 8, 7, 9, 2, 6, 5, 1,
+        2, 7, 6, 1, 5, 3, 4, 8, 9,
+        6, 5, 9, 8, 4, 7, 2, 1, 3,
+        4, 2, 1, 9, 3, 6, 5, 7, 8,
+        7, 8, 3, 5, 2, 1, 9, 4, 6 
+       ];
+
+      let initial_position = InitialPosition::create_from_values(&problem);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+
+      match iterator.next() {
+        None => panic!("Should have found solution"),
+        Some(solution) => {
+          let expected_solution = SudokuSolution::create(&expected_solution);
+          assert_eq!(solution, expected_solution, "Did not get expected solution");
+        }
+      }
+
+      assert_eq!(
+        iterator.next(),
+        None,
+        "DONE iterator should produce no more solutions"
+      );
+      assert!(
+        matches!(iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
+      );
+    }
+
+    #[test]
+    fn solves_non_unique_problem() {
+      // This problem has only 16 clues, so the solution is not unique.
+      // to be unique.
+      #[rustfmt::skip]
+      let problem : [u8; 81] = [
+        0, 3, 0, 0, 1, 0, 0, 0, 0,
+        0, 0, 0, 4, 0, 0, 1, 0, 0,
+        0, 5, 0, 0, 0, 0, 0, 9, 0,
+        2, 0, 0, 0, 0, 0, 6, 0, 4,
+        0, 0, 0, 0, 3, 5, 0, 0, 0,
+        1, 0, 0, 0, 0, 0, 0, 0, 0,
+        4, 0, 0, 6, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 5, 0,
+        0, 9, 0, 0, 0, 0, 0, 0, 0
+      ];
+      #[rustfmt::skip]
+      let expected_solution1 : [u8; 81] = [
+        9, 3, 4, 5, 1, 7, 2, 6, 8,
+        8, 6, 2, 4, 9, 3, 1, 7, 5,
+        7, 5, 1, 8, 6, 2, 4, 9, 3,
+        2, 7, 5, 9, 8, 1, 6, 3, 4,
+        6, 4, 9, 2, 3, 5, 8, 1, 7,
+        1, 8, 3, 7, 4, 6, 5, 2, 9,
+        4, 1, 7, 6, 5, 9, 3, 8, 2,
+        3, 2, 8, 1, 7, 4, 9, 5, 6,
+        5, 9, 6, 3, 2, 8, 7, 4, 1
+      ];
+      #[rustfmt::skip]
+      let expected_solution2 : [u8; 81] = [
+        9, 3, 4, 5, 1, 8, 2, 6, 7,
+        7, 6, 2, 4, 9, 3, 1, 8, 5,
+        8, 5, 1, 7, 6, 2, 4, 9, 3,
+        2, 8, 5, 9, 7, 1, 6, 3, 4,
+        6, 4, 9, 2, 3, 5, 7, 1, 8,
+        1, 7, 3, 8, 4, 6, 5, 2, 9,
+        4, 1, 8, 6, 5, 9, 3, 7, 2,
+        3, 2, 7, 1, 8, 4, 9, 5, 6,
+        5, 9, 6, 3, 2, 7, 8, 4, 1
+      ];
+
+      let initial_position = InitialPosition::create_from_values(&problem);
       let iterator = SudokuIterator::create(initial_position);
       assert!(matches!(iterator.state, IteratorState::NEW(_)));
+
+      let sols: Vec<SudokuSolution> = iterator.collect();
+      assert_eq!(sols.len(), 2);
+
+      assert_eq!(sols[0], SudokuSolution::create(&expected_solution1));
+      assert_eq!(sols[1], SudokuSolution::create(&expected_solution2));
+    }
+
+    #[test]
+    fn very_hard_sudoku() {
+      // This is the problem from Knuth 7.2.2.1.50
+      #[rustfmt::skip]
+      let problem : [u8; 81] = [
+        1, 2, 0, 3, 0, 0, 4, 0, 0,
+        4, 0, 0, 1, 0, 0, 0, 0, 0,
+        0, 0, 5, 0, 6, 0, 0, 0, 0,
+        3, 0, 0, 0, 0, 0, 0, 1, 0,
+        0, 7, 0, 0, 0, 0, 2, 3, 0,
+        0, 0, 0, 0, 0, 0, 6, 0, 8,
+        0, 4, 0, 2, 0, 0, 0, 7, 0,
+        0, 0, 9, 0, 8, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 5, 0, 0, 6
+      ];
+      #[rustfmt::skip]
+      let expected_solution : [u8; 81] = [
+        1, 2, 8, 3, 7, 9, 4, 6, 5,
+        4, 6, 7, 1, 5, 2, 9, 8, 3,
+        9, 3, 5, 8, 6, 4, 7, 2, 1,
+        3, 9, 4, 6, 2, 8, 5, 1, 7,
+        8, 7, 6, 5, 9, 1, 2, 3, 4,
+        2, 5, 1, 7, 4, 3, 6, 9, 8,
+        5, 4, 3, 2, 1, 6, 8, 7, 9,
+        6, 1, 9, 4, 8, 7, 3, 5, 2,
+        7, 8, 2, 9, 3, 5, 1, 4, 6
+      ];
+
+      let initial_position = InitialPosition::create_from_values(&problem);
+      let iterator = SudokuIterator::create(initial_position);
+
+      let solutions: Vec<SudokuSolution> = iterator.collect();
+      assert_eq!(solutions.len(), 1, "Solution should be unique");
+      assert_eq!(solutions[0], SudokuSolution::create(&expected_solution));
     }
   }
 }
