@@ -139,8 +139,7 @@ impl Move {
 
 #[derive(Debug)]
 struct SolutionState {
-  n: u8,        // Number of levels.  Length of m.
-  l: u8,        // Current level.
+  l: usize,        // Current level.
   m: Vec<Move>, // Moves.  [0, l) are settled, l is under consideration.
   initial_position: Vec<InitialPosition>,
   c_row: [u16; 9], // Available moves per row
@@ -203,7 +202,7 @@ impl SolutionState {
         .filter(|(_, &v)| v)
         .map(|(idx, _)| {
           Move {
-            square: Square::create(idx as u8 / 9, idx as u8 %9),
+            square: Square::create(idx as u8 / 9, idx as u8 % 9),
             current_move: 0,
             available_moves: 0,
           }
@@ -212,7 +211,6 @@ impl SolutionState {
     }
 
     Some(SolutionState {
-      n: m.len() as u8,
       l: 0,
       m: m,
       initial_position: initial_position,
@@ -237,53 +235,57 @@ impl SolutionState {
   // Applies the move in m[l] to the state.
   // Assumes that self.l is in the range [0, n) and that m[l].available_moves
   // is not zero (that is, there is an available move).
+  #[inline(always)]
   unsafe fn apply_next_move(&mut self) {
     // Assumed non-zero.
-    let avail = self.m[self.l as usize].available_moves as i16;
+    let avail = self.m[self.l].available_moves as i16;
 
     let v = (avail & -avail) as u16;
-    self.m[self.l as usize].current_move = v;
-    self.m[self.l as usize].available_moves &= !v;
+    self.m[self.l].current_move = v;
+    self.m[self.l].available_moves &= !v;
 
-    let sq = self.m[self.l as usize].square;
+    let sq = self.m[self.l].square;
     self.c_row[sq.row as usize] &= !v;
     self.c_col[sq.col as usize] &= !v;
     self.c_box[sq.r#box as usize] &= !v;
   }
 
   // Undoes the move in position m[l].  Assumes self.l is in the range [0, n)
+  #[inline(always)]
   unsafe fn undo_current_move(&mut self) {
-    let sq = self.m[self.l as usize].square;
-    self.c_row[sq.row as usize] |= self.m[self.l as usize].current_move;
-    self.c_col[sq.col as usize] |= self.m[self.l as usize].current_move;
-    self.c_box[sq.r#box as usize] |= self.m[self.l as usize].current_move;
+    let sq = self.m[self.l].square;
+    self.c_row[sq.row as usize] |= self.m[self.l].current_move;
+    self.c_col[sq.col as usize] |= self.m[self.l].current_move;
+    self.c_box[sq.r#box as usize] |= self.m[self.l].current_move;
   }
 
   // Chooses the next move and swaps it into place as m[l].
   // Assumes that self.l is in the range [0, n)
+  #[inline(always)]
   unsafe fn choose_next_move(&mut self) -> () {
     let next_move = self.suggest_next_move();
-    self.m.swap(self.l as usize, next_move.idx);
-    self.m[self.l as usize].current_move = 0;
-    self.m[self.l as usize].available_moves = next_move.available_moves;
+    self.m.swap(self.l, next_move.idx);
+    self.m[self.l].current_move = 0;
+    self.m[self.l].available_moves = next_move.available_moves;
   }
 
   // Returns the next move that should be made.  Assumes that self.l is in
   // the range [0, n)
+  #[inline(always)]
   unsafe fn suggest_next_move(&self) -> NextMove {
-    let sq = self.m[self.l as usize].square;
+    let sq = self.m[self.l].square;
     let mut avail_best = self.c_row[sq.row as usize]
       & self.c_col[sq.col as usize]
       & self.c_box[sq.r#box as usize];
     if avail_best == 0 {
       return NextMove {
-        idx: self.l as usize,
+        idx: self.l,
         available_moves: 0,
       };
     }
     let mut mrv_best = avail_best.count_ones();
-    let mut idx_best = self.l as usize;
-    for (idx, mv) in self.m.iter().enumerate().skip(self.l as usize + 1) {
+    let mut idx_best = self.l;
+    for (idx, mv) in self.m.iter().enumerate().skip(self.l + 1) {
       let avail =
         self.c_row[mv.square.row as usize] 
           & self.c_col[mv.square.col as usize] 
@@ -315,7 +317,7 @@ impl Iterator for SolutionState {
   fn next(&mut self) -> Option<Self::Item> {
     loop {
       // Backtrack from current position.
-      while self.m[self.l as usize].available_moves == 0 {
+      while self.m[self.l].available_moves == 0 {
         if self.l == 0 {
           return None;
         }
@@ -334,7 +336,7 @@ impl Iterator for SolutionState {
       self.l += 1;
 
       // Are we done?
-      if self.l == self.n {
+      if self.l == self.m.len() {
         return Some(self.to_solution());
       }
 
