@@ -888,7 +888,6 @@ mod tests {
     #[test]
     fn solves_non_unique_problem() {
       // This problem has only 16 clues, so the solution is not unique.
-      // to be unique.
       #[rustfmt::skip]
       let problem : [u8; 81] = [
         0, 3, 0, 0, 1, 0, 0, 0, 0,

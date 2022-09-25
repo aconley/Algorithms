@@ -20,3 +20,7 @@ harness = false
 [[bench]]
 name = "langford_benchmark"
 harness = false
+
+[[bench]]
+name = "sudoku_benchmark"
+harness = false
