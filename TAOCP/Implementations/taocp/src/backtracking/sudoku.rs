@@ -100,22 +100,37 @@ impl InitialPosition {
   }
 }
 
+// Row, column, box position.
+#[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
+struct Square {
+  row: u8,
+  col: u8,
+  r#box: u8,
+}
+
+impl Square {
+  fn create(row: u8, col: u8) -> Self {
+    Square {
+      row: row,
+      col: col,
+      r#box: 3 * (row / 3) + col / 3,
+    }
+  }
+
+  fn position(&self) -> usize {
+    (9 * self.row + self.col) as usize
+  }
+}
+
 // Bitwise encoded moves are represented as 1 << val where val is in [1, 9]
 #[derive(Copy, Clone, Debug, Default, PartialEq, Eq)]
 struct Move {
-  pos: u8,              // Position [0, 80]
   current_move: u16,    // Bitwise encoded current move
   available_moves: u16, // Bitwise or of all available moves, excluding current.
+  square: Square,       // The position in the puzzle of this move.
 }
 
 impl Move {
-  // Converts the current position into row, column, box form.
-  fn translate_position(&self) -> (usize, usize, usize) {
-    let r = self.pos as usize / 9;
-    let c = self.pos as usize % 9;
-    (r, c, 3 * (r / 3) + c / 3)
-  }
-
   // Converts the encoded current_move to the normal value [1, 9]
   fn value(&self) -> u8 {
     self.current_move.trailing_zeros() as u8
@@ -172,23 +187,26 @@ impl SolutionState {
       // so we need to artifically leave one of the moves off.
       let final_move = initial_position.pop().unwrap();
       let available_move = 1u16 << final_move.value;
+      let square = Square::create(final_move.row, final_move.col);
+      c_row[square.row as usize] = available_move;
+      c_col[square.col as usize] = available_move;
+      c_box[square.r#box as usize] = available_move;
       m = vec![Move {
-        pos: 9 * final_move.row + final_move.col,
+        square: square,
         current_move: 0,
         available_moves: available_move,
       }];
-      c_row[final_move.row as usize] = available_move;
-      c_col[final_move.col as usize] = available_move;
-      c_box[final_move.box_index()] = available_move;
     } else {
       m = unused
         .iter()
         .enumerate()
         .filter(|(_, &v)| v)
-        .map(|(idx, _)| Move {
-          pos: idx as u8,
-          current_move: 0,
-          available_moves: 0,
+        .map(|(idx, _)| {
+          Move {
+            square: Square::create(idx as u8 / 9, idx as u8 %9),
+            current_move: 0,
+            available_moves: 0,
+          }
         })
         .collect();
     }
@@ -211,7 +229,7 @@ impl SolutionState {
     }
     for mv in &self.m {
       let v = mv.value();
-      sol[mv.pos as usize] = if v == 16 { 0 } else { v };
+      sol[mv.square.position()] = if v == 16 { 0 } else { v };
     }
     SudokuSolution::create(&sol)
   }
@@ -227,18 +245,18 @@ impl SolutionState {
     self.m[self.l as usize].current_move = v;
     self.m[self.l as usize].available_moves &= !v;
 
-    let (r, c, b) = self.m[self.l as usize].translate_position();
-    self.c_row[r] &= !v;
-    self.c_col[c] &= !v;
-    self.c_box[b] &= !v;
+    let sq = self.m[self.l as usize].square;
+    self.c_row[sq.row as usize] &= !v;
+    self.c_col[sq.col as usize] &= !v;
+    self.c_box[sq.r#box as usize] &= !v;
   }
 
   // Undoes the move in position m[l].  Assumes self.l is in the range [0, n)
   unsafe fn undo_current_move(&mut self) {
-    let (r, c, b) = self.m[self.l as usize].translate_position();
-    self.c_row[r] |= self.m[self.l as usize].current_move;
-    self.c_col[c] |= self.m[self.l as usize].current_move;
-    self.c_box[b] |= self.m[self.l as usize].current_move;
+    let sq = self.m[self.l as usize].square;
+    self.c_row[sq.row as usize] |= self.m[self.l as usize].current_move;
+    self.c_col[sq.col as usize] |= self.m[self.l as usize].current_move;
+    self.c_box[sq.r#box as usize] |= self.m[self.l as usize].current_move;
   }
 
   // Chooses the next move and swaps it into place as m[l].
@@ -253,8 +271,10 @@ impl SolutionState {
   // Returns the next move that should be made.  Assumes that self.l is in
   // the range [0, n)
   unsafe fn suggest_next_move(&self) -> NextMove {
-    let (r, c, b) = self.m[self.l as usize].translate_position();
-    let mut avail_best = self.c_row[r] & self.c_col[c] & self.c_box[b];
+    let sq = self.m[self.l as usize].square;
+    let mut avail_best = self.c_row[sq.row as usize]
+      & self.c_col[sq.col as usize]
+      & self.c_box[sq.r#box as usize];
     if avail_best == 0 {
       return NextMove {
         idx: self.l as usize,
@@ -264,8 +284,10 @@ impl SolutionState {
     let mut mrv_best = avail_best.count_ones();
     let mut idx_best = self.l as usize;
     for (idx, mv) in self.m.iter().enumerate().skip(self.l as usize + 1) {
-      let (r, c, b) = mv.translate_position();
-      let avail = self.c_row[r] & self.c_col[c] & self.c_box[b];
+      let avail =
+        self.c_row[mv.square.row as usize] 
+          & self.c_col[mv.square.col as usize] 
+          & self.c_box[mv.square.r#box as usize];
       if avail == 0 {
         return NextMove {
           idx: idx,
@@ -415,32 +437,6 @@ mod tests {
     2, 0, 8, 1, 0, 0, 0, 3, 7,
   ];
 
-  mod move_type {
-    use crate::backtracking::sudoku::Move;
-
-    #[test]
-    fn positions() {
-      let mut mv = Move {
-        pos: 0,
-        current_move: 0,
-        available_moves: 0,
-      };
-      assert_eq!(mv.translate_position(), (0, 0, 0));
-      mv.pos = 2;
-      assert_eq!(mv.translate_position(), (0, 2, 0));
-      mv.pos = 4;
-      assert_eq!(mv.translate_position(), (0, 4, 1));
-      mv.pos = 21;
-      assert_eq!(mv.translate_position(), (2, 3, 1));
-      mv.pos = 50;
-      assert_eq!(mv.translate_position(), (5, 5, 4));
-      mv.pos = 51;
-      assert_eq!(mv.translate_position(), (5, 6, 5));
-      mv.pos = 80;
-      assert_eq!(mv.translate_position(), (8, 8, 8));
-    }
-  }
-
   mod sudoku_solution {
     use super::SOL;
     use crate::backtracking::sudoku::SudokuSolution;
@@ -472,7 +468,7 @@ mod tests {
 
   mod solution_state {
     use super::{PARTIAL, SOL};
-    use crate::backtracking::sudoku::{InitialPosition, NextMove, SolutionState};
+    use crate::backtracking::sudoku::{InitialPosition, NextMove, SolutionState, Square};
 
     #[test]
     fn invalid_input_value() {
@@ -502,7 +498,8 @@ mod tests {
         "Unexpected available moves"
       );
       assert_eq!(
-        s.m[next_move.idx].pos, 4,
+        s.m[next_move.idx].square,
+        Square { row: 0, col: 4, r#box: 1},
         "Unexpected position for next move"
       );
     }
@@ -521,7 +518,8 @@ mod tests {
         "Unexpected available moves"
       );
       assert_eq!(
-        s.m[next_move.idx].pos, 21,
+        s.m[next_move.idx].square,
+        Square { row: 2, col: 3, r#box: 1},
         "Unexpected position for next move"
       );
     }
@@ -543,7 +541,8 @@ mod tests {
         "Unexpected available moves"
       );
       assert_eq!(
-        s.m[next_move.idx].pos, 3,
+        s.m[next_move.idx].square,
+        Square { row: 0, col: 3, r#box: 1 },
         "Unexpected position for next move"
       );
     }
@@ -563,7 +562,8 @@ mod tests {
 
       let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
-        s.m[next_move.idx].pos, 3,
+        s.m[next_move.idx].square,
+        Square { row: 0, col: 3, r#box: 1 },
         "Unexpected position for next move"
       );
       assert_eq!(
@@ -581,7 +581,8 @@ mod tests {
 
       let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(
-        s.m[next_move.idx].pos, 0,
+        s.m[next_move.idx].square,
+        Square { row: 0, col: 0, r#box: 0 },
         "Unexpected position for next move"
       );
       assert_eq!(
@@ -606,7 +607,8 @@ mod tests {
       let next_move = unsafe { s.suggest_next_move() };
       assert_eq!(next_move.available_moves, 0, "Should be no available moves");
       assert_eq!(
-        s.m[next_move.idx].pos, 17,
+        s.m[next_move.idx].square,
+        Square { row: 1, col: 8, r#box: 2 },
         "Unexpected position for next move"
       );
     }
@@ -622,7 +624,7 @@ mod tests {
             unsafe { state.suggest_next_move() },
             NextMove {
               idx: 0,
-              available_moves: 1u16 << SOL[state.m[0].pos as usize]
+              available_moves: 1u16 << SOL[state.m[0].square.position()]
             }
           );
         }
