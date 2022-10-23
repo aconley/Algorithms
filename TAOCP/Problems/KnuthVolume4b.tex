@@ -5,7 +5,6 @@
 \centerline{\tt Mathematical Preliminaries Redux}
 \vskip 0.3in
 
-
 \noindent {\bf Problem 1} {\it Non-transitive dice}\hfil\break
 (a) ${\rm Pr}\left(A > B\right) = 2 / 3$ (chance of $A$ rolling a 5) $\times 5 / 6$
 (chance that a 5 beats $B$) = 5 / 9.  And ${\rm Pr}\left(B > C\right) = 2 / 6 \times 2 / 6$
@@ -96,9 +95,12 @@ $$
 Note that these can't be independent, or there would be no way to have a vector
 with two set values have non-zero probability but 1 or 3 have zero probability.
 Also note that there are $n \choose 2$ ways to have $x_1 + \ldots + x_n = 2$,
-so the chance that 2 are set is ${n \choose 2} \times {1 \over \left(n - 1\right)^2} =
-{n \left(n - 1\right) \over 2} \times {1 \over \left(n - 1\right)^2} = {n \over 2 \left(n - 1\right)}$.
-Combined with the chance that zero are set ($\left(n - 2\right) \over \left(2 n - 2\right)$),
+so the chance that 2 are set is 
+$$
+{n \choose 2} \times {1 \over \left(n - 1\right)^2} =
+{n \left(n - 1\right) \over 2} \times {1 \over \left(n - 1\right)^2} = {n \over 2 \left(n - 1\right)}.
+$$
+Combined with the chance that zero are set $\left(n - 2\right) / \left(2 n - 2\right)$,
 the total probability is one.
 
 In any case, we want to compute the probability that $X_i = 1$.  Given $X_i = 1$, there are $n - 1$
@@ -106,16 +108,16 @@ ways to set $X_j = 1$ for $i \neq j$, all of equal probability, and all other se
 Therefore, the probability that $X_i = 1$ must be $1 / \left(n - 1\right)$ so that the sum of
 all those arrangements adds up to the right value.  What about $\left(X_i, X_j\right) = \left(0, 1\right)$ 
 for $i \neq j$? Well, there are $n-2$ other choices for $X_k = 1$, so the probability
-must be $n - 2 \over \left(n - 1\right)^2$, and we must have the same probability
+must be $\left(n - 2 \right) / \left(n - 1\right)^2$, and we must have the same probability
 for $\left(X_i, X_j\right) = \left(1, 0\right)$.  We already know that the chances of
-$\left(X_i, X_j\right) = \left(1, 1\right) = {1 \over \left(n - 1\right)^2}$ for $i \neq j$,
+$\left(X_i, X_j\right) = \left(1, 1\right) = 1 / \left(n - 1\right)^2$ for $i \neq j$,
 so by subtraction we must have the chances of them both being 0 of
-$\left(n - 2\right)^2 \over \left(n - 1\right)^2$.
+$\left(n - 2\right)^2 / \left(n - 1\right)^2$.
 
 Now note that these can be written as the probability that ${\rm Pr} \left(X_i, X_j\right) = 
 \left(0, 0\right), \left(0, 1\right), \left(1, 0\right), \left(1, 1\right) =
-p_0^2, p_0 p_1, p_1 p_0, p_1^2$ for $p_0 = {\left( n - 2\right) \over \left(n - 1\right)}$,
-$p_1 = {1 \over n - 1}$, which constitutes 2-wise independence.
+p_0^2, p_0 p_1, p_1 p_0, p_1^2$ for $p_0 = {\left( n - 2\right) / \left(n - 1\right)}$,
+$p_1 = 1 / \left(n - 1\right)$, which constitutes 2-wise independence.
 But we can't have $\left(X_i, X_j, X_k\right) = \left(0, 0, 0\right)$ for any distinct
 $i, j, k$, and the same is true for any combination of 4 or more.  So they are 2-wise
 independent, but no more.
@@ -177,7 +179,7 @@ P\left(A | B \cap C\right) P\left(B | C\right)  = {P\left(A \cap B \cap C\right)
    {P\left(B \cap C\right) \over P\left(C\right)} = {P\left(A \cap B \cap C\right) \over P\left(C\right)} =
     P\left(A \cap B | C\right).
 $$
-So this is true {\it as long} as we avoid the special case $P\left(C\right) = 0$ 
+So this is true as long as we avoid the special case $P\left(C\right) = 0$ 
 (and then it's true if $A$ and $B$ are independent).
 
 \newprob {Problem 17} {\it Evaluate $P\left(\hbox{\rm T is ace} | \hbox{\rm B is Q of spades}\right)$}. 
@@ -207,7 +209,7 @@ $$
 $$
 which is the desired proof.
 
-\newprob {Problem 20} {\it Prove the Union rule: $P\left(A_1 
+\newprob {Problem 20} {\it Prove the Union bound: $P\left(A_1 
 \cup \ldots \cup A_n\right) \leq P\left(A_1\right) + \ldots P\left(A_n\right).$}\hfil\break
 There are multiple ways to show this, but doing it with equation~8:
 $$
@@ -220,7 +222,14 @@ $$
     &= P\left(A_1\right) + \ldots + P\left(A_n\right)
 }
 $$
-where the last step follows by linearity of expectations.
+where the last step follows by linearity of expectations.  The more
+standard way is just induction -- it is true for any two events because
+$$
+P\left(A_1 \cup A_2\right) = P\left(A_1\right) + P\left(A_2\right) - P\left(A_1 \cap A_2\right)
+$$
+and, since probabilities are non-negative, the last term in particular must be $\ge 0$ and therefore
+$P\left(A_1 \cup A_2\right) \le P\left(A_1\right) + P\left(A_2\right)$.  Since the union of any two 
+events is itself an event, this extends to arbitrarily many events trivially.
 
 \newprob {Problem 34} {\it Write out an algebraic proof of (12)}\hfil\break
 That is, show $E\left(X\right) = E\left( E\left(X | Y \right) \right)$.  
@@ -333,6 +342,7 @@ $P_l = x_1 < \ldots < x_l$.\hfil\break
 
 \newprob {Problem~2} {\it Making $P_1$ always true}\hfil\break
 Simply discard any elements of $D_1$ that do not satisfy $P_1$.
+So it is possible to make $P_1$ unless there are no such elements.
 
 \newprob {Problem~3} {\it Saving half the work for $n$-queens}\hfil\break
 Restrict $D_1$ to be only the first half of the range, and then add the 
@@ -455,5 +465,372 @@ so far.\hfil\break
  $i \leftarrow p$.\hfil\break
 {\bf M5.} [Early terminate] If $m \ne 0$, goto {\bf M2}.\hfil\break
 {\bf M6.} [Exit] Return $i$.\hfil\break
+
+\topglue 0.5in
+\centerline{\tt Knuth 7.2.2.2: Satisfiability}
+\vskip 0.3in
+
+\newprob{Problem 1} The shortest unsatisfiable set of clauses is the
+empty clause $\epsilon$, the shortest satisfiable set is the empty set $\emptyset$.
+
+\newprob{Problem~87}: Explain why the clauses (42) represent Alice and Bob's
+programs (40).\hfil\break
+Denoting Alice's states at time $t$ by $A0_t, \ldots, A4_t$ and Bob's by $B0_t, \ldots, B4_t$,
+the first set of clauses expresses the fact that neither can change state unless it is there term.
+If we couple this with clauses that require that both Alice and Bob can only be in one
+state, these can be written $@_k \vee \overline{AK_{k}} \vee AK_{k+1}$
+and $\overline{@_k} \vee \overline{BK_{k}} \vee BK_{k+1}$.  For example, if Alice is in state
+A0 at time $t$, then this states that if $@_k = 0$ then she must still be in A0 at
+time $t+1$.
+
+The next set of clauses represent possible transitions.  For example, if it is
+Alice's turn ($@_t = 1$) and she is in state $A2$, she has to go to $A3$, which becomes
+$\overline{@_k} \vee {\overline A2_k} \vee A3_{k+1}$.  For $A0$ there are two possible
+target states, although we could ignore non-transitions as irrelevant to the problem:
+$\overline{@_k} \vee {\overline A0_k} \vee A0_{k+1} \vee A1_{k+1}$.  For A1 it's a bit more
+complicated because it depends on $l$, so we get two rules: first, for $l=1$
+$\overline{@_k} \vee \overline{A1_{k}} \overline{l_k} \vee A1_{k+1}$; then, for $l=0$
+$\overline{@_k} \vee \overline{A1_{k}} \vee l_k \vee A2_{k+1}$.  To express the $A2$ and $A4$
+changes to $l$: $\overline{@_k} \vee \overline{A2_k} \vee l_{k+1}$ and
+$\overline{@_k} \vee \overline{A4_k} \vee \overline{l_{k+1}}$.  And finally, we encode
+that $l$ doesn't change except in states $A2$ and $A4$ with
+$\overline{@_k} \vee l_k \vee A2 \vee A4 \vee \overline{l_{k+1}}$
+and $\overline{@_k} \vee \overline{k_t} \vee A2 \vee A4 \vee l_{k+1}$.
+There are similar clauses for $BK$ but with $@_k$ instead of $\overline{@_k}$.
+
+\newprob {Problem 121}: Lower level operations in Algorithm~A
+\newstep {A3} [Remove $\bar l$].  Because of the reverse order the variables are
+stored in, and the fact that the algorithm chooses values for $x_1, x_2, \ldots, x_n$
+in order, we can remove $\bar l$ from all clauses that contain it simply by
+reducing the value of {\tt SIZE} for those clauses by one.  We can find the clauses
+by following the circular links until we get back to the head of the list.
+The messy bit is that when a clause would go to size 0 we need to undo
+what we have already done because the set of clauses has become unsatisfiable
+given the current assignments.  Thus: $p \gets {\tt F}\left(l \oplus 1\right)$ 
+(follow the forward links to clauses that contain $\bar l$).  Repeat until
+we come back to the head of the list (so, as long as $p \ge 2 n + 2$):
+i) Get the clause number: $c \gets {\tt C}\left(p\right)$. ii) If ${\tt SIZE}\left(c\right) > 1$,
+ decrease it by 1 and $p \gets {\tt F}\left(p\right)$.  If not, we need to undo what
+ we've already done.  So interrupt the previous
+ loop, set $p = {\tt B}\left(p\right)$ and repeat as long as $p \ge 2 n + 2$:
+ i) Get the clause $c \gets {\tt C}\left(p\right)$. ii) ${\tt SIZE}\left(c\right) += 1$.
+ iii) $p \gets {\tt B}\left(p\right)$ and go to A5.
+\newstep {A4} [Remove all clauses that contain $l$].  Here we simply iterate
+over all other literals in each clause that contains $l$ and unlink them from
+the circular lists.  So: set $p \gets {\tt F}\left(l\right)$ and repeat as
+long as $p \ge 2 n + 2$: i) set $c \gets {\tt C}\left(p\right)$ ($c$ is
+the clause number), ii) for ${\tt START}\left(c\right) \le k < {\tt START}\left(c\right)
+ + {\tt SIZE}\left(c\right) - 1$ (loop over all other literals in this clause)
+ remove the literal $k$ using the procedure following below, iii) set $p \gets {\tt F}\left(p\right)$.
+ To remove the literal pointed to by $k$ a) set $d \gets {\tt F}\left(k\right)$,
+ $e \gets {\tt B}\left(k\right)$, ${\tt B}\left(d\right) \gets e$, ${\tt F}\left(e\right) \gets d$
+ (the variable is removed from the circular list), b) decrement the counter for that
+ literal: ${\tt C}\left({\tt L}\left(k\right)\right) -= 1$. The final overall step is
+ to set $a \gets a - {\tt C}\left(l\right)$ (correct the number of active clauses),
+ and $d \gets d + 1$ (we've set another variable).
+\newstep {A7} [Reactivate $l$s clauses] This takes advantage of the 
+ Dancing Links procedure.  Because we haven't changed {\tt F} or {\tt B} for the variables
+ we removed in A4, we can put them back in efficiently.  So, $p \gets {\tt B}\left(l\right)$
+ and while $p \ge 2 n + 2$ do: $c \gets {\tt C}\left(p\right)$, and for
+ ${\tt START}\left(c\right) \le k < {\tt START}\left(c\right) + {\tt SIZE}\left(c\right) - 1$
+add the literal $k$ by doing $d \gets {\tt F}\left(k\right)$, $e \gets {\tt B}\left(k\right)$,
+${\tt B}\left(d\right) \gets k$, ${\tt F}\left(e\right) \gets k$, and 
+${\tt C}\left({\tt L}\left(k\right)\right) += 1$, and $p \gets {\tt B}\left(p\right)$.
+Then, finally, $a \gets a + {\tt C}\left(l\right)$.
+\newstep {A8} [Unremove $\bar l$] $p \gets {\tt F}\left(l \oplus 1\right)$,
+and repeat until $p \ge 2 n + 2$: $c \gets {\tt C}\left(p\right)$,
+${\tt SIZE}\left(c\right) += 1$, $p \gets {\tt F}\left(p\right)$.  Then go to A5.
+
+\vskip 0.08in \noindent {\bf Problem 109} Find the lexicographically smallest
+solution.\hfil\break
+First, find a solution.  If you can't, terminate unsuccessfully.  Then take your
+solution and find the first 1.  Say it's at position $j$.  Next, try to find a solution
+with $x_1 x_2 \ldots x_j = 0$ by adding additional clauses that force those
+to your problem.  If you do find a solution, repeat.  If not, say that then next
+1 after $j$ is in position $k$.  Now try for a solution with $x_1 \ldots x_{j-1} = 0$
+and $x_k = 0$, repeating until there are no more $k$s to try.
+
+Finding the largest is similar, but somewhat more complicated.
+
+\newprob {Problem 124} Fill in the steps in B2.\hfil\break
+We want to walk the linked list of clauses that watch $\bar l$.  So, set
+$c \gets W_{\bar l}$.  If $c = 0$, there are no clauses watches $\bar l$, so
+terminate successfully.  Otherwise, while $c \ne 0$ do: $i_{min} \gets {\tt START}
+\left(c\right)$, $i_{max} \gets {\tt START}\left(c - 1\right)$, $c^{\prime} \gets 
+{\tt LINK}\left(c\right)$ (this will be the update for the next clause).
+Now, for $i_{min} < k < i_{max}$, set $l^{\prime} \gets {\tt L}\left(k\right)$.
+Now, if the literal represented by $l^{\prime}$ isn't false, we've found
+something else to watch, so we swap it to the front of the clause (meaning we
+watch it): ${\tt L}\left(i_{min}\right) \gets l^{\prime}$, ${\tt L}\left(k\right) \gets \bar l$,
+${\tt LINK}\left(c\right) \gets W_{l^{\prime}}$, $W_{l^{\prime}} \gets c$, $c \gets c^{\prime}$
+and exit the $k$ loop (we now move on to the next clause watching $\bar l$.
+If we reach the end of the $k$ loop without finding such a literal, then the formula
+is unsatisfiable with the current settings, so we go to step B5.
+
+Now, how do we check if a literal is already false?  Well, Algorithm~B steps
+through the literals in order, so the condition for the literal to not be false is
+$| l^{\prime} | > d$ (not set) or $| l^{\prime} | + m_{| l^{\prime} |}$ is even (is set,
+but set to be true.
+
+\newprob {Problem 125} Modify Algorithm~B to find all solutions.
+\newstep {B2}  [Visit or choose] If $d > n$, visit the solution represnted by $m_1 \ldots m_n$
+(recall $x_j \gets 1 \oplus \left( m_j \& 1 \right)$ constructs $x$) and go to B6.
+\newstep {B6} [Backtrack or terminate] Terminate if $d=1$.  Otherwise set $d \gets d - 1$.
+
+\newprob {Problem 126} Find the next step of Algorithm~D on (59)\hfil\break
+The book has a mistake -- the active ring is $\left(6\,9\,7\,8\right)$, since 
+$\bar 5$ was just set.  So, first it looks at 6, but there are no unit clauses forced
+(the possibilities would be $\bar 1 \bar 2 \bar 6$, $\bar 1 \bar 5 \bar 6$, $\bar 2 \bar 5 \bar 6$,
+$346$, none of which are present). So next it tries 9, which {\it does} exist in a unit 
+clause (1 5 9), so this is chosen.  That affects the watch list of $\bar 9 \bar 3 \bar 6$ --
+$39$ are set, so we switch to watching 6 by converting it to $\bar 6 \bar 3 \bar 9$.
+The active ring loses 9, so becomes $\left(6\,7\,8\right)$.
+
+\newprob {Problem 127} Move codes for (59) right before and after backtrack.\hfil\break
+$m = 1 1 4 1 4 5 4 5$; note that we don't need $h$, we can just follow the steps
+in order.  But $h = 1 2 3 4 6 9 7 8$.  After the backtrack, $m = 1 1 4 2$ (we try
+a different setting for 4 after the first one failed.
+
+\newprob {Problem 128} Show what Algorithm~D does on the Rivest clauses (6).
+\hfil\break
+Following the layout used in problem~123, we have
+$$
+\matrix{
+p =       & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 
+   & 15 & 16 & 17 & 18 & 19 & 20 & 21 & 22 & 23 \cr
+{\tt L} = & 5 & 2 & 9 & 3 & 9 & 7 & 8 & 7 & 5 & 6 & 5 & 3 & 4 & 3 & 8
+ &2 & 8 & 6 & 9 & 6 & 4 & 7 & 4 & 2 \cr
+}
+$$
+with ${\tt START}\left(j\right) = 24 - 3 j$,
+$W_l = \{3, 7, 4, 8, 5, 1, 6, 2\}$ for $2 \le l < 10$, and
+${\tt LINK}\left(j\right) = 0$ for $1 \le j \le 8$.
+\newstep {D1} sets ${\tt NEXT} = \{2, 3, 4, 1\}$ with $h = 1$, $t = 4$.
+ The active ring is $\left(1 2 3 4\right)$.
+\newstep {D2} sets $k \gets 4$.
+\newstep {D3} There are no unit clauses yet.
+\newstep {D4} $h \gets {\tt NEXT}\left(t\right) = {\tt NEXT}\left(4\right) = 1$,
+ $m_1 \gets 1$, so we are trying $\bar 1$.
+\newstep {D5} $d \gets 1$, $h_1 \gets 1$, $k \gets 1$.  $t \ne k$, so delete $1$
+from the ring by setting ${\tt NEXT}\left(4\right) \gets {\tt NEXT}\left(1\right) = 2$
+and $h \gets 2$.  We now have ${\tt NEXT} = \{2 3 4 2\}$, and the active
+ring is $\left(2 3 4 \right)$.
+\newstep {D6} We update the watches by doing $b \gets \left(m_1 + 1\right)\, {\rm mod}
+\, 2 = 0$, $x_1 \gets 0$, and clearing the watch list for $1$, which is watched by $C_3 = 
+341$.  The net effect of the steps carried out in exercise~130 is to change
+this clause to $3 1 4$ by changing the relevant part of the link table ($15 \le p \le 18$)
+from $2 8 6$ to $8 2 6$, setting $W = \{0, 7, 4, 8, 5, 1, 3, 2 \}$ and ${\tt LINK}\left(3\right)
+= 6$.
+\newstep {D2} $k \gets 4$.
+\newstep {D3} $h \gets {\tt NEXT}\left(k\right) = 2$.  There are no unit clauses.
+\newstep {D4} $h \gets {\tt NEXT}\left(t\right) = 2$, $m_2 \gets 1$ (trying $\bar 2$).
+\newstep {D5} $d \gets 2$, $h_2 \gets 2$, $k \gets 2$.  We have $x = \{ 0 0 - - \}$
+and $h = \{1 2 - - \}$.  We delete $2$ from the ring by setting 
+$h \gets 3$ and ${\tt NEXT} = 2 3 4 3$ -- the active ring is now $\left(3 4\right)$.
+\newstep {D6} Clear the watch list for 2, which is $C_4 = 4 \bar 1 2$.
+This is accomplished by changing $C_4$ to $4 2 \bar 1$ by
+changing the values of the link table $12 \le p \le 14$ to $348$,
+changing $W = \{0, 4, 0, 8, 5, 1, 3, 2 \}$ and setting ${\tt LINK}\left(4\right) = 7$.
+\newstep {D2} $k \gets 4$.
+\newstep {D3} Now we do have a unit clause: $C_1$ has become $\bar 3$
+since we have $\bar 1 \bar 2$.  $h \gets 3$, so $f \gets 2$, so
+$m_3 \gets 5$ (forced $\bar 3$), $t \gets 4$.
+\newstep {D5} $d \gets 3$, $h_3 \gets 3$, $k \gets 3$ and
+ $h \gets 4$, ${\tt NEXT} = 2 3 4 4$ (the active ring is 4).
+\newstep {D6} $x_3 \gets b \gets 0$, and clear the watch list for 3, which is
+$C_5 = \bar 1 \bar 2 3$, and which is changed to $\bar 1 3 \bar 2$.
+At this point, we have
+$$
+\matrix{
+p =       & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & 11 & 12 & 13 & 14 
+   & 15 & 16 & 17 & 18 & 19 & 20 & 21 & 22 & 23 \cr
+{\tt L} = & 5 & 2 & 9 & 3 & 9 & 7 & 8 & 7 & 5 & 5 & 6 & 3 & 3 & 4 & 8
+ &8 & 2 & 6 & 9 & 6 & 4 & 7 & 4 & 2 \cr
+}
+$$
+with $W = \{0, 4, 0, 5, 0, 1, 3, 2 \}$ and ${\tt LINK} = \{0, 0, 6, 7, 8, 0, 0, 0\}$,
+$m = \{1 1 5 -\}$, $h = \{1 2 3 -\}$, and ${\tt NEXT} = 2 3 4 4$.
+\newstep {D2} $k \gets 4$.
+\newstep {D3} Now we have two unit clauses, $4, \bar 4$ from $ 341 , 234$ respectively.
+So we have to backtrack!
+\newstep {D7} $t \gets 4$.  $m_3 = 5 \ge 2$, so $k \gets h_3 = 3$, $x_3$ is unset,
+$W_7 \ne 0$ so $h \gets 3$, ${\tt NEXT} = 2 3 4 3$ () and $d \gets 2$.  The
+active ring is now $\left(3 4\right)$. ($m_2 < 2$).
+\newstep {D8} $m_2 \gets 3 - 1 = 2$ (trying $x_2 = 1$ after $x_2 = 0$ failed).
+
+This is enough to see how the algorithm works.  In particular, note that the
+clause re-ordering done by exercise~130 is different than the solution Knuth
+gives for this problem -- which is fine, if perhaps slightly confusing.
+
+Anyways, to spell it out:
+$$
+\matrix{
+{\rm Ring}     & x_1 & x_2 & x_3 & x_4 & {\rm Units} & {\rm Choice} & {\rm Changed} & 
+ {\rm Notes} \cr
+\left(1\,2\,3\,4\right) & - & - & - & - & & \bar 1 & 341 \rightarrow 314 & w_3=7, m_1 = 1\cr
+\left(2\,3\,4\right) & 0 & - & - & - & & \bar 2 & 4 \bar 1 2 \rightarrow 4 2 \bar 1 &
+ w_5 = 8, m_2 = 1\cr
+\left(3\, 4\right) & 0 & 0 & - & - & \bar 3 & \bar 3 & \bar 1 \bar 2 3 \rightarrow \bar 1 3 \bar 2 &
+h = 1\,2\,3\,- , m = 1\,\,1\,5\,- \cr
+\left(4\right) & 0 &  0 & 0 & - & 4, \bar 4 & {\rm Backtrack} & & 
+{\rm State} = \{1 2 \bar3, 2 3 \bar 4, 3 1 4, 4 2 \bar1, \bar1 3 \bar 2, \bar 2 \bar 3 4,
+ \bar 3 \bar 4 \bar 1, \bar 4 1 \bar 2 \}\cr
+\left( 3\, 4 \right) & 0 & - & - & - & & 2 & \bar 1 3 \bar 2 \rightarrow \bar 1 \bar 2 3
+& m = 1\,2\,-\,- \cr
+& & & & & & & \bar 4 1 \bar 2 \rightarrow \bar 2 1 \bar 4 & \cr
+\left(3\,4\right) & 0 & 1 & - & - & \bar 4 & \bar 4 & \bar2 \bar 3 4 \rightarrow \bar 2 4 \bar 3 &
+ h = 1\,2\,4\,-, m = 1\,2\,5\,- \cr
+\left(3\right) & 0 & 1 & - & 0 & \bar 3, 3 & {\rm Backtrack} & & 
+{\rm State} = \{ 1 2 \bar 3, 2 3 \bar 4, 4 1 3, 4 2 \bar 1, \bar 1 \bar 2 3, \bar 2 4 \bar 3,
+\bar 3 \bar 4 \bar 1, \bar 2 1 \bar 4 \} \cr
+\left(4 3 \right) & - & - & - & - & & 1 & \bar 3 \bar 4 \bar 1 \rightarrow \bar 3 \bar 1 \bar 4 &
+ m = 2\,-\,-\,- \cr
+ & & & & & & & 4 2 \bar 1 \rightarrow 4 \bar 1 2 & \cr
+\left( 2 \, 4 \, 3\right) & 1 & - & - & - & & 2 & {\rm None} & m = 2\, 0\, - \, - \cr
+\left(4\, 3\right) & 1 & 1 & - & - & 3 & 3 & 1 2 \bar 3 \rightarrow 1 \bar 3 2 &
+ m = 2\,0\,4\,-\cr
+ & & & & & & & \bar 2 4 \bar 3 \rightarrow \bar 2 \bar 3 4 & \cr
+\left(4 \right) & 1 & 1 & 1 & - & 4, \bar 4 & {\rm Backtrack} & &
+ {\rm State} = \{ 1 \bar 3 2, 2 3 \bar 4, 4 1 3, 4 \bar 1 2, \bar 1 \bar 2 3, \bar 2 \bar 3 4,
+ \bar 3 \bar 1 \bar 4, \bar 2 1 \bar 4 \} \cr
+\left(3\, 4\right) & 1 & - & - & - & & \bar 2 & 1 \bar 3 2 \rightarrow 1 2 \bar 3 & \cr
+ & & & & & & & 4 \bar 1 2 \rightarrow 2 \bar 1 4 & \cr
+\left(3 \, 4 \right) & 1 & 0 & - & - & 4 & 4 & \bar 2 1 \bar 4 \rightarrow \bar 2 \bar 4 1 & \cr
+ & & & & & & & 2 3 \bar 4 \rightarrow 2 \bar 4 3 & \cr
+ & & & & & & & \bar 3 \bar 1 \bar 4 \rightarrow \bar 4 \bar 1 \bar 3 & \cr
+\left(3\right) & 1 & 0 & - & 1 & 3, \bar 3 & {\rm Failure} & \cr
+}
+$$
+
+\newprob {Problem~129} Subroutine to return 1 if a literal $l$ is a unit.
+\newstep {K1} [Initialize] Set $c \gets W_l$.
+\newstep {K2} [Terminate?] If $c = 0$, return 0 (no unit clauses found).
+\newstep {K3} [Start a new clause] $s \gets {\tt START}\left(c\right) + 1$.
+\newstep {K4} [Return success if all other literals false] 
+  If $s = {\tt START}\left(c - 1\right)$, return 1 (a unit clause was found).
+\newstep {K5} [Move to next literal? ]
+  If this literal is false ($x_{\left| L \left(s\right) \right|} = {\tt L} \left(s\right) \& \, 1$,
+recalling that $\left| {\tt L}\left(s\right) \right| = {\tt L}\left(s\right) \gg 1$)
+ set $s \gets s + 1$ and return to {\bf K4}.
+\newstep {K6} [Try next clause] Set $c \gets {\tt LINK}\left(c\right)$ and go to {\bf K2}.
+
+\newprob {Problem~224} Resolution trees.\hfil\break
+The point of this exercise is to prove the statement in the text (p 55) that `we can prove
+the empty clause by resolution from $F | \bar{x}$ if and only if we can prove $x$ by
+resolution from $F$ without resolving on $x$' by converting a resolution tree that
+refutes $F | \bar{x}$ into a resolution tree on $F$.  Well -- that's easy enough.
+Start with the axioms (members of $F | {\bar x}$), and for every such clause that is
+not also a clause of $F$, add $x$ back in to the label.  Then also add $x$ to every
+child of that clause (that is: every vertex reachable from such a clause).  If any
+labels changed, then we will end up converting the empty clause $\epsilon$ into $x$,
+which proves what we set out to prove.
+
+\newprob {Problem~249} Carry out Algorithm~IA on $\{1234, 1 \bar 2, \bar 1 \bar 2 \bar 3,
+\bar 1 3, 2 \bar 3, 3 \bar 4 \}$\hfil\break
+Starting from the beginning:
+\newstep {I1} $d \gets 0$, $m \gets 6$
+\newstep {I2} $d \gets 1$, $l_1 \gets 3$, leaving $\{-, 1 \bar 2, \bar 1 \bar 2, -, 2, - \}$
+\newstep {I2} $d \gets 2$, since the shortest is $C_5 = 2$.  So $l = \left(3\,2\right)$,
+ and we have $\{-, 1, \bar 1, -, -, - \}$.
+\newstep {I2} $d \gets 3$, $l_3 \gets 1$, $l = \left(3\,2\,1\right)$.
+\newstep {I3} Now $C_3 = \bar 1 \bar 2 \bar 3$ is falsified (so $i \gets 3$).
+\newstep {I4} Set $l_3 \gets \bar 1$, and now $C_2 = 1 \bar 2$ is falsified.  So $j = 2$.
+\newstep {I5} $m \gets 7$, learn $C_7 = C_2 \diamond C_3 = 1 \bar 2 \diamond \bar 1 \bar 2 \bar 3 = 
+ \bar 2 \bar 3$.  Now $d \gets 2$ ($l_2 = \bar 2$, and 2 is in the new clause $\bar 2 \bar 3$.
+ Also, $i \gets 7$.
+\newstep {I4} Now we try to learn things from our new clause. $l_2 \gets \bar 2$ (so
+$l \left(3\, \bar 2\right)$), and now $C_5 = 2 \bar 3$ is falsified (so $j \gets 5$).
+\newstep {I5} Learn $C_8 = C_5 \diamond C_7 = 2 \bar 3 \diamond \bar 2 \bar 3 = \bar 3$.
+  Now $d \gets 1$ ($\bar {l_1}$ is the only literal in the new clause), $l_1 \gets \bar 3$, $i \gets 8$.
+\newstep {I4} No clauses are falsified.
+\newstep {I2} $d \gets 2$, and the unsatisfied clauses are $\{124, 1 \bar 2, -, \bar 1, -, \bar 4, -, -\}$.
+  We can chose either $\bar 2$ or $\bar 4$.  Choosing the former (which now diverges from Knuth's
+  solution), $l_2 \gets \bar 2$.
+\newstep {I3} No clauses are falsified.
+\newstep {I2} $d \gets 3$, $l_3 \gets \bar 2$, leaving clauses $4, \bar 4$.
+\newstep {I3} None falsified.
+\newstep {I2} $d \gets 4$, $l_4 \gets 4$, so we have $l = \left(\bar 3\, \bar 1\, \bar 2\, 4\right)$.
+\newstep {I3} $C_6 = 3 \bar 4$ is falsified, so $i \gets 6$
+\newstep {I4} Trying $l_4 \gets \bar 4$, and $C_1 = 1234$ is falsified ($j \gets 1$).
+\newstep {I5} Learn $C_9 = 1234 \diamond 3 \bar 4 = 123$.  Now $d \gets 3$, $i \gets 9$.
+\newstep {I4} $l_3 \gets 2$, so $l = \left(\bar 3\, \bar 1\, 2\right)$.  This falsifies $C_2 = 1 \bar 2$,
+ $j \gets 2$.
+\newstep {I5} Learn $C_{10} = 123 \diamond 1 \bar 2 = 13$, $i \gets 10$, $d \gets 2$.
+\newstep {I4} $l_2 \gets 1$, $l = \left(\bar 3\,1\right)$, and $C_4 = \bar 1 3$ is falsified.
+\newstep {I5} Learn $C_{11} = C_{10} \diamond C_4 = 1 \bar 2 \diamond \bar 1 3 = 3$,
+ and $d \gets 1$, $i \gets 11$.
+\newstep {I4} $l_1 \gets 3$, $C_8 = \bar 3$ is falsified.
+\newstep {I5} And finally we learn $C_12 = C_11 \diamond C_8 = \bar 3 \diamond 3 = \epsilon$,
+ so we have shown the original clauses are unsatisfiable.  The final set of clauses is
+ $\{1234, 1 \bar 2, \bar 1 \bar 2 \bar 3,
+\bar 1 3, 2 \bar 3, 3 \bar 4, \bar 2 \bar 3, \bar 3, 1 2 3, 1 3, 3, \epsilon \}$.
+
+\newprob {Problem 253} Extend the Algorithm~C example on $waerden\left(3;3;9\right)$ \hfil\break
+Starting with the specified decision 5, this becomes
+$$
+\matrix{
+ t & L_t & {\rm Level} & {\rm Reason} \cr
+ 0 & \bar{6} & 1 & \Lambda \cr
+ 1 & 4 & 1 & 46 \cr
+ 2 & 5 & 2 & \Lambda \cr
+ 3 & \bar{3} & 2 & \bar{3} \bar{4} \bar{5} \cr
+ 4 & 9 & 2 & 369 \cr
+ 5 & \bar{1} & 2 & \bar{1}\bar{5}\bar{9}\cr
+ 6 & \bar{7} & 2 & \bar{5}\bar{7}\bar{9}\cr
+ 7 & 2 & 2 & 123 \cr
+ 8 & 8 & 2 & 678 \cr
+ 9 & \bar{2} & 2 & \bar{2} \bar{5} \bar{8} \cr
+}
+$$
+and the last one conflicts with $t=7$.  So we have the conflict clause $\bar{2} \bar{5} \bar{8}$.  
+The rightmost complemented literal of this clause in the trail is $L_7 = 2$, which has reason 123, so we
+resolve it to form $\bar{2} \bar{5} \bar{8} \diamond 1 2 3 \rightarrow 1 3 \bar{5} \bar{8}$.
+This has all it's complemented literals on level 2, so it's still a conflict clause.  The rightmost
+in the trail is now 8 with reason 678, so the next step is 
+$1 3 \bar{5} \bar{8} \diamond 6 7 8 \rightarrow 1 3 \bar{5} 6 7$.  There are still multiple level
+2 complemented literals, the rightmost is $\bar 7$ with reason $\bar{5} \bar{7} \bar{9}$, so
+$1 3 \bar{5} 6 7 \diamond 5 \bar{7} \bar{9} \rightarrow 1 3 \bar{5} 6 \bar{9}$.
+This has $\bar{1} \bar{3} 5 9$ on level 2, the rightmost of which is $\bar{1}$ with reason 
+$\bar{1} \bar{5} \bar{9}$, so $1 3 \bar{5} 6 \bar{9} \diamond \bar{1} \bar{5} \bar{9}
+\rightarrow 3 \bar{5} 6 \bar{9}$, next on 9 with reason 369 to get
+$3 \bar{5} 6 \bar{9} \diamond 3 6 9 \rightarrow \bar{3} 5 6$.  Both 3 and $\bar{5}$ are on level 2,
+so we resolve with the reason for $\bar{3}$, $\bar{3} \bar{4} \bar{5}$ to get
+$3 \bar{5} 6 \diamond \bar{3} \bar{4} \bar{5} \rightarrow \bar{4} \bar{5} 6$.
+This, finally, has only one complemented literal on level 2 (5), so it's done.  We can now discard
+level 2 entirely, and append this new clause.  Note that the order was different than
+in Knuth's solution, but the result was the same.
+
+Exercise~257 points out that $\bar{4} \bar{5} 6$ can be further simplified to $\bar{5} 6$ here,
+but I will ignore that in my solution because it's a later exercise.  So:
+$$
+\matrix{
+ t & L_t & {\rm Level} & {\rm Reason} \cr
+ 0 & \bar{6} & 1 & \Lambda \cr
+ 1 & 4 & 1 & 46 \cr
+ 2 & \bar{5} & 1 & \bar{4} \bar{5} 6 \cr
+ 3 & 7 & 1 & 5 6 7 \cr
+ 4 & \bar{1} 1 & \bar{1} \bar{4} \bar{7} \cr
+ 5 & 3 & 1 & 1 3 5 \cr
+ 6 & 9 & 1 & 1 5 9 \cr
+ 7 & \bar{2} & 1 & \bar{2} \bar{3} \bar{4} \cr
+ 8 & \bar{8} & 1 & \bar{7} \bar{8} \bar{9} \cr
+ 9 & 8 & 1 & 2 5 8 \cr
+}
+$$
+and we have another conflict clause, this time with reason 258.  Now the rightmost
+is $\bar{8}$, so $2 5 8 \diamond \bar{7} \bar{8} \bar{9} \rightarrow 2 5 \bar{7} \bar{9}$.
+Next $\bar{2}$ with reason $\bar{2}\bar{3}\bar{4}$: $2 5 \bar{7} \bar{9} \diamond 
+\bar{2} \bar{3} \bar{4} \rightarrow \bar{3} \bar{4} \bar{7} \bar{9}$.  The rightmost
+is now 9 with reason 159, so $\bar{3} \bar{4} \bar{7} \bar{9} \diamond 1 5 9
+\rightarrow 1 \bar{3} \bar{4} 5 \bar{7}$, next $3 / 1 3 5$ to form
+$1 \bar{3} \bar{4} 5 \bar{7} \diamond 1 3 5 \rightarrow 1 \bar{4} 5 7$.
+Then $\bar{1} / \bar{1} \bar{4} \bar{7}$ to get 
+$1 \bar{4} 5 7 \diamond \bar{1} \bar{4} \bar{7} \rightarrow \bar{4} 5$.
+Almost there! The reason for $\bar{5}$ is our new-ish clause $\bar{4} \bar{5} 6$,
+and when we resolve $\bar{4} 5 \diamond \bar{4} \bar{5} 6 \rightarrow \bar{4} 6$,
+and then finally the reason for 4 to get $\bar{4} 6 \diamond 46 \rightarrow 6$.
+
+This now becomes a new unit clause and we start at level 0 -- clearly no longer
+choosing $\bar{6}$ to start!
 
 \bye
