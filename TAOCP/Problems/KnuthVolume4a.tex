@@ -1,5 +1,5 @@
 \def\newstep#1{\smallskip \noindent {\bf #1}}
-\def\newprob#1{\vskip 0.12in \noindent {\bf #1}}
+\def\newprob#1{\vskip 0.12in \noindent {\bf Problem~#1}}
 
 \topglue 0.5in
 \centerline{\tt Knuth 7: Combinatorical Searching}
@@ -114,7 +114,54 @@ can form $1 = x \bar \land \bar x = x \bar \land \left( x \bar \land x \right)$
 and use that to form $L = \overline{ x \bar \land 1}$ (writing $0$ in terms of $y$), and
 $R = \overline{ y \bar \land 1}$.  Also: $0 = \overline{\left( x \bar \land \bar x \right)}.$
 
-\vskip 0.1in \noindent {\bf Problem 12} ({\it multilinear representation}).\hfil\break
+\newprob {10} Find the multilinear representation of $1100 \, 1001 \, 0000 \, 1111$.
+
+\noindent This is a bit tedious.  We want to break down the above truth table using
+the decomposition $f\left(x_1, \ldots, x_n\right) = g\left(x_1, \ldots, x_{n-1}\right) 
+\oplus h\left(x_1, \ldots, x_{n-1}\right) \wedge x_n$, where 
+$g\left(x_1, \ldots, x_{n-1}\right) = f\left(x_1, \ldots, x_{n-1}, 0 \right)$ and
+$h\left(x_1, \ldots, x_{n-1}\right) = f\left(x_1, \ldots, x_{n-1}, 0 \right) 
+\oplus f\left(x_1, \ldots, x_{n-1}, 1\right)$ of (16).  To be a bit more concrete,
+if the truth table of $f$ is $abcd efgh$, then $g = aceg$ and $h = aceg \oplus bdfh$.
+
+Labeling the variables $wxyz$, for the first step $g = 1010\,0011$, 
+$h = 1010\,0011 \oplus 1001\,0011 = 0011\,0000$,
+and so we have $f = 1010\, 0011 \oplus 0011 \, 0000 \wedge z$.
+The first term is ($1010\,0011$), so we next have $g = 1101$, 
+$h = 1101 \oplus 0001 = 1100$, so the first term is equivalent to
+$1101 \oplus 1100 \wedge y$.  The second term ($0011\, 0000$) has
+$g = 0100$, $h = 0100 \oplus 0100 = 0$, which becomes $0100 \oplus 0 \wedge y = 0100$.
+Thus, after the first round, we have $f = \left(1101 \oplus 1100 \wedge y\right) 
+\oplus \left(0100\right) \wedge z$.
+
+Continuing with the $f = \left(1101 \oplus 1100 \wedge y\right)$ term,
+for $1101$ we have $g = 10$, $h = 10 \oplus 11 = 01$, so this is $10 \oplus 01 \wedge x$,
+while for $1100$ we have $g = 10$, $h = 10 \oplus 10 = 0$, and so this is $10 \oplus 0 \wedge x = 10$.
+Substituting, we now have
+$$
+f = \left( \left(10 \oplus 01 \wedge x\right) \oplus 10 \wedge y \right) \oplus 0100 \wedge z.
+$$
+Continuing with $10$ gives $g= 1$, $h = 1 \oplus 0 = 1$, or $1 \oplus 1 \wedge w = 1 \oplus w$,
+and $01$ is $g = 0$, $h = 1$, or $0 \oplus 1 \wedge w = w$.  Therefore,
+$01 \oplus 01 \wedge x = \left(1 \oplus w\right) \oplus w \wedge x$.  Substituting, we now have
+$$
+f = \left( \left(1 \oplus w \right) \oplus w \wedge x \oplus \left(1 \oplus w\right) \wedge y \right)
+ \oplus 0100 \wedge z.
+$$
+
+Now we want to explore $0100 \wedge z$. Next, $0100$ has $g = 0$, $h=10$, so this is
+$\left( 00 \oplus 10 \wedge x\right) \wedge z$.  We already know that $10$ is $1 \oplus w$,
+so we finally have $\left(1 + w\right) \wedge x \wedge z$, and finally putting it all together
+$$
+ \eqalign{
+   1100 \, 1001 \, 0000 \, 1111 &= 
+      \left( \left(1 \oplus w \right) \oplus w \wedge x \oplus \left(1 \oplus w\right) \wedge y \right)
+      \oplus \left(1 + w\right) \wedge x \wedge z \cr
+    &= 1 + w + w x + y + wy + xz + wxz . \cr
+ }
+$$
+
+\newprob {12} ({\it multilinear representation}).\hfil\break
 a) Recall that (22) has the truth table $1100\,1001\,0000\,1111$, and
 the expansion using Boole's law is given by (23).  This can rather easily
 be turned into a polynomial by leaving any term $t$ as $t$, and
@@ -189,6 +236,51 @@ subcubes are therefore 10**, 0*10, *01*, and 0101.  Each one is a barred
 literal, each 0 an unbarred one (since we are looking for falsehood, so this
 corresponds to $\left(\bar w \vee x\right) \land \left(w \vee \bar y \vee z\right)
 \land \left(x \vee \bar y\right) \land \left(w \vee \bar x \vee y \vee \bar z\right)$.
+
+\newprob {21} Prove that a nonconstant Boolean function is monotone if and only if
+it can be expressed entirely in terms of the operations $\wedge$ and $\vee$.
+
+\noindent Recall that a monotonic boolean function is a function such that
+it's value does not change from 1 to 0 whenever any of it's variables changes
+from 0 to 1.  First, any expression formed purely in terms of $\wedge$ and $\vee$
+that does not have any complemented variables is clearly monotonic, because
+the component operations are monotonic.  
+
+Second, consider Boole's decomposition law (the law of development):
+$$
+f\left(x_1,\ldots,x_n\right) = 
+  \left(g\left(x_1, \ldots, x_{n-1}\right) \wedge {\bar x}_n \right) \vee
+  \left(h\left(x_1, \ldots, x_{n-1}\right) \wedge x_n\right),
+$$
+where $g\left(x_1, \ldots, x_{n-1}\right) = f\left(x_1, \ldots, x_{n-1}, 0\right)$
+and $h\left(x_1, \ldots, x_{n-1}\right) = f\left(x_1, \ldots, x_{n-1}, 1\right)$.
+
+From this we can see that $g$ and $h$ must also be monotonic, and that $g \le h$ 
+for all inputs.  Why?  First, consider what would happen if $g$ was not monotonic.
+Then there would be some value $x_k$ such that changing $x_k$ from 0 to 1 would change
+$g$ from 1 to 0.  If this were the case, then setting $x_n = 0$ and flipping $x_k$
+from 1 to 0 would also change $f$ from 1 to 0, so then $f$ could not be monotonic.
+A similar argument applies to $h$, but with $x_n = 1$.
+
+For $g \le h$, if this were not the case, then there would be some set of inputs such
+that $g\left(x^{\prime}_1, \ldots, x^{\prime}_{n-1}\right) >
+h\left(x^{\prime}_1, \ldots, x^{\prime}_{n-1}\right)$.  But if this were the case, then
+$f\left(x^{\prime}_1, \ldots, x^{\prime}_{n-1}, 0\right) >
+f\left(x^{\prime}_1, \ldots, x^{\prime}_{n-1}, 1\right)$, which violates monotonicity.
+
+This implies that
+$$
+ \eqalign{
+    f &= \left(g \wedge {\bar x}_n \right) \vee \left(h \wedge x_n\right) \cr
+      &= \left(g \wedge {\bar x}_n \right) \vee \left(g \wedge x_n \right) \vee \left(h \wedge x_n\right) \cr
+      &= g \vee \left(h \wedge x_n\right) .\cr
+ }
+$$
+where the second line follows because $g \le h$ and so the addition of the extra term can't
+change the value of $f$ for any arguments, and the final line follows by logical resolution.
+Therefore, if we decompose the truth table for a monotonic function, we never need to introduce
+complementary variables.  Furthermore, constants will only appear if the function is constant,
+which proves the stated claim.
 
 \vskip 0.1in \noindent {\bf Problem 38} No, it's easy to test satisfiability
 for a function in disjunctive normal form.  In some sense it's the opposite
@@ -1074,7 +1166,7 @@ so $k$ is odd and we want to put the last ring on.
 \centerline{\tt Knuth 7.2.1.2: Permutations}
 \vskip 0.3in
 
-\newprob{Problem 1} Make Algorithm~L faster in the case where $j \sim n$.\hfil\break
+\newprob {1} Make Algorithm~L faster in the case where $j \sim n$.\hfil\break
 It's a matter of experimentation to decide whether to only handle $j = n-1$ or
 expand to $j = n - 2$, $j = n - 3$, etc.  But it should be sufficient for demonstration
 purposes to just handle the first.  Basically, all we do is handle the special case
@@ -1093,7 +1185,7 @@ and set $a_j \gets a_l$, $a_l \gets c$.
 \newstep{L4.2} Set $k \gets j + 2$ and $l \gets n - 1$.  While $k < l$,
 interchange $a_k$ and $a_l$ and set $k \gets k + 1$, $l \gets l - 1$.  Return to {\bf L1}.
 
-\newprob{Problem 3} Determine the rank of a permutation $a_1 a_2 \ldots a_n$ in
+\newprob{3} Determine the rank of a permutation $a_1 a_2 \ldots a_n$ in
 Algorithm~L.\hfil\break
 The important thing to understand is the way that Algorithm~L changes the inversion
 table.  For $n=3$, the sequence $123, 132, 213, 231, 312, 321$ has the inversion
@@ -1112,17 +1204,17 @@ $$
 Therefore, the rank of 314592687 is ${2\,0\,1\,1\,4\,0\,0\,1\,0 \brack 9\,8\,7\,6\,5\,4\,3\,2\,1} =
 81577$.
 
-\newprob{Problem~8} Modify Algorithm~L to visit all variations of a multiset.\hfil\break
+\newprob{8} Modify Algorithm~L to visit all variations of a multiset.\hfil\break
 For each permutation we would visit in {\bf L1}, simply visit
 each prefix of that permutation.  For example, for 1224, visit $\epsilon$, 1, 12, 122, and 1224
 in ${\bf L1}$.  However, note that this will visit many of the variations multiple times.
 
-\newprob{Problem~21} True or false: if an alphametic has a solution in radix $b$,
+\newprob{21} True or false: if an alphametic has a solution in radix $b$,
 it has a solution in radix $b + 1$.\hfill\break
 It suffices to find a single counterexample: ${\tt A} + {\tt A} = {\tt AB}$ only
 has a solution for $b = 2$ (with {\tt A} = 1, {\tt B} = 0).
 
-\newprob{Problem 25} How can you quickly compute $\rm{min}\left(a \cdot s\right)$
+\newprob{25} How can you quickly compute $\rm{min}\left(a \cdot s\right)$
 and $\rm{ max}\left(a \cdot s\right)$?\hfil\break
 We have the freedom to chose the letter codes to put $s$ in order (e.g., $s_1 \le s_2 \le \ldots
 \le s_10$).  Then simply iterate through the elements of $a \notin F$ in that order.  So, if
@@ -1133,7 +1225,7 @@ the signatures flipped.
 \centerline{\tt Knuth 7.2.1.3: Combinations}
 \vskip 0.3in
 
-\newprob{Problem 5} Solutions to integer inequalities.
+\newprob{5} Solutions to integer inequalities.
 
 \noindent What is a good way to generate all of the integer solutions to the following
 systems of inequalities?
@@ -1159,7 +1251,7 @@ $a \gg b$ means $a \geq b + 2$.
 \noindent Basically the same idea, but now we are adding: $c_k \leftarrow c_k + k + 1$
 and we only need ${n - t - 2 \choose t}$ of them.
 
-\newprob{Problem 7} Design an algorithm that runs through the dual combinations $b$
+\newprob{7} Design an algorithm that runs through the dual combinations $b$
 in dexreasing lexical order (as in table~1).
 
 \vskip 0.05in
@@ -1176,7 +1268,7 @@ in dexreasing lexical order (as in table~1).
 {\bf B5} [Fix up $b_{k-1}, \ldots, b_0$] While $k > 0$ set $b_{k-1} \leftarrow b_k - 1$.
   Goto {\bf B2}.\hfil\break
 
-\newprob{Problem 8} Design an algorithm that generates all $\left(s, t\right)$ combinations
+\newprob{8} Design an algorithm that generates all $\left(s, t\right)$ combinations
 $a_{n-1}, \ldots, a_0$ lexicographically in bitstring form.
 
 \vskip 0.05in\noindent Here $i$ will be the index of the rightmost 0 and $j$ the index
@@ -1205,7 +1297,10 @@ that within this step $j$ may not be the position of the rightmost 1, which is w
 \centerline{\tt Knuth 7.2.1.4: Partitions}
 \vskip 0.3in
 
-\newprob{Problem 1} The twelvefold way.
+\newprob{1} The twelvefold way.
+
+\noindent Note that the ordering of the balls within each urn is not considered,
+even if they are labeled.
 
 \noindent 1: $n$-tuples of $m$ things: there are $m$ ways to chose each value,
 and hence $m^n$ total possibilities.
