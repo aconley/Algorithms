@@ -607,7 +607,7 @@ Consider (12): these are functions of 6 variables, so the truth table is $2^6$ b
 in length, which is just one octabyte.  Hence, it is massively more efficient
 to just store the truth table.  Consider the maximal independent sets of the
 49 `united states' as in (17); that has 780 nodes, so takes $780 \times 8 = 6240$
-bytes.  Representing the truth table for 49 variables requires $2^49 / 2^3 = 2^46$
+bytes.  Representing the truth table for 49 variables requires $2^{49} / 2^3 = 2^{46}$
 bytes, which is spectacularly larger.  The point being that BDDs can stop early
 once something evaluates to true or false, the truth table can't.  If, for example,
 the first five variables force a function of 32 variables to be false, the BDD
@@ -630,8 +630,8 @@ sets example (12), where the leftmost one gets 2 for skipping variable 6
 on the LO chain and 1 by not skipping 6 on the HI chain, and the one
 next to that gets 2 from the LO chain connecting to true.
 
-\newitem{208} Independent and maximal subset
-examples: recall that the independent subsets are those such that
+\newitem{208} Independent and maximal subset examples.\hfil\break
+Recall that the independent subsets are those such that
 no edge is entirely contained in the subset (hence, two 1s in a row
 for the cycle would not be independent).  And a kernel/maximal
 independent subset means no element not in the subset can be
@@ -765,8 +765,8 @@ depend on.
 
 \subsec{Quantifiers}
 
-\noindent [p231] Independent sets and Kernels.  The Independent
-set function of (67) is easy to understand (no two points connected
+\noindent [p231] Independent sets and Kernels.\hfil\break  
+The Independent set function of (67) is easy to understand (no two points connected
 by an edge are included), but (68), the Kernel function, is a bit
 more complicated.  Recall that a Kernel is a maximal independent set,
 meaning adding any more vertices makes it no longer independent.
