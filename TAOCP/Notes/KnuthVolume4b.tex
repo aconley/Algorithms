@@ -1,27 +1,143 @@
 \def\newstep#1{\smallskip \noindent {\bf #1}}
-\def\newhead#1{\vskip 0.1in \noindent {\bf #1}}
+\def\newitem#1{\vskip 0.06in \noindent [p #1]}
+\def\subsec#1{\vskip 0.15in \noindent {\bf #1}}
+\def\sec#1 {\vfil\break \centerline{\tt #1} \vskip 0.2in}
+\def\CC{\hbox{C++}}
 
 \topglue 0.5in
-\centerline{Notes on Knuth Fascicle 6: Satisfiability}
+\centerline{Notes on Knuth Mathematical Preliminaries Redux}
 \vskip 0.3in
 
-\noindent {\bf Satisfiability}
+\noindent [p 3] Forumula (12): Expectation of expectations: show that
+$E\left( E\left(X | Y\right)\right) = E\left(X\right)$. \hfil\break 
+The more fundamental relation here is the definition of conditional expectation for
+any event, (10).  The formulation in terms of random variables is really just a shorthand --
+that is $E\left(X | Y=y\right)$ is just shorthand for $E\left(X | A\right)$ where $A$ is the
+event that the random variable $Y$ is taking the value $y$.  In general $A$ may therefore
+be composed of many (possibly all) atomic events.
 
-\noindent [p 1] Equation~2 is shorter, at 5 clauses, than the `shortest
+As explained in the text, $E\left(X|Y\right)$
+is a random function -- that is, a map from events $\omega \in \Omega$ to real numbers.   For an 
+event $\omega$ it takes the value (from 13):
+$$
+  E\left(X|Y\right)\left(\omega\right) =
+    \sum_{\omega^{\prime} \in \Omega} X\left(\omega^{\prime}\right)
+      \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+      {Pr\left(\omega^{\prime}\right) \over Pr \left(Y = Y\left(\omega\right)\right)}.
+$$
+where
+$$
+  Pr\left(Y = Y\left(\omega\right)\right) = \sum_{\omega^{\prime} \in  \Omega}
+    Pr \left(\omega^{\prime}\right) \left[ Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+$$
+and $[]$ is the indicator function.  For example, if $\Omega = {-2, -1, 0, 1, 2}$, $Pr\left(\omega\right)
+= 1/5$, and $Y\left(\omega\right) = \omega^2$, then 
+$Pr \left(Y = 1\right) = Pr\left(1\right) + Pr\left(-1\right) = 2/5$.
+
+So, continuing:
+$$
+\eqalign{
+  E\left(E\left(X|Y\right)\right) =&\sum_{\omega \in \Omega} \sum_{\omega^{\prime} \in \Omega}
+  X\left(\omega^{\prime}\right)
+  \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+  {Pr\left(\omega^{\prime}\right) Pr\left(\omega\right) \over Pr \left(Y = Y\left(\omega\right)\right)} \cr
+   =& \sum_{\omega^{\prime} \in \Omega} \left(
+     X\left(\omega^{\prime}\right) Pr\left(\omega^{\prime}\right) 
+      \sum_{\omega \in \Omega} {\left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+       Pr\left(\omega\right) \over Pr \left(Y = Y\left(\omega\right)\right)} \right).
+}
+$$
+Now, from above, for the inner term we have
+$$
+\eqalign {
+  \sum_{\omega \in \Omega} {
+    \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right]
+    Pr \left(\omega\right) \over Pr\left(Y = Y\left(\omega\right)\right)
+  } 
+  =& 
+ \sum_{\omega \in \Omega} {
+   \left[Y\left(\omega\right) = Y\left(\omega^{\prime}\right)\right] Pr \left(\omega\right) 
+   \over 
+   \sum_{\omega^{\prime\prime} \in \Omega}
+     \left[Y\left(\omega\right) = Y\left(\omega^{\prime\prime}\right)\right]
+      Pr\left(\omega^{\prime\prime}\right) 
+  } \cr
+  =& \, 1.
+}
+$$
+Substituting, we get $E\left(E\left(X|Y\right)\right) = \sum_\omega X\left(\omega\right)
+Pr \left(\omega\right) = E\left(X\right)$, as claimed.
+
+\vskip 0.1in
+\noindent {\bf Inequalities}
+\vskip 0.05in
+
+\noindent [p 4] Jensen's Inequality Examples: note that the example $\ln E\, X \ge E \ln X$
+has a $\ge$ because $\ln$ is concave rather than convex.
+
+\newitem {5} Formula (23): derivation of the second moment principle.  The
+final step again takes advantage of ${\rm E}\left(X | X > 0\right) = {\rm E} \left(X | X > 0\right)
+{\rm Pr}\left(X > 0\right) + {\rm E} \left(X | X = 0\right) {\rm Pr}\left(X = 0\right) = {\rm E} \left(X | X > 0\right)
+{\rm Pr}\left(X > 0\right)$, and therefore $\left( {\rm E} \left(X | X > 0\right) \right)^2 = 
+\left({\rm E} \left(X \right) / {\rm Pr}\left(X > 0\right) \right)^2$.
+
+\vskip 0.1in
+\noindent {\bf Martingales}
+\vskip 0.05in
+
+\noindent Something that goes oddly unmentioned, but is used, is that
+${\rm E} Z_n = {\rm E} Z_0$ for any martingale.  For example, it gets used in the stopping rule
+discussion.  {\it Proof}: We have 
+$$
+\eqalign{ 
+{\rm E}\, Z_n 
+ &= \sum_{Z_{n-1}, \ldots, Z_{0}} {\rm E} \left(Z_n | Z_{n-1} \ldots, Z_0 \right)
+                {\rm Pr}\left(Z_{n-1}, \ldots, Z_{0} \right)\cr 
+ &= \sum_{Z_{n-1}, \ldots, Z_{0}} z_{n-1} {\rm Pr}\left(Z_{n-1}  \ldots, Z_{0} \right) \cr
+ &= \sum_{Z_{n-1}, \ldots, Z_{0}} z_{n-1} {\rm Pr}\left(Z_{n-1} | Z_{n-2}, \ldots, Z_0\right)
+                 {\rm Pr} \left(Z_{n-2}, \ldots, Z_0 \right) \cr
+ &= {\rm E} Z_{n-1}.\cr
+}
+$$
+And we can keep doing this all the way down to ${\rm E}\, Z_0$.
+
+\newitem {9} Special Cases of the Maximmal Inequality \hfil\break
+If $Z_n$ is a martingale, then Jensen's inequality 
+($f\left(E \, X\right) \le E \, f\left(X\right)$) implies that $\left| Z_n \right|$ and
+$Z_n^2$ are non-negative sub-martingales, and so (34) and (35) follow immediately.
+
+\newitem {9} Hoeffding-Azuma Inequality: symmetric bound (38)\hfil\break
+We have:
+$$
+ \eqalign{
+  {\rm Pr}\left(Y_1 + \ldots + Y_n \ge x \right) &\le e^{-2x^2 / \left(\left(b_1-a_1\right)^2 
+    + \ldots + \left(b_n-a_n\right)^2\right)} \cr
+  {\rm Pr}\left(Y_1 + \ldots + Y_n \le -x \right) &\le e^{-2x^2 / \left(\left(b_1-a_1\right)^2 
+    + \ldots + \left(b_n-a_n\right)^2\right)}. \cr
+ }
+$$
+and by the Union Bound ${rm Pr}\left(\left| Y_1 \right| + \ldots + \left| Y_n \right|
+\right) \le {\rm Pr}\left(Y_1 + \ldots + Y_n \ge x \right) + 
+{\rm Pr}\left(Y_1 + \ldots + Y_n \le -x \right)$, from which (38) follows.
+
+\sec{Section 7.2.2.2: Satisfiability}
+
+\newitem {185} Equation~2 is shorter, at 5 clauses, than the `shortest
 interesting unsatisfiable formula in 3CNF', 7.1.1-(32), simply because it isn't
-interesting -- it achieves unsatisfiability by simply adding the
-same clause negated so it amount to $a \wedge \bar a$.
-Which is boring.
+in 3CNF -- three of the clauses are in 2CNF.  If we rewrite those clauses in 
+the standard fashion with auxillary variables (i.e., $\left(x_1 \vee {\bar x}_2 \right) =
+\left(x_1 \vee {\bar x}_2 \vee x_4\right) \wedge \left(x_1 \vee {\bar x}_2 \vee {\bar x}_4\right))$,
+then it also has 8 clauses.
 
-\newhead{A simple example}
+\subsec{A simple example}
 
-[p. 4] Manual solution: note that Knuth is proceeding lexicographically,
+\newitem {188} Manual solution: note that Knuth is proceeding lexicographically,
 which is why he starts with 00, and then extends 001 to 0010011 -- this
 is the lexicographically least extension from 001 that doesn't violate
 the conditions.  This is because 001000 ends with three equally spaced 0s,
 and 0010010 also has three equally spaced 0s.
 
-[p. 5] $W\left(1, k\right)$ and $W\left(2, k\right)$: $W\left(1,k\right)$
+\newitem {188} $W\left(1, k\right)$ and $W\left(2, k\right)$: $W\left(1,k\right)$
 can't contain any 0s, so must consist entirely of 1s.  Thus, the smallest
 string that contains $k$ equally spaced 1s is of length $k$.  
 Similarly, $W\left(2, k\right)$ clearly can only contain one 0 (because
@@ -34,9 +150,9 @@ work, since $1110111$ {\it does} have 4 equally spaced 1s.
 So we have to pull one off when it's even, and
 $W\left(2, k\right) = 2 k - \left[ k\, {\rm even} \right]$.
 
-\newhead{Exact Covering}
+\subsec{Exact Covering}
 
-\noindent [p. 5] Langford pairs: recall that the way the exact cover
+\newitem {189} Langford pairs: recall that the way the exact cover
 formulation works is that there is one row for each allowable subset
 (so: 1 in positions 1 and 3, 1 in positions 2 and 4, etc.), and one
 column for each element.  Each element is 1 if that element
@@ -55,23 +171,12 @@ $$
  } 
 $$
 
-\vskip 0.1in \noindent {\bf Backtracking for SAT}
+\subsec{Backtracking for SAT}
 
-\noindent [p28] {\bf Algorithm A}\hfil\break
-\noindent The use of the doubly linked list is presumably more
-natural in light of the discussion of Dancing links associated with the
-previous sections (but not yet published).  The idea of Dancing Links
-is that we want to be able to both remove things but also re-add them
-easily.  It is based on the idea that, if $x$ is a node in a doubly
-linked circular list, with left and right pointers $l, r$, then
-$x.l.r \gets x.r$, $x.r.l \gets x.l$ removes $x$, but if you leave
-the links in $x$ alone you can add it back in efficiently by doing
-$x.l.r \gets x$, $x.r.l \gets x$.
-
-Thus, Algorithm~A, which isn't really intended to be that efficient,
-works by keeping doubly linked circular lists of where each literal
-is kept so that they can be removed when trying a setting, but
-quickly re-added if it doesn't work.  Recall that shrinking any individual
+\newitem{212} {\bf Algorithm A}\hfil\break
+The use of the doubly linked list is
+natural in light of the discussion of Dancing links associated with 
+\S 7.2.2.1.  Recall that shrinking any individual
 clause to size 0 means the expression is false, while eliminating
 all clauses means success.  There are therefore two techniques involved
 in setting a literal $l$: first, $\bar l$ is removed from all clauses, and
@@ -230,9 +335,9 @@ gives $x = 011$.
 \smallskip
 \noindent The thing we didn't explore was unit clauses $m = 4, 5$.
 
-\vskip 0.1in \noindent {\bf Lazy Data Structures}
+\subsec{Lazy Data Structures}
 
-\noindent [p31] {\bf Algorithm B} \hfil\break
+\newitem {215} {\bf Algorithm B} \hfil\break
 
 \noindent The idea with watching is that we are trying
 to monitor when a clause becomes unsatisfiable.  So we keep
@@ -338,9 +443,9 @@ $x = 00$.
 \smallskip \noindent Note this is a different solution than Algorithm~A found, 
 but it does work.
 
-\vskip 0.1in \noindent {\bf Forced moves from Unit Clauses}
+\subsec{Forced moves from Unit Clauses}
 
-\noindent [p 33] {\bf Algorithm~D}\hfil\break
+\newitem {33} {\bf Algorithm~D}\hfil\break
 This is only modestly modified from Algorithm~B, although there is quite
 a bit more link manipulation required.  There are a few details worth mentioning.
 First, The active ring is used to look for unit clauses by storing watched variables
@@ -358,13 +463,13 @@ in Algorithm~A.
 I won't repeat the previous example, since there's a step-through in 
 Problem~128 of a different problem, and it's rather tedious.
 
-\vskip 0.1in \noindent {\bf Random Satisfiability}
+\subsec{Random Satisfiability}
 
-\noindent [p 47] $q_m$: The critical point is that the $q_m$ are defined
+\newitem {231} $q_m$: The critical point is that the $q_m$ are defined
 in relation to distinct clauses where no literal is allowed to repeat.  So
 both $11$ and $1 \bar 1$ are disallowed.
 
-\noindent [p 48] $T_m$.  $T_0$ is 32 for five variables because, of course,
+\newitem {232} $T_m$.  $T_0$ is 32 for five variables because, of course,
 any of the $2^5$ settings will satisfy the case with n clauses.  $T_1 = 28$
 because having one clause of 3 variables specifies 3 variables explicitly,
 but the other two can take $2^2 = 4$ values, so there are $2^5 - 2^2$
@@ -372,16 +477,17 @@ satisfying settings.  For example, $123$ is not satisfied by $00000$,
 $00001$, $00010$, and $00011$.  $T_2$ takes a bit more work, but
 can be counted directly without too much effort.
 
-\noindent [p 48] ${\rm E}\,P$.  As noted, this is by definition $\sum m p_m$,
+\newitem {232} ${\rm E}\,P$.  As noted, this is by definition $\sum m p_m$,
 but we also have $p_m = q_{m-1} - q_m$, so
 $$
  {\rm E}\,P = \sum m p_m = \sum m q_{m-1} - \sum m q_m =
   \sum q_m + \sum \left(m - 1\right) q_{m - 1} - \sum m q_m = \sum q_m .
 $$
 
-\vskip 0.1in \noindent {\bf Resolution}
+\subsec{Resolution}
 
-\noindent [p 54] The resolution DAG sounds a lot more complicated than it is.
+\newitem {238}: Resolution DAG \hfil\break
+The resolution DAG sounds a lot more complicated than it is.
 You just start with your clauses as axioms, then combine them with resolution
 to form new clauses.  Since each new clause is formed by combining two
 other clauses, every non-axiom vertex has in-degree~2.  An important piece is
@@ -389,14 +495,14 @@ that the vertex labels are unique.  Note that you aren't required to form all co
 What is meant by a `resolution proof of A' is that if the set of clauses is true then A must
 be true.
 
-\vskip 0.05in \noindent [p 55] Exercise~224 is worth doing, but it's also helpful to discuss it
+\newitem {239} Exercise~224 is worth doing, but it's also helpful to discuss it
 less formally.  Another way to say this is that if $F | \bar{x}$ is false (so we
 can prove $\epsilon$) then we must be able to form a resolution proof of $x$ without
 using resolution to eliminate it -- meaning that if $F$ is true, $x$ must be true.
 
-\vskip 0.1in \noindent {\bf SAT solving via Resolution}
+\subsec{SAT solving via resolution}
 
-\noindent [p 60] The key to understanding why the resolution process works
+\newitem {244} The key to understanding why the resolution process works
 is that {\it all} the products are formed between clauses containing $x$ and $\bar x$.
 This is what forces the statement that the setting of the other variables must
 satisfy either all the $A$ or all the $A^{\prime}$ (and can satisfy both, of course).
