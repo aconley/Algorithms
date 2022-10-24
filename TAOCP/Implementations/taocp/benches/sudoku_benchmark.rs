@@ -3,6 +3,7 @@ extern crate criterion;
 extern crate taocp;
 
 use criterion::Criterion;
+use std::time::Duration;
 use taocp::backtracking::sudoku::{InitialPosition, SudokuIterator};
 
 fn create_iterator(pos: &[u8; 81]) -> SudokuIterator {
@@ -81,7 +82,9 @@ const VERY_HARD_PROBLEM : [u8; 81] = [
 ];
 
 fn bench_very_hard_problem(c: &mut Criterion) {
-  c.bench_function("Sudoku: Very hard problem", |b| {
+  let mut group = c.benchmark_group("Sudoku: very hard problem");
+  group.measurement_time(Duration::from_secs(10));
+  group.bench_function("Sudoku: Very hard problem", |b| {
     b.iter(|| create_iterator(&VERY_HARD_PROBLEM).count())
   });
 }

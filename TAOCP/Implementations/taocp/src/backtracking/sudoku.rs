@@ -355,13 +355,14 @@ enum IteratorState {
 }
 
 pub struct SudokuIterator {
-  state: IteratorState,
+  // Use a Box to hold the state because otherwise the structure is ~ 120 bytes.
+  state: Box<IteratorState>,  
 }
 
 impl SudokuIterator {
   pub fn create(input: Vec<InitialPosition>) -> Self {
     SudokuIterator {
-      state: IteratorState::NEW(input),
+      state: Box::new(IteratorState::NEW(input)),
     }
   }
 }
@@ -370,13 +371,13 @@ impl Iterator for SudokuIterator {
   type Item = SudokuSolution;
 
   fn next(&mut self) -> Option<Self::Item> {
-    match &mut self.state {
+    match &mut *self.state {
       IteratorState::NEW(initial_position) => {
         // We need to take ownership of the initial position.
         let init_pos = mem::replace(initial_position, Vec::new());
         match SolutionState::create(init_pos) {
           None => {
-            self.state = IteratorState::DONE;
+            *self.state = IteratorState::DONE;
             None
           }
           Some(mut solution_state) => {
@@ -386,10 +387,10 @@ impl Iterator for SudokuIterator {
             let result = solution_state.next();
             match result {
               None => {
-                self.state = IteratorState::DONE;
+                *self.state = IteratorState::DONE;
               }
               Some(ref _sol) => {
-                self.state = IteratorState::READY(solution_state);
+                *self.state = IteratorState::READY(solution_state);
               }
             }
             result
@@ -400,7 +401,7 @@ impl Iterator for SudokuIterator {
         solution_state.l -= 1;
         let result = solution_state.next();
         if result.is_none() {
-          self.state = IteratorState::DONE;
+          *self.state = IteratorState::DONE;
         }
         result
       }
@@ -644,7 +645,7 @@ mod tests {
     fn solves_already_solved_puzzle() {
       let initial_position = InitialPosition::create_from_values(&SOL);
       let mut iterator = SudokuIterator::create(initial_position);
-      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
       match iterator.next() {
         None => panic!("Should have found solution"),
@@ -660,7 +661,7 @@ mod tests {
         "DONE iterator should produce no more solutions"
       );
       assert!(
-        matches!(iterator.state, IteratorState::DONE),
+        matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
       );
     }
@@ -676,7 +677,7 @@ mod tests {
       let initial_position = InitialPosition::create_from_values(&puzzle);
       let mut iterator = SudokuIterator::create(initial_position);
       assert!(
-        matches!(iterator.state, IteratorState::NEW(_)),
+        matches!(*iterator.state, IteratorState::NEW(_)),
         "Iterator not in initial state"
       );
 
@@ -694,7 +695,7 @@ mod tests {
         "DONE iterator should produce no more solutions"
       );
       assert!(
-        matches!(iterator.state, IteratorState::DONE),
+        matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
       );
     }
@@ -716,7 +717,7 @@ mod tests {
 
       let initial_position = InitialPosition::create_from_values(&PARTIAL);
       let mut iterator = SudokuIterator::create(initial_position);
-      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
       match iterator.next() {
         None => panic!("Should have found solution"),
@@ -732,7 +733,7 @@ mod tests {
         "DONE iterator should produce no more solutions"
       );
       assert!(
-        matches!(iterator.state, IteratorState::DONE),
+        matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
       );
     }
@@ -766,7 +767,7 @@ mod tests {
 
       let initial_position = InitialPosition::create_from_values(&problem);
       let mut iterator = SudokuIterator::create(initial_position);
-      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
       match iterator.next() {
         None => panic!("Should have found solution"),
@@ -782,7 +783,7 @@ mod tests {
         "DONE iterator should produce no more solutions"
       );
       assert!(
-        matches!(iterator.state, IteratorState::DONE),
+        matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
       );
     }
@@ -816,7 +817,7 @@ mod tests {
 
       let initial_position = InitialPosition::create_from_values(&problem);
       let mut iterator = SudokuIterator::create(initial_position);
-      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
       match iterator.next() {
         None => panic!("Should have found solution"),
@@ -832,7 +833,7 @@ mod tests {
         "DONE iterator should produce no more solutions"
       );
       assert!(
-        matches!(iterator.state, IteratorState::DONE),
+        matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
       );
     }
@@ -868,7 +869,7 @@ mod tests {
 
       let initial_position = InitialPosition::create_from_values(&problem);
       let mut iterator = SudokuIterator::create(initial_position);
-      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
       match iterator.next() {
         None => panic!("Should have found solution"),
@@ -884,7 +885,7 @@ mod tests {
         "DONE iterator should produce no more solutions"
       );
       assert!(
-        matches!(iterator.state, IteratorState::DONE),
+        matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
       );
     }
@@ -931,7 +932,7 @@ mod tests {
 
       let initial_position = InitialPosition::create_from_values(&problem);
       let iterator = SudokuIterator::create(initial_position);
-      assert!(matches!(iterator.state, IteratorState::NEW(_)));
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
       let sols: Vec<SudokuSolution> = iterator.collect();
       assert_eq!(sols.len(), 2);
