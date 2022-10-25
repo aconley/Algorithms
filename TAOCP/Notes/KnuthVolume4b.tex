@@ -8,7 +8,7 @@
 \centerline{Notes on Knuth Mathematical Preliminaries Redux}
 \vskip 0.3in
 
-\noindent [p 3] Forumula (12): Expectation of expectations: show that
+\noindent [p 3] Formula (12): Expectation of expectations: show that
 $E\left( E\left(X | Y\right)\right) = E\left(X\right)$. \hfil\break 
 The more fundamental relation here is the definition of conditional expectation for
 any event, (10).  The formulation in terms of random variables is really just a shorthand --
@@ -16,7 +16,18 @@ that is $E\left(X | Y=y\right)$ is just shorthand for $E\left(X | A\right)$ wher
 event that the random variable $Y$ is taking the value $y$.  In general $A$ may therefore
 be composed of many (possibly all) atomic events.
 
-As explained in the text, $E\left(X|Y\right)$
+Looking at this in terms of events also tells you that the formula must be extendable
+to include additional conditioning:
+$$
+ E\left( E\left(X | A_1, \ldots, A_n, B \right) | A_1, \ldots, A_n \right) 
+  = E \left(X | A_1, \ldots, A_n \right)
+$$
+since conditioning over $B$ is just the same thing as restricting the probablity space.
+Note that it's the variables that are not conditioned over that disappear in the expectation.
+The same holds for random variables: $E\left( E\left(X | Y_1, \ldots, Y_n, Z\right) |
+Y_1, \ldots, Y_n \right) = E\left(X | Y_1, \ldots, Y_n \right)$.
+
+Anyways, returning to the formula: as explained in the text, $E\left(X|Y\right)$
 is a random function -- that is, a map from events $\omega \in \Omega$ to real numbers.   For an 
 event $\omega$ it takes the value (from 13):
 $$

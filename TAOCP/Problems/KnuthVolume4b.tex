@@ -92,7 +92,7 @@ $$
  which, when substituted into $P\left(C > A\right)$ gives the desired result.
 
 \newprob{Problem 6} {\it Pairwise independence does not imply $k$-wise independence}\hfil\break
-Note that these can't be independent, or there would be no way to have a vector
+Note that the individual components can't be fully independent, or there would be no way to have a vector
 with two set values have non-zero probability but 1 or 3 have zero probability.
 Also note that there are $n \choose 2$ ways to have $x_1 + \ldots + x_n = 2$,
 so the chance that 2 are set is 
@@ -320,12 +320,102 @@ E \left( f\left(Y\right) E\left(g\left(X\right) | Y\right) \right)
 }
 $$
 
+\newprob{Problem 37} {\it Suppose $X_1, \ldots, X_n$ is a random permutation of 
+$\{1, \ldots, n\}$}.  What is $E\left(X_k | X_1, \ldots, X_{k-1}\right)?$.\hfil\break
+$X_k$ is equally likely to be any of the values in 
+$\{1, \ldots, n\} \ \{X_1, \ldots, X_{k-1}\}$.  So it's average value must be
+$$
+ {
+  \sum_{i=1}^n i - \sum_{i=1}^{k-1} X_i \over n + 1 - k
+ } = {
+  n \left(n + 1\right) / 2 - \sum_{i=1}^{k-1} X_i \over n + 1 - k
+ }.
+$$
+
 \newprob{Problem 46} {\it Explain why ${\rm E}\left(X^2 | X > 0\right) \geq 
 \left({\rm E} \left(X | X > 0\right)\right)^2$}\hfil\break
 There are (at least) two ways to look at this, and neither of them depends on the $X > 0$
 part.  So I'll drop that.  First, there's the usual ${\rm E}\left( \left(X - {\rm E} \, X\right)^2 \right) =
 {\rm E} \, X^2 - \left({\rm E}\, X\right)^2$ where the square is manifestly non-negative.
 Second, $X^2$ is convex so we can simply use Jensen's inequality.
+
+\newprob{Problem 47} {\it If $X$ is random and $Y = {\rm max}\left(0, X\right)$,
+show that $E Y \ge E X$ and $E Y^2 \le E X^2$} \hfil\break
+This simply follows from the fact that $Y \ge X$ and $Y^2 \le X^2$.
+
+\newprob{Problem 49} {\it If $X$ is random and $X \ge 0$ then prove that
+ ${\rm Pr}\left(X = 0\right) \le E X^2 / \left(E X\right)^2$}\hfil\break
+ First, we have that ${\rm Pr}\left(X = 0\right) = 1 - {\rm Pr} \left(X > 0\right)$,
+ since $X$ is positive.  From the second moment inequality (22) we have
+ ${\rm Pr}\left(X > 0\right) \ge \left(E X\right)^2 / E X^2$ so this must satisfy
+ ${\rm Pr}\left(X = 0\right) \le 1 - \left(E X\right)^2 / E X^2 =
+ \left(E X^2 - \left( E X \right)^2\right) / E X^2$.  But we also know that
+ $E X^2 \ge \left(E X\right)^2$ (Problem~46), so in turn we have
+ $$
+ {\rm Pr}\left(X > 0\right) 
+  \le \left(E X^2 - \left(E X\right)^2\right) / \left(E X\right)^2
+  = E X^2 / \left(E X\right)^2 - 1
+$$ 
+as claimed.
+
+\newprob{Problem 75} {\it Find an interesting margingale for Bernard Friedman's urn}
+\hfil\break
+Friedman's urn (introduced in Problem~74) is just like Polya's urn except that you
+add a ball of the opposite color instead of the same color.  Similar to the analysis there,
+the number of red balls at level $n$ is $R_n = X_1 + \ldots + X_n$.  What is the relation
+between $R_{n+1}$ and $R_n$?  Well, $E\left(R_{n+1} | R_n, \ldots, R_1\right) =
+E\left(R_{n+1} | R_n\right)$ because all the information that we need to know
+is contained in $R_n$ and the fact that there are $n+2$ balls.  Each visit to the
+urn changes the value of $r$ to $r + 1$ with probability $b / \left(n + 2\right)$
+by drawing a black ball or leaves it unchanged ($r$) with probability
+$r / \left(n + 2\right)$.  Putting these together means that
+$$
+ E\left(R_{n+1} | R_n \right) = R_n {R_n \over n + 2} + \left(R_n + 1\right)
+   {B_n \over n + 2} = 1 + R_n \left(1 - {1 \over n + 2}\right) =
+   1 + R_n {n + 1 \over n + 2}.
+$$
+If we want to form a martingale from $R_n$, we need to figure out what to 
+add/subtract/multiply to make the terms go away, keeping in mind that the
+$n$ will change.  If we define $Z_n = \alpha_n R_n + \beta_n$
+then the requirement
+$$
+ E\left(Z_{n + 1} | Z_1, \ldots, Z_{n-1} \right) = E\left(Z_{n+1} | Z_n\right)
+$$
+becomes
+$$
+ \alpha_{n+1} + \alpha_{n+1} R_n + \beta_{n+1} = \alpha_n R_n + \beta_n .
+$$
+This does not have a unique solution, but we can cancel the $R_n$ terms
+if we use $\alpha_n = n + 1$ leaving $\beta_{n+1} + n + 2 = \beta_n$.
+This, again, doesn't have a unique solution, but if we want to make 
+$\beta_n = -1$ to cancel off that $+1$ in the $R_n$ occurrance
+then we get $\beta_n = \left(n + 2\right) \left(n + 1 \right) / 2$.
+Altogether then:
+$$
+ Z_n = \left(n + 1\right) R_n - {\left(n + 2\right) \left(n + 1\right) \over 2},
+$$
+but any other solution to the above relations also works.
+
+\newprob{Problem~91} {\it Prove that Doob's general formula (39) always defines a
+martingale}\hfil\break
+The definition of a Doob martingale is 
+$$
+ Z_n = E \left( Q | X_0, \ldots, X_n\right).
+$$  
+Now we must find the martingale expectation:
+$$
+\eqalign{
+ E\left(Z_{n+1} | X_0, \ldots, X_n \right) 
+   &= E\left( E\left(Q | X_0, \ldots, X_n, X_{n+1}\right) | X_0, \ldots, X_n\right) \cr
+   &= E\left( Q | X_0, \ldots, X_n \right) \cr
+   &= Z_n .\cr
+}
+$$
+where the second step took advantage of the conditional expectation formula; recall
+that the formula still works in conditional spaces, so 
+$E\left( E\left(X | Y_1, \ldots, Y_n, Z\right) |
+Y_1, \ldots, Y_n \right) = E\left(X | Y_1, \ldots, Y_n \right)$ (as discussed
+in the companion notes).
 
 \topglue 0.5in
 \centerline{\tt Knuth 7.2: Basic Backtracking}
