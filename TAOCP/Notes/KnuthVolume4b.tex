@@ -135,60 +135,62 @@ and by the Union Bound ${\rm Pr}\left(\left| Y_1 \right| + \ldots + \left| Y_n \
 
 \noindent The way that backtracking is implemented does not really square with
 modern programming pracitce.  Generally, we would probably want to implement
-backtracking as some form of iterator.  Furthermore, the use of gotos is generally
-frowned upon.  In most cases in Knuth, it's relatively easy to replace gotos
-with if statements or for loops, but for Backtracking it is a bit more complicated
-because the different paths are not nested, but instead interlock in an interesting
-way.
+backtracking as some form of iterator.  Furthermore, the use of gotos is 
+generally frowned upon.  In most cases in Knuth, it's relatively easy to replace 
+gotos with if statements or for loops, but for Backtracking it is a bit more 
+complicated because the different paths are not nested, but instead interlock in 
+an interesting way.
 
 This is easiest in Walker's approach, where we maintain the available values at
-each level.  The iterator has three states: NEW, READY, and DONE.  A new iterator
-starts in the NEW state.  The interesting stuff happens when we call Next.
-Here I assume something like the Rust model, where we return None if there are no
-more solutions, and Some(vector) for a solution.
+each level.  The iterator has three states: NEW, READY, and DONE.  A new 
+iterator starts in the NEW state.  The interesting stuff happens when we call 
+Next.
 
 \vskip 0.1in
 \noindent {\bf WI1}\hfil\break 
 \phantom{1}\hskip1em If the iterator state is DONE, return None.\hfil\break
-\phantom{2}\hskip1em If the iterator state is READY, set $l \leftarrow l - 1.$\hfil\break
-\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, compute $S_0$, and set
-the state to READY.\hfil\break
-\noindent {\bf WI2} Repeat this step while $S_l = \emptyset$: if $l = 0$ then set 
-the state to DONE and return None.  Otherwise, $l \leftarrow l - 1$.
-\vskip 0.05in
-\noindent {\bf WI3} Set $x_l \leftarrow {\rm min}\, S_l$, $S_l \leftarrow S_l / x_l$, and 
-$l \leftarrow l + 1$.
-\vskip 0.05in
-\noindent {\bf WI4} If $l = n$, then return ${\rm Some}\left(x_0, \ldots, x_{n-1}\right)$.
-\vskip 0.05in
+\phantom{2}\hskip1em If the iterator state is READY, set 
+ $l \leftarrow l - 1.$\hfil\break
+\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, 
+ compute $S_0$, and set the state to READY.\hfil\break
+\noindent {\bf WI2} Repeat this step while $S_l = \emptyset$: if $l = 0$ 
+ then set the state to DONE and terminate the iterator.  Otherwise, 
+ $l \leftarrow l - 1$.\hfil\break
+\noindent {\bf WI3} Set $x_l \leftarrow {\rm min}\, S_l$, 
+ $S_l \leftarrow S_l / x_l$, and $l \leftarrow l + 1$.\hfil\break
+\noindent {\bf WI4} If $l = n$, then return 
+ $\left(x_0, \ldots, x_{n-1}\right)$.\hfil\break
 \noindent {\bf WI5} Compute $S_l$ and return to {\bf WI2}.
 \vskip 0.1in
 
 Unfortunately, this isn't as easy to do in the non-Walker approach.  In some
 cases this can be avoided, but the general approach is to define some special
-sentinel value $s_l$ at each level which is not part of ${\cal D}_l$, and which is
-more than any valid value and which is the sucessor of the maximum valid ${\cal D}_l$.
-For example, for Sudoku we could use 10 as a maximum sentinel, for Langford pairs
-or for $n$-queens we could use $n+1$, etc.  Rather than using a maximum sentinel value, 
-one can use a minimum instead.
+sentinel value $s_l$ at each level which is not part of ${\cal D}_l$, and which
+is more than any valid value and which is the sucessor of the maximum valid 
+${\cal D}_l$.  For example, for Sudoku we could use 10 as a maximum sentinel, 
+for Langford pairs or for $n$-queens we could use $n+1$, etc.  Rather than using
+a maximum sentinel value, one can use a minimum instead.
 
 A new iterator is created in the NEW state.
 
 \vskip 0.1in
 \noindent {\bf BI1}\hfil\break 
 \phantom{1}\hskip1em If the iterator state is DONE, return None.\hfil\break
-\phantom{2}\hskip1em If the iterator state is READY, set $l \leftarrow l - 1.$\hfil\break
-\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, compute $S_0$, and set
-the state to READY.\hfil\break
-\noindent {\bf BI2} If $x_l = s_l$ then: if $l == 0$, set the state to DONE and return None.
-  Otherwise, backtrack by setting $l \leftarrow l - 1$, downdate the datastructures appropriately,
-  set $x_l \leftarrow {\rm next} {\cal D}_l$, and repeat this step.
-\vskip 0.05in
-\noindent {\bf BI3} If $P\left(x_0, \ldots, x_l\right)$ then set $l \leftarrow l + 1$.  If
-  $l = n$ than return ${\rm Some}\left(x_0, \ldots, x_{n-1}\right)$.  Otherwise
-  update the datastructures for the new level, set $x_l \leftarrow {\rm min} {\cal D}_l$,
-  and return to {\bf BI2}.
-\noindent {\bf BI4} Set $x_l \leftarrow {\rm next} {\cal D}_l$ and return to {\bf BI2}.
+\phantom{2}\hskip1em If the iterator state is READY, set 
+ $l \leftarrow l - 1.$\hfil\break
+\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, set
+the state to READY, and initialize any datastructures.\hfil\break
+\noindent {\bf BI2} If $x_l = s_l$ then: if $l = 0$, set the state to DONE and 
+  terminate the iterator.  Otherwise, backtrack by setting $l \leftarrow l - 1$, 
+  downdate the datastructures appropriately, set 
+  $x_l \leftarrow {\rm next}\,{\cal D}_l$, and repeat this step.\hfil\break
+\noindent {\bf BI3} If $P\left(x_0, \ldots, x_l\right)$ then set 
+  $l \leftarrow l + 1$.  If $l = n$ than return 
+  $\left(x_0, \ldots, x_{n-1}\right)$.  Otherwise update the datastructures for 
+  the new level, set $x_l \leftarrow {\rm min} {\cal D}_l$, and return to 
+  {\bf BI2}.\hfil\break
+\noindent {\bf BI4} Set $x_l \leftarrow {\rm next}\,{\cal D}_l$ and return 
+ to {\bf BI2}.
 \vskip 0.1in
 
 \noindent I implemented the N-Queens algorithms, including the optimizations
@@ -200,12 +202,44 @@ and Walkers version.  The execution time runs in the ratio
 22:6.3:6.6:1.  So bit twiddling is not helpful, but, unsurprisingly,
 Walkers method is by far the fastest.
 
+Sometimes, you are satisfied with finding only one solution.  This doesn't
+actually make that much difference.  For Walker's version:
+
+\vskip 0.1in
+\noindent {\bf WS1} Set $l \leftarrow 0$ and compute $S_0$.\hfil\break
+\noindent {\bf WS2} Repeat while $S_l = \emptyset$: if $l = 0$ report failure
+  (no solution was found).  Otherwise, $l \leftarrow l - 1$.\hfil\break
+\noindent {\bf WS3} Set $x_l {\rm min} S_l$, $S_l \leftarrow S_l / x_l$, 
+and $l \leftarrow l + 1$.\hfil\break
+\noindent {\bf WS4} If $l = n$ then return the solution 
+  $\left(x_0, \ldots, x_{n-1}\right)$. \hfil\break
+\noindent {\bf WS5} Compute $S_l$ and return to {\bf WS2}.
+\vskip 0.1in
+
+\noindent and for the vanilla backtrack:
+
+\vskip 0.1in
+\noindent {\bf BS1} Set $l \leftarrow 0$ and initialize the 
+ datastructures.\hfil\break
+\noindent {\bf BS2} If $l = n$, return the solution.  Otherwise, set 
+ $x_l \leftarrow {\min}\,{\cal D}_l$.\hfil\break
+\noindent {\bf BS3} If $P_l\left(x_0, \ldots, x_{l-1}\right)$ holds, update the 
+ data structures to facilitate testing $P_{l+1}$, set $l \leftarrow l + 1$, and 
+  go to {\bf BS2}.\hfil\break
+\noindent {\bf BS4} If $x_l \neq {\rm max}\,{\cal D}_l$, set 
+  $x_l \leftarrow {\rm next}\,{\cal D}_l$ and go to {\bf BS3}.\hfil\break
+\noindent {\bf BS5} While $x_l = {\rm max}\,{\cal D}_l$ repeat: if $l = 0$ 
+ report failure, otherwise set $l \leftarrow l - 1$ and downdate the data 
+ structure changes made in {\bf BS3}.\hfil\break
+\noindent {\bf BS6} $x_l \leftarrow {\rm next}\,x_l$ and return to 
+ {\bf BS3}.\hfil\break
+
 \subsec {Algorithm L}
 
-\noindent In this algorithm, $1 \le l \le 2n$, and $l$ simply indicates the position
-we are trying to set.  $k$ is the value we are trying, and $k = p_j$.
-$y_l$ is the $j$ that we chose.  $x_i = 0$ means the value is unset,
-and $x_i < 0$ means that value was already used earlier. 
+\noindent In this algorithm, $1 \le l \le 2n$, and $l$ simply indicates the 
+position we are trying to set.  $k$ is the value we are trying, and $k = p_j$.
+$y_l$ is the $j$ that we chose.  $x_i = 0$ means the value is unset, and 
+$x_i < 0$ means that value was already used earlier. 
 
 \subsec { Optimized Algorithm L}
 
