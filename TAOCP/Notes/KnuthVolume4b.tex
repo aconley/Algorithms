@@ -209,8 +209,8 @@ actually make that much difference.  For Walker's version:
 \noindent {\bf WS1} Set $l \leftarrow 0$ and compute $S_0$.\hfil\break
 \noindent {\bf WS2} Repeat while $S_l = \emptyset$: if $l = 0$ report failure
   (no solution was found).  Otherwise, $l \leftarrow l - 1$.\hfil\break
-\noindent {\bf WS3} Set $x_l {\rm min} S_l$, $S_l \leftarrow S_l / x_l$, 
-and $l \leftarrow l + 1$.\hfil\break
+\noindent {\bf WS3} Set $x_l \leftarrow {\rm min} S_l$, 
+ $S_l \leftarrow S_l / x_l$, and $l \leftarrow l + 1$.\hfil\break
 \noindent {\bf WS4} If $l = n$ then return the solution 
   $\left(x_0, \ldots, x_{n-1}\right)$. \hfil\break
 \noindent {\bf WS5} Compute $S_l$ and return to {\bf WS2}.
@@ -241,7 +241,7 @@ position we are trying to set.  $k$ is the value we are trying, and $k = p_j$.
 $y_l$ is the $j$ that we chose.  $x_i = 0$ means the value is unset, and 
 $x_i < 0$ means that value was already used earlier. 
 
-\subsec { Optimized Algorithm L}
+\subsec {Optimized Algorithm L}
 
 \noindent It's useful to have the fully optimized Algorithm~L in one place, 
 incorporating the improvements from exercises (20) and (21).   However, this

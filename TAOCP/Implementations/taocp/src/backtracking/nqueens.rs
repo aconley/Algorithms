@@ -144,39 +144,60 @@ impl Iterator for NQueensIterator {
     }
 }
 
-// An iterator over nqueens solutions using Walkers method.
-// Alternative implementation.
+// An iterator over nqueens solutions using basic backtracking.
 pub struct NQueensIteratorAlt {
     // Number of queens.
     n: usize,
     // Current level.
     l: usize,
+    // Current solution.
+    x: Vec<u8>,
     // State vectors.
-    a: Vec<u32>,
-    b: Vec<u32>,
-    c: Vec<u32>,
-    s: Vec<u32>,
-    mu: u32,
-    // Are we done?
-    done: bool,
+    a: Vec<bool>,
+    b: Vec<bool>,
+    c: Vec<bool>,
+    state: IteratorState,
 }
 
 impl NQueensIteratorAlt {
     pub fn new(n: u8) -> NQueensIteratorAlt {
         assert!(n > 0, "n = 0");
         assert!(n <= 32, "n > 32");
-        let mu = if n == 32 { !0u32 } else { (1u32 << n) - 1 };
         let nu = n as usize;
         NQueensIteratorAlt {
             n: nu,
             l: 0,
-            a: vec![0; nu],
-            b: vec![0; nu],
-            c: vec![0; nu],
-            s: vec![mu; nu],
-            mu,
-            done: false,
+            x: vec![0u8; nu],
+            a: vec![false; nu],
+            b: vec![false; 2 * nu - 1],
+            c: vec![false; 2 * nu - 1],
+            state: IteratorState::New,
         }
+    }
+}
+
+impl NQueensIteratorAlt {
+    // Checks if the proposed move is valid for x[l]
+    fn is_valid_move(&self, proposed_move: u8) -> bool {
+        let t = proposed_move as usize;
+        !self.a[t] && !self.b[t + self.l] && !self.c[t + self.n - self.l - 1]
+    }
+
+    // Undo the most recent move.
+    fn undo_last_move(&mut self) {
+        let t = self.x[self.l] as usize;
+        self.a[t] = false;
+        self.b[t + self.l] = false;
+        self.c[t + self.n - self.l - 1] = false;
+    }
+
+    // Apply new_move for x[l]
+    fn apply_new_move(&mut self, new_move: u8) {
+        let t = new_move as usize;
+        self.a[t] = true;
+        self.b[t + self.l] = true;
+        self.c[t + self.n - self.l - 1] = true;
+        self.x[self.l] = new_move;
     }
 }
 
@@ -184,40 +205,63 @@ impl Iterator for NQueensIteratorAlt {
     type Item = Solution;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.done {
-            return None;
-        }
-        if self.l == self.n {
-            // Backtrack
-            self.l -= 1;
+        let mut next_move: u8;
+        match self.state {
+            IteratorState::Done => return None,
+            IteratorState::New => {
+                next_move = 0;
+                self.state = IteratorState::Ready;
+            }
+            IteratorState::Ready => {
+                self.l -= 1;
+                let max_x = (self.n - 1) as u8;
+                while self.x[self.l] == max_x {
+                    if self.l == 0 {
+                        self.state = IteratorState::Done;
+                        return None;
+                    }
+                    self.undo_last_move();
+                    self.l -= 1;
+                }
+                // Try next value for x[l] after undoing the previous one.
+                next_move = self.x[self.l] + 1;
+                self.undo_last_move();
+            }
         }
 
         loop {
-            // Backtrack if no choices on level l.
-            while self.s[self.l] == 0 {
-                if self.l == 0 {
-                    self.done = true;
-                    return None;
+            if !self.is_valid_move(next_move) {
+                let max_x = (self.n - 1) as u8;
+                if next_move == max_x {
+                    // We are out of possibilities and must backtrack.
+                    self.l -= 1;
+                    while self.x[self.l] == max_x {
+                        if self.l == 0 {
+                            self.state = IteratorState::Done;
+                            return None;
+                        }
+                        self.undo_last_move();
+                        self.l -= 1;
+                    }
+                    // Try the next available value for x[l]
+                    next_move = self.x[self.l] + 1;
+                    self.undo_last_move();
+                } else {
+                    // New move that didn't work.
+                    next_move += 1;
                 }
-                self.l -= 1;
-            }
-            let t = self.s[self.l] & (!self.s[self.l] + 1);
-            self.s[self.l] -= t;
-            self.l += 1;
-            if self.l == self.n {
-                // Found solution.
-                let mut sv = vec![0; self.n];
-                for (i, item) in sv.iter_mut().enumerate().take(self.n - 1) {
-                    *item = (self.a[i + 1] - self.a[i]).trailing_zeros() as u8;
+            } else {
+                // Proposed move does work, advance.
+                self.apply_new_move(next_move);
+                self.l += 1;
+                if self.l == self.n {
+                    // We found a solution.
+                    return Some(Solution {
+                        rows: self.x.clone(),
+                    });
                 }
-                sv[self.n - 1] = t.trailing_zeros() as u8;
-                return Some(Solution { rows: sv });
+                next_move = 0;
             }
-
-            self.a[self.l] = self.a[self.l - 1] + t;
-            self.b[self.l] = (self.b[self.l - 1] + t) >> 1;
-            self.c[self.l] = ((self.c[self.l - 1] + t) << 1) & self.mu;
-            self.s[self.l] = self.mu & !self.a[self.l] & !self.b[self.l] & !self.c[self.l];
         }
     }
 }
@@ -236,52 +280,112 @@ mod tests {
             ". . Q . \nQ . . . \n. . . Q \n. Q . . \n"
         );
     }
-    #[test]
-    fn count_n1() {
-        assert_eq!(NQueensIterator::new(1).count(), 1);
+
+    mod nqueens_iterator_test {
+        use crate::backtracking::nqueens::NQueensIterator;
+        use crate::backtracking::nqueens::Solution;
+
+        #[test]
+        fn count_n1() {
+            assert_eq!(NQueensIterator::new(1).count(), 1);
+        }
+
+        #[test]
+        fn count_n2() {
+            assert_eq!(NQueensIterator::new(2).count(), 0);
+        }
+
+        #[test]
+        fn count_n4() {
+            assert_eq!(NQueensIterator::new(4).count(), 2);
+        }
+
+        #[test]
+        fn count_n5() {
+            assert_eq!(NQueensIterator::new(5).count(), 10);
+        }
+
+        #[test]
+        fn count_n8() {
+            assert_eq!(NQueensIterator::new(8).count(), 92);
+        }
+
+        #[test]
+        fn count_n10() {
+            assert_eq!(NQueensIterator::new(10).count(), 724);
+        }
+
+        #[test]
+        fn values_n4() {
+            let mut q = NQueensIterator::new(4);
+            assert_eq!(
+                q.next(),
+                Some(Solution {
+                    rows: vec![1, 3, 0, 2]
+                })
+            );
+            assert_eq!(
+                q.next(),
+                Some(Solution {
+                    rows: vec![2, 0, 3, 1]
+                })
+            );
+            assert_eq!(q.next(), None);
+            assert_eq!(q.next(), None);
+        }
     }
 
-    #[test]
-    fn count_n2() {
-        assert_eq!(NQueensIterator::new(2).count(), 0);
-    }
+    mod nqueens_alt_iterator_test {
+        use crate::backtracking::nqueens::NQueensIteratorAlt;
+        use crate::backtracking::nqueens::Solution;
 
-    #[test]
-    fn count_n4() {
-        assert_eq!(NQueensIterator::new(4).count(), 2);
-    }
+        #[test]
+        fn count_n1() {
+            assert_eq!(NQueensIteratorAlt::new(1).count(), 1);
+        }
 
-    #[test]
-    fn count_n5() {
-        assert_eq!(NQueensIterator::new(5).count(), 10);
-    }
+        #[test]
+        fn count_n2() {
+            assert_eq!(NQueensIteratorAlt::new(2).count(), 0);
+        }
 
-    #[test]
-    fn count_n8() {
-        assert_eq!(NQueensIterator::new(8).count(), 92);
-    }
+        #[test]
+        fn count_n4() {
+            assert_eq!(NQueensIteratorAlt::new(4).count(), 2);
+        }
 
-    #[test]
-    fn count_n10() {
-        assert_eq!(NQueensIterator::new(10).count(), 724);
-    }
+        #[test]
+        fn count_n5() {
+            assert_eq!(NQueensIteratorAlt::new(5).count(), 10);
+        }
 
-    #[test]
-    fn values_n4() {
-        let mut q = NQueensIterator::new(4);
-        assert_eq!(
-            q.next(),
-            Some(Solution {
-                rows: vec![1, 3, 0, 2]
-            })
-        );
-        assert_eq!(
-            q.next(),
-            Some(Solution {
-                rows: vec![2, 0, 3, 1]
-            })
-        );
-        assert_eq!(q.next(), None);
-        assert_eq!(q.next(), None);
+        #[test]
+        fn count_n8() {
+            assert_eq!(NQueensIteratorAlt::new(8).count(), 92);
+        }
+
+        #[test]
+        fn count_n10() {
+            assert_eq!(NQueensIteratorAlt::new(10).count(), 724);
+        }
+
+        #[test]
+        fn values_n4() {
+            let mut q = NQueensIteratorAlt::new(4);
+            assert_eq!(
+                q.next(),
+                Some(Solution {
+                    rows: vec![1, 3, 0, 2]
+                })
+            );
+            assert_eq!(
+                q.next(),
+                Some(Solution {
+                    rows: vec![2, 0, 3, 1]
+                })
+            );
+            assert_eq!(q.next(), None);
+            assert_eq!(q.next(), None);
+        }
     }
 }
