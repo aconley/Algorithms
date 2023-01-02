@@ -144,53 +144,49 @@ an interesting way.
 This is easiest in Walker's approach, where we maintain the available values at
 each level.  The iterator has three states: NEW, READY, and DONE.  A new 
 iterator starts in the NEW state.  The interesting stuff happens when we call 
-Next.
+Next. 
 
 \vskip 0.1in
-\noindent {\bf WI1}\hfil\break 
-\phantom{1}\hskip1em If the iterator state is DONE, return None.\hfil\break
-\phantom{2}\hskip1em If the iterator state is READY, set 
- $l \leftarrow l - 1.$\hfil\break
-\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, 
- compute $S_0$, and set the state to READY.\hfil\break
-\noindent {\bf WI2} Repeat this step while $S_l = \emptyset$: if $l = 0$ 
+\item{\bf WI1} If the state is DONE, return None (the stop iteration value).
+\item{\bf WI2} If the state is READY, set $l \leftarrow l - 1$.
+\item{\bf WI3} If the state is NEW, set $l \leftarrow 0$, 
+ compute $S_0$, and set the ${\rm state} \leftarrow {\rm READY}.$
+\item{\bf WI4} Repeat this step while $S_l = \emptyset$: if $l = 0$ 
  then set the state to DONE and terminate the iterator.  Otherwise, 
- $l \leftarrow l - 1$.\hfil\break
-\noindent {\bf WI3} Set $x_l \leftarrow {\rm min}\, S_l$, 
- $S_l \leftarrow S_l / x_l$, and $l \leftarrow l + 1$.\hfil\break
-\noindent {\bf WI4} If $l = n$, then return 
- $\left(x_0, \ldots, x_{n-1}\right)$.\hfil\break
-\noindent {\bf WI5} Compute $S_l$ and return to {\bf WI2}.
+ $l \leftarrow l - 1$.
+\item{\bf WI5} Set $x_l \leftarrow {\rm min}\, S_l$, 
+ $S_l \leftarrow S_l / x_l$, and $l \leftarrow l + 1$.
+\item{\bf WI6} If $l = n$, then return 
+ $\left(x_0, \ldots, x_{n-1}\right)$.
+\item{\bf WI7} Compute $S_l$ and return to {\bf WI4}.
 \vskip 0.1in
 
-Unfortunately, this isn't as easy to do in the non-Walker approach.  In some
-cases this can be avoided, but the general approach is to define some special
-sentinel value $s_l$ at each level which is not part of ${\cal D}_l$, and which
-is more than any valid value and which is the sucessor of the maximum valid 
-${\cal D}_l$.  For example, for Sudoku we could use 10 as a maximum sentinel, 
-for Langford pairs or for $n$-queens we could use $n+1$, etc.  Rather than using
-a maximum sentinel value, one can use a minimum instead.
-
-A new iterator is created in the NEW state.
+We can do something similar for the non-Walkers approach.  With the same state
+definitions.  Here we assume that all ${\cal D}_i$ are non-empty.
 
 \vskip 0.1in
-\noindent {\bf BI1}\hfil\break 
-\phantom{1}\hskip1em If the iterator state is DONE, return None.\hfil\break
-\phantom{2}\hskip1em If the iterator state is READY, set 
- $l \leftarrow l - 1.$\hfil\break
-\phantom{3}\hskip1em If the iterator state is NEW, set $l \leftarrow 0$, set
-the state to READY, and initialize any datastructures.\hfil\break
-\noindent {\bf BI2} If $x_l = s_l$ then: if $l = 0$, set the state to DONE and 
-  terminate the iterator.  Otherwise, backtrack by setting $l \leftarrow l - 1$, 
-  downdate the datastructures appropriately, set 
-  $x_l \leftarrow {\rm next}\,{\cal D}_l$, and repeat this step.\hfil\break
-\noindent {\bf BI3} If $P\left(x_0, \ldots, x_l\right)$ then set 
-  $l \leftarrow l + 1$.  If $l = n$ than return 
-  $\left(x_0, \ldots, x_{n-1}\right)$.  Otherwise update the datastructures for 
-  the new level, set $x_l \leftarrow {\rm min} {\cal D}_l$, and return to 
-  {\bf BI2}.\hfil\break
-\noindent {\bf BI4} Set $x_l \leftarrow {\rm next}\,{\cal D}_l$ and return 
- to {\bf BI2}.
+\item{\bf BI1} If the state is DONE, return None (the stop iteration value).
+\item{\bf BI2} If the state is READY, set $l \leftarrow l - 1$ and 
+ ${\rm state} \leftarrow {\rm backtrack}()$.
+\item{\bf BI3} If the state is NEW, set $l \leftarrow 0$, 
+ $x_0 \leftarrow {\rm min}\,{\cal D}_0$, initialize any necessary data 
+ structures, and set ${\rm state} \leftarrow {\rm READY}$.
+\item{\bf BI4} If $P\left(x_0, \ldots, x_l\right)$ is true, set 
+ $l \leftarrow l + 1$, and update the datastructures to facilitate exploring the
+ next level.  Otherwise go to BI6.
+\item{\bf BI5} If $l = n$, return the solution, otherwise set 
+ $x_l \leftarrow {\rm min}\,{\cal D}_l$ and return to BI4.
+\item{\bf BI6} Set ${\rm state} \leftarrow {\rm backtrack}()$.  If the state is
+  DONE, return None.
+\item{\bf BI7} Set $x_l \leftarrow {\rm next}\,{\cal D}_i$ and return to BI4.
+\vskip 0.1in
+
+\noindent Where the backtrack procedure is defined as:
+\vskip 0.05in
+\item {\bf BCK1} While $x_l = {\rm max}\,{\cal D}_l$, repeat: if $l = 0$
+  return DONE.  Otherwise set $l \leftarrow l - 1$ and downdate the data
+  structures.
+\item {\bf BCK2} Return READY.
 \vskip 0.1in
 
 \noindent I implemented the N-Queens algorithms, including the optimizations
@@ -206,33 +202,34 @@ Sometimes, you are satisfied with finding only one solution.  This doesn't
 actually make that much difference.  For Walker's version:
 
 \vskip 0.1in
-\noindent {\bf WS1} Set $l \leftarrow 0$ and compute $S_0$.\hfil\break
-\noindent {\bf WS2} Repeat while $S_l = \emptyset$: if $l = 0$ report failure
-  (no solution was found).  Otherwise, $l \leftarrow l - 1$.\hfil\break
-\noindent {\bf WS3} Set $x_l \leftarrow {\rm min} S_l$, 
- $S_l \leftarrow S_l / x_l$, and $l \leftarrow l + 1$.\hfil\break
-\noindent {\bf WS4} If $l = n$ then return the solution 
-  $\left(x_0, \ldots, x_{n-1}\right)$. \hfil\break
-\noindent {\bf WS5} Compute $S_l$ and return to {\bf WS2}.
+\item{\bf WS1} Set $l \leftarrow 0$ and compute $S_0$.
+\item{\bf WS2} Repeat while $S_l = \emptyset$: if $l = 0$ report failure
+  (no solution was found).  Otherwise, $l \leftarrow l - 1$.
+\item{\bf WS3} Set $x_l \leftarrow {\rm min} S_l$, 
+ $S_l \leftarrow S_l / x_l$, and $l \leftarrow l + 1$.
+\item{\bf WS4} If $l = n$ then return the solution 
+  $\left(x_0, \ldots, x_{n-1}\right)$.
+\item{\bf WS5} Compute $S_l$ and return to {\bf WS2}.
 \vskip 0.1in
 
 \noindent and for the vanilla backtrack:
 
 \vskip 0.1in
-\noindent {\bf BS1} Set $l \leftarrow 0$ and initialize the 
- datastructures.\hfil\break
-\noindent {\bf BS2} If $l = n$, return the solution.  Otherwise, set 
- $x_l \leftarrow {\min}\,{\cal D}_l$.\hfil\break
-\noindent {\bf BS3} If $P_l\left(x_0, \ldots, x_{l-1}\right)$ holds, update the 
+\item{\bf BS1} Set $l \leftarrow 0$ and initialize the 
+ datastructures.
+\item{\bf BS2} If $l = n$, return the solution.  Otherwise, set 
+ $x_l \leftarrow {\min}\,{\cal D}_l$.
+\item{\bf BS3} If $P_l\left(x_0, \ldots, x_{l-1}\right)$ holds, update the 
  data structures to facilitate testing $P_{l+1}$, set $l \leftarrow l + 1$, and 
-  go to {\bf BS2}.\hfil\break
-\noindent {\bf BS4} If $x_l \neq {\rm max}\,{\cal D}_l$, set 
-  $x_l \leftarrow {\rm next}\,{\cal D}_l$ and go to {\bf BS3}.\hfil\break
-\noindent {\bf BS5} While $x_l = {\rm max}\,{\cal D}_l$ repeat: if $l = 0$ 
+  go to {\bf BS2}.
+\item{\bf BS4} If $x_l \neq {\rm max}\,{\cal D}_l$, set 
+  $x_l \leftarrow {\rm next}\,{\cal D}_l$ and go to {\bf BS3}.
+\item{\bf BS5} While $x_l = {\rm max}\,{\cal D}_l$ repeat: if $l = 0$ 
  report failure, otherwise set $l \leftarrow l - 1$ and downdate the data 
- structure changes made in {\bf BS3}.\hfil\break
-\noindent {\bf BS6} $x_l \leftarrow {\rm next}\,x_l$ and return to 
- {\bf BS3}.\hfil\break
+ structure changes made in {\bf BS3}.
+\item{\bf BS6} $x_l \leftarrow {\rm next}\,x_l$ and return to 
+ {\bf BS3}.
+ \vskip 0.1in
 
 \subsec {Algorithm L}
 
