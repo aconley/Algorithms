@@ -8,7 +8,7 @@ use std::collections::HashSet;
 const EMPTY_ITEM_STRING: &str = "EMPTY ITEM";
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Option {
+pub struct ProblemOption {
     primary_items: Vec<String>,
     secondary_items: Vec<String>,
 }
@@ -22,15 +22,15 @@ impl DancingLinksError {
     }
 }
 
-impl Option {
+impl ProblemOption {
     pub fn new(
         primary_items: Vec<String>,
         secondary_items: Vec<String>,
-    ) -> Result<Option, DancingLinksError> {
+    ) -> Result<ProblemOption, DancingLinksError> {
         // Reject duplicates, or items that are both primary and secondary.
         if primary_items.is_empty() {
             return Err(DancingLinksError::new(
-                "Option must contain at least one primary item",
+                "ProblemOption must contain at least one primary item",
             ));
         }
         let primary_set = primary_items.iter().collect::<HashSet<&String>>();
@@ -52,7 +52,7 @@ impl Option {
                 ));
             }
         }
-        Ok(Option {
+        Ok(ProblemOption {
             primary_items,
             secondary_items,
         })
@@ -61,8 +61,8 @@ impl Option {
     pub fn new_from_str(
         primary_items: &[&str],
         secondary_items: &[&str],
-    ) -> Result<Option, DancingLinksError> {
-        Option::new(
+    ) -> Result<ProblemOption, DancingLinksError> {
+        ProblemOption::new(
             primary_items
                 .into_iter()
                 .map(|item| String::from(*item))
@@ -108,10 +108,10 @@ struct SolutionState {
 }
 
 impl SolutionState {
-    pub fn initiate(options: Vec<Option>) -> Result<SolutionState, DancingLinksError> {
+    pub fn initiate(options: Vec<ProblemOption>) -> Result<SolutionState, DancingLinksError> {
         if options.is_empty() {
             return Err(DancingLinksError::new(
-                "At least one Option must be provided",
+                "At least one ProblemOption must be provided",
             ));
         }
 
@@ -246,6 +246,14 @@ impl SolutionState {
         })
     }
 
+    fn item_name(&self, idx: u16) -> Option<&String> {
+        if idx == 0 || idx >= self.items.len() as u16 {
+            None
+        } else {
+            Some(&self.items[idx as usize].name)
+        }
+    }
+
     fn cover(&mut self, i: u16) {
         let mut p = self.nodes[i as usize].dlink;
         while p != i {
@@ -310,27 +318,28 @@ impl SolutionState {
     // Chose the next item using the MRV heuristic.  Assumes there is at
     // least one uncovered item.
     fn chose_next_item_mrv(&self) -> u16 {
-        let mut p = self.items[0].rlink;
-        debug_assert!(p != 0);
+        let mut current_item_idx = self.items[0].rlink;
+        debug_assert!(current_item_idx != 0);
 
-        let mut current = self.nodes[p as usize].top;
-        if current == 0 {
-            return p;
+        let mut best_len = self.nodes[current_item_idx as usize].top;
+        if best_len == 0 {
+            return current_item_idx;
         }
-        let mut best_value = current;
-        let mut best_item = p;
+        let mut best_item = current_item_idx;
 
-        p = self.items[p as usize].rlink;
-        while p != 0 {
-            current = self.nodes[p as usize].top;
-            if current == 0 {
-                return p;
+        current_item_idx = self.items[current_item_idx as usize].rlink;
+        while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
+            let current_len = self.nodes[current_item_idx as usize].top;
+            if current_len == 0 {
+                // This item has no choices, we should abort.
+                return current_item_idx;
             }
-            if current < best_value {
-                best_value = current;
-                best_item = p;
-                p = self.items[p as usize].rlink;
+            if current_len < best_len {
+                best_len = current_len;
+                best_item = current_item_idx;
             }
+
+            current_item_idx = self.items[current_item_idx as usize].rlink;
         }
         return best_item;
     }
@@ -339,11 +348,11 @@ impl SolutionState {
 #[cfg(test)]
 mod tests {
     mod options {
-        use crate::backtracking::dancing_links::Option;
+        use crate::backtracking::dancing_links::ProblemOption;
 
         #[test]
         fn option_has_expected_items() {
-            let res = Option::new_from_str(
+            let res = ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &["c", "d"],
             );
@@ -356,7 +365,7 @@ mod tests {
 
         #[test]
         fn option_with_no_secondary_items_is_allowed() {
-            let res = Option::new_from_str(
+            let res = ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &[],
             );
@@ -369,7 +378,7 @@ mod tests {
 
         #[test]
         fn option_with_no_primary_items_is_error() {
-            let res = Option::new_from_str(
+            let res = ProblemOption::new_from_str(
                 /*primary_items=*/ &[],
                 /*secondary_items=*/ &["a"],
             );
@@ -380,7 +389,7 @@ mod tests {
 
         #[test]
         fn duplicate_primary_is_error() {
-            let res = Option::new_from_str(
+            let res = ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b", "c", "b"],
                 /*secondary_items=*/ &[],
             );
@@ -391,7 +400,7 @@ mod tests {
 
         #[test]
         fn duplicate_secondary_is_error() {
-            let res = Option::new_from_str(
+            let res = ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &["d", "e", "e"],
             );
@@ -402,7 +411,7 @@ mod tests {
 
         #[test]
         fn item_that_is_both_primary_and_secondary_is_error() {
-            let res = Option::new_from_str(
+            let res = ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &["c", "a", "e"],
             );
@@ -414,13 +423,13 @@ mod tests {
 
     mod initialization {
         use crate::backtracking::dancing_links::{
-            Item, Node, Option, SolutionState, EMPTY_ITEM_STRING,
+            Item, Node, ProblemOption, SolutionState, EMPTY_ITEM_STRING,
         };
         use claim::{assert_ok, assert_ok_eq};
 
         #[test]
         fn single_primary_item_initializes() {
-            let option = assert_ok!(Option::new_from_str(
+            let option = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
             ));
@@ -475,11 +484,11 @@ mod tests {
 
         #[test]
         fn small_test_case_initializes() {
-            let option1 = assert_ok!(Option::new_from_str(
+            let option1 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &[],
             ));
-            let option2 = assert_ok!(Option::new_from_str(
+            let option2 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["c"],
             ));
@@ -522,14 +531,14 @@ mod tests {
                         // Node 2: header node for 'b'
                         Node {
                             top: 2,
-                            ulink: 8, // Option b, c
-                            dlink: 6  // Option a, b
+                            ulink: 8, // ProblemOption b, c
+                            dlink: 6  // ProblemOption a, b
                         },
                         // Node 3: header node for 'c'
                         Node {
                             top: 1,
-                            ulink: 9, // Option b, c
-                            dlink: 9  // Option b, c
+                            ulink: 9, // ProblemOption b, c
+                            dlink: 9  // ProblemOption b, c
                         },
                         // Node 4: Spacer node.
                         Node {
@@ -537,13 +546,13 @@ mod tests {
                             ulink: 0, // unused.
                             dlink: 6  // Last node in option a, b
                         },
-                        // Node 5: Option a, b item a
+                        // Node 5: ProblemOption a, b item a
                         Node {
                             top: 1,
                             ulink: 1,
                             dlink: 1
                         },
-                        // Node 6: Option a, b item b
+                        // Node 6: ProblemOption a, b item b
                         Node {
                             top: 2,
                             ulink: 2,
@@ -555,13 +564,13 @@ mod tests {
                             ulink: 5, // First node in option a, b
                             dlink: 9  // Last node in option b, c
                         },
-                        // Node 8: Option b, c item b
+                        // Node 8: ProblemOption b, c item b
                         Node {
                             top: 2,
-                            ulink: 6, // Option a, b
+                            ulink: 6, // ProblemOption a, b
                             dlink: 2, // Header for b
                         },
-                        // Node 9: Option b, c item c
+                        // Node 9: ProblemOption b, c item c
                         Node {
                             top: 3,
                             ulink: 3, // Header for c
@@ -582,27 +591,27 @@ mod tests {
         fn large_test_case_initializes() {
             // This is the example from TAOCP 7.2.2.1 (6), except that fg have
             // been made secondary.
-            let option1 = assert_ok!(Option::new_from_str(
+            let option1 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
             ));
-            let option2 = assert_ok!(Option::new_from_str(
+            let option2 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["g"],
             ));
-            let option3 = assert_ok!(Option::new_from_str(
+            let option3 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["b", "c"],
                 /*secondary_items=*/ &["f"],
             ));
-            let option4 = assert_ok!(Option::new_from_str(
+            let option4 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["f"],
             ));
-            let option5 = assert_ok!(Option::new_from_str(
+            let option5 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["g"],
             ));
-            let option6 = assert_ok!(Option::new_from_str(
+            let option6 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["d", "e"],
                 /*secondary_items=*/ &["g"],
             ));
@@ -661,44 +670,44 @@ mod tests {
                         // Node 1: header node for 'a'
                         Node {
                             top: 2,
-                            ulink: 20, // Option a d
-                            dlink: 12, // Option a d g
+                            ulink: 20, // ProblemOption a d
+                            dlink: 12, // ProblemOption a d g
                         },
                         // Node 2: header node for 'b'
                         Node {
                             top: 2,
-                            ulink: 24, // Option b, g
-                            dlink: 16  // Option b, c, f
+                            ulink: 24, // ProblemOption b, g
+                            dlink: 16  // ProblemOption b, c, f
                         },
                         // Node 3: header node for 'c'
                         Node {
                             top: 2,
-                            ulink: 17, // Option b, c, f
-                            dlink: 9   // Option c, e
+                            ulink: 17, // ProblemOption b, c, f
+                            dlink: 9   // ProblemOption c, e
                         },
                         // Node 4: header node for 'd'
                         Node {
                             top: 3,
-                            ulink: 27, // Option d e g
-                            dlink: 13, // Option a d g
+                            ulink: 27, // ProblemOption d e g
+                            dlink: 13, // ProblemOption a d g
                         },
                         // Node 5: header node for 'e'
                         Node {
                             top: 2,
-                            ulink: 28, // Option d e g
-                            dlink: 10  // Option c e
+                            ulink: 28, // ProblemOption d e g
+                            dlink: 10  // ProblemOption c e
                         },
                         // Node 6: header node for 'f'
                         Node {
                             top: 2,
-                            ulink: 22, // Option a d f
-                            dlink: 18  // Option b c f
+                            ulink: 22, // ProblemOption a d f
+                            dlink: 18  // ProblemOption b c f
                         },
                         // Node 7: header node for 'g'
                         Node {
                             top: 3,
-                            ulink: 29, // Option d e g
-                            dlink: 14  // Option a d g
+                            ulink: 29, // ProblemOption d e g
+                            dlink: 14  // ProblemOption a d g
                         },
                         // Node 8: Spacer node.
                         Node {
@@ -706,18 +715,18 @@ mod tests {
                             ulink: 0,  // unused.
                             dlink: 10  // Last node in option c, e
                         },
-                        // Nodes 9-10: Option c e
+                        // Nodes 9-10: ProblemOption c e
                         // Node 9: item c
                         Node {
                             top: 3,
                             ulink: 3,  // Header
-                            dlink: 17, // Option b c f
+                            dlink: 17, // ProblemOption b c f
                         },
                         // Node 10: item e
                         Node {
                             top: 5,
                             ulink: 5,  // Header
-                            dlink: 28  // Option d e g
+                            dlink: 28  // ProblemOption d e g
                         },
                         // Node 11: Spacer
                         Node {
@@ -725,24 +734,24 @@ mod tests {
                             ulink: 9,
                             dlink: 14
                         },
-                        // Nodes 12-14: Option a d g
+                        // Nodes 12-14: ProblemOption a d g
                         // Node 12: item a
                         Node {
                             top: 1,
                             ulink: 1,  // Header
-                            dlink: 20  // Option a d f
+                            dlink: 20  // ProblemOption a d f
                         },
                         // Node 13: item d
                         Node {
                             top: 4,
                             ulink: 4,  // Header
-                            dlink: 21  // Option a d f
+                            dlink: 21  // ProblemOption a d f
                         },
                         // Node 14: item g
                         Node {
                             top: 7,
                             ulink: 7,  // Header
-                            dlink: 25, // Option b g
+                            dlink: 25, // ProblemOption b g
                         },
                         // Node 15: Spacer
                         Node {
@@ -750,24 +759,24 @@ mod tests {
                             ulink: 12,
                             dlink: 18
                         },
-                        // Nodes 16-18: Option b c f
+                        // Nodes 16-18: ProblemOption b c f
                         // Node 16: item b
                         Node {
                             top: 2,
                             ulink: 2,  // Header
-                            dlink: 24  // Option b g
+                            dlink: 24  // ProblemOption b g
                         },
                         // Node 17: item c
                         Node {
                             top: 3,
-                            ulink: 9, // Option c e
+                            ulink: 9, // ProblemOption c e
                             dlink: 3  // Header
                         },
                         // Node 18: item f
                         Node {
                             top: 6,
                             ulink: 6,  // Header
-                            dlink: 22  // Option a d f
+                            dlink: 22  // ProblemOption a d f
                         },
                         // Node 19: spacer
                         Node {
@@ -775,23 +784,23 @@ mod tests {
                             ulink: 16,
                             dlink: 22
                         },
-                        // Nodes 20-22: Option a d f
+                        // Nodes 20-22: ProblemOption a d f
                         // Node 20: item a
                         Node {
                             top: 1,
-                            ulink: 12, // Option a d g
+                            ulink: 12, // ProblemOption a d g
                             dlink: 1   // Header
                         },
                         // Node 21: item d
                         Node {
                             top: 4,
-                            ulink: 13, // Option a d g
-                            dlink: 27  // Option d e g
+                            ulink: 13, // ProblemOption a d g
+                            dlink: 27  // ProblemOption d e g
                         },
                         // Node 22: item f
                         Node {
                             top: 6,
-                            ulink: 18, // Option b c f
+                            ulink: 18, // ProblemOption b c f
                             dlink: 6   // Header
                         },
                         // Node 23: spacer
@@ -800,18 +809,18 @@ mod tests {
                             ulink: 20,
                             dlink: 25
                         },
-                        // Nodes 24-25: Option b g
+                        // Nodes 24-25: ProblemOption b g
                         // Node 24: item b
                         Node {
                             top: 2,
-                            ulink: 16, // Option b c f
+                            ulink: 16, // ProblemOption b c f
                             dlink: 2   // Header
                         },
                         // Node 25: item g
                         Node {
                             top: 7,
-                            ulink: 14, // Option a d g
-                            dlink: 29  // Option d e g
+                            ulink: 14, // ProblemOption a d g
+                            dlink: 29  // ProblemOption d e g
                         },
                         // Node 26: spacer
                         Node {
@@ -819,23 +828,23 @@ mod tests {
                             ulink: 24,
                             dlink: 29
                         },
-                        // Node 27-29: Option d e g
+                        // Node 27-29: ProblemOption d e g
                         // Node 27: item d
                         Node {
                             top: 4,
-                            ulink: 21, // Option a d f
+                            ulink: 21, // ProblemOption a d f
                             dlink: 4   // Header
                         },
                         // Node 28: item e
                         Node {
                             top: 5,
-                            ulink: 10, // Option c e
+                            ulink: 10, // ProblemOption c e
                             dlink: 5   // Header
                         },
                         // Node 29: item g
                         Node {
                             top: 7,
-                            ulink: 25, // Option b g
+                            ulink: 25, // ProblemOption b g
                             dlink: 7   // Header
                         },
                         // Node 30: final spacer
@@ -847,6 +856,129 @@ mod tests {
                     ],
                 }
             );
+        }
+    }
+
+    mod chose_next {
+        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use claim::{assert_ok, assert_some, assert_some_eq};
+        use std::collections::HashSet;
+
+        #[test]
+        fn single_primary_item_choses_only_option() {
+            let option = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+            let solution_state = assert_ok!(SolutionState::initiate(vec![option]));
+
+            assert_some_eq!(
+                solution_state.item_name(solution_state.chose_next_item_mrv()),
+                "a"
+            );
+        }
+
+        #[test]
+        fn choses_item_with_fewest_options() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "b", "c"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "c"],
+                /*secondary_items=*/ &[],
+            ));
+
+            let solution_state = assert_ok!(SolutionState::initiate(vec![option1, option2]));
+
+            assert_eq!(solution_state.num_primary_items, 3);
+            assert_eq!(
+                solution_state
+                    .nodes
+                    .iter()
+                    .skip(1)
+                    .take(3)
+                    .map(|node| node.top)
+                    .collect::<Vec<_>>(),
+                vec![2, 1, 2]
+            );
+            assert_eq!(
+                solution_state
+                    .items
+                    .iter()
+                    .skip(1)
+                    .map(|item| item.rlink)
+                    .collect::<Vec<_>>(),
+                vec![2, 3, 0]
+            );
+
+            assert_some_eq!(
+                solution_state.item_name(solution_state.chose_next_item_mrv()),
+                "b"
+            );
+        }
+
+        #[test]
+        fn secondary_item_is_not_chosen_even_if_it_has_fewest_available_options() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &["b"],
+            ));
+            let solution_state = assert_ok!(SolutionState::initiate(vec![option1, option2]));
+
+            assert_some_eq!(
+                solution_state.item_name(solution_state.chose_next_item_mrv()),
+                "a"
+            );
+        }
+
+        #[test]
+        fn large_test_case_choses_next_item() {
+            // This is the example from TAOCP 7.2.2.1 (6), except that ag have
+            // been made secondary.
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["c", "e"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d"],
+                /*secondary_items=*/ &["a", "g"],
+            ));
+            let option3 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "c", "f"],
+                /*secondary_items=*/ &[],
+            ));
+            let option4 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d", "f"],
+                /*secondary_items=*/ &["a"],
+            ));
+            let option5 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option6 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d", "e"],
+                /*secondary_items=*/ &["g"],
+            ));
+
+            let solution_state = assert_ok!(SolutionState::initiate(vec![
+                option1, option2, option3, option4, option5, option6
+            ]));
+            assert_eq!(solution_state.num_primary_items, 5);
+
+            // b, c, e, f are all acceptable choices.  d is not because
+            // it has 3 items, a and g are not because they are secondary.
+            let choice =
+                assert_some!(solution_state.item_name(solution_state.chose_next_item_mrv()));
+            assert!(["b", "c", "e", "f"]
+                .into_iter()
+                .map(|s| s.to_string())
+                .collect::<HashSet<_>>()
+                .contains(choice));
         }
     }
 }
