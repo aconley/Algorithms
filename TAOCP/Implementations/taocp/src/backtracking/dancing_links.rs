@@ -5,6 +5,8 @@ use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+const EMPTY_ITEM_STRING: &str = "EMPTY ITEM";
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Option {
     primary_items: Vec<String>,
@@ -77,7 +79,7 @@ impl Option {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Item {
     // The link to the preceding item.
     llink: u16,
@@ -87,7 +89,7 @@ struct Item {
     name: String,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq)]
 struct Node {
     // Which item this node represents.  Non-positive values for top are spacer
     // nodes, and in header nodes top represents the number of active items.
@@ -98,15 +100,15 @@ struct Node {
     dlink: u16,
 }
 
+#[derive(Debug, Eq, PartialEq)]
 struct SolutionState {
-    last_spacer_address: u16,
     num_primary_items: u16,
     items: Vec<Item>,
     nodes: Vec<Node>,
 }
 
 impl SolutionState {
-    fn initiate(options: &[Option]) -> Result<SolutionState, DancingLinksError> {
+    pub fn initiate(options: Vec<Option>) -> Result<SolutionState, DancingLinksError> {
         if options.is_empty() {
             return Err(DancingLinksError::new(
                 "At least one Option must be provided",
@@ -150,7 +152,7 @@ impl SolutionState {
         let mut items = std::iter::once(Item {
             llink: n_items as u16,
             rlink: 1,
-            name: "EMPTY NODE".to_string(),
+            name: EMPTY_ITEM_STRING.to_string(),
         })
         .chain(
             primary_items
@@ -188,7 +190,7 @@ impl SolutionState {
         let mut nodes = Vec::with_capacity(num_nodes);
         // Create the item header nodes.
         nodes.push(Node::default()); // Unused 'spacer'
-        for idx in 1..=(items.len() as u16) {
+        for idx in 1..(items.len() as u16) {
             nodes.push(Node {
                 top: 0, // Len in headers.
                 ulink: idx,
@@ -198,7 +200,7 @@ impl SolutionState {
 
         // The first (real) spacer.
         nodes.push(Node::default());
-        let mut last_spacer_idx = nodes.len();
+        let mut last_spacer_idx = nodes.len() - 1;
 
         // Now the nodes representing the options.
         let mut spacer_top = 0;
@@ -224,8 +226,9 @@ impl SolutionState {
                 nodes[item_idx].top += 1; // Len in header nodes.
                 nodes[item_idx].ulink = node_idx as u16;
             }
-            // Update the spacer before this option.
-            nodes[last_spacer_idx].dlink = nodes.len() as u16;
+            // Update the spacer before this option to point at the last node
+            // from this option.
+            nodes[last_spacer_idx].dlink = (nodes.len() - 1) as u16;
             // Add a new spacer.
             spacer_top -= 1;
             nodes.push(Node {
@@ -233,12 +236,11 @@ impl SolutionState {
                 ulink: last_spacer_idx as u16 + 1,
                 dlink: 0,
             });
-            last_spacer_idx = nodes.len();
+            last_spacer_idx = nodes.len() - 1;
         }
 
         Ok(SolutionState {
             num_primary_items: num_primary,
-            last_spacer_address: last_spacer_idx as u16,
             items: items,
             nodes: nodes,
         })
@@ -407,6 +409,444 @@ mod tests {
 
             assert!(res.is_err());
             assert!(res.unwrap_err().0.contains("overlap"));
+        }
+    }
+
+    mod initialization {
+        use crate::backtracking::dancing_links::{
+            Item, Node, Option, SolutionState, EMPTY_ITEM_STRING,
+        };
+        use claim::{assert_ok, assert_ok_eq};
+
+        #[test]
+        fn single_primary_item_initializes() {
+            let option = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+
+            assert_ok_eq!(
+                SolutionState::initiate(vec![option]),
+                SolutionState {
+                    num_primary_items: 1,
+                    items: vec![
+                        Item {
+                            llink: 1,
+                            rlink: 1,
+                            name: EMPTY_ITEM_STRING.to_string()
+                        },
+                        Item {
+                            llink: 0,
+                            rlink: 0,
+                            name: "a".to_string()
+                        }
+                    ],
+                    nodes: vec![
+                        // Node 0: empty
+                        Node::default(),
+                        // Node 1: header node for only item.
+                        Node {
+                            top: 1,
+                            ulink: 3,
+                            dlink: 3
+                        },
+                        // Node 2: Spacer node.
+                        Node {
+                            top: 0,
+                            ulink: 0,
+                            dlink: 3
+                        },
+                        // Node 3: Only item node.
+                        Node {
+                            top: 1,
+                            ulink: 1,
+                            dlink: 1
+                        },
+                        // Node 4: Spacer node.
+                        Node {
+                            top: -1,
+                            ulink: 3,
+                            dlink: 0
+                        }
+                    ],
+                }
+            );
+        }
+
+        #[test]
+        fn small_test_case_initializes() {
+            let option1 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["a", "b"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["c"],
+            ));
+
+            assert_ok_eq!(
+                SolutionState::initiate(vec![option1, option2]),
+                SolutionState {
+                    num_primary_items: 2,
+                    items: vec![
+                        Item {
+                            llink: 3,
+                            rlink: 1,
+                            name: EMPTY_ITEM_STRING.to_string()
+                        },
+                        Item {
+                            llink: 0,
+                            rlink: 2,
+                            name: "a".to_string()
+                        },
+                        Item {
+                            llink: 1,
+                            rlink: 3,
+                            name: "b".to_string()
+                        },
+                        Item {
+                            llink: 2,
+                            rlink: 0,
+                            name: "c".to_string()
+                        }
+                    ],
+                    nodes: vec![
+                        // Node 0: empty
+                        Node::default(),
+                        // Node 1: header node for 'a'
+                        Node {
+                            top: 1,
+                            ulink: 5,
+                            dlink: 5
+                        },
+                        // Node 2: header node for 'b'
+                        Node {
+                            top: 2,
+                            ulink: 8, // Option b, c
+                            dlink: 6  // Option a, b
+                        },
+                        // Node 3: header node for 'c'
+                        Node {
+                            top: 1,
+                            ulink: 9, // Option b, c
+                            dlink: 9  // Option b, c
+                        },
+                        // Node 4: Spacer node.
+                        Node {
+                            top: 0,
+                            ulink: 0, // unused.
+                            dlink: 6  // Last node in option a, b
+                        },
+                        // Node 5: Option a, b item a
+                        Node {
+                            top: 1,
+                            ulink: 1,
+                            dlink: 1
+                        },
+                        // Node 6: Option a, b item b
+                        Node {
+                            top: 2,
+                            ulink: 2,
+                            dlink: 8
+                        },
+                        // Node 7: Spacer between a, b and b, c
+                        Node {
+                            top: -1,
+                            ulink: 5, // First node in option a, b
+                            dlink: 9  // Last node in option b, c
+                        },
+                        // Node 8: Option b, c item b
+                        Node {
+                            top: 2,
+                            ulink: 6, // Option a, b
+                            dlink: 2, // Header for b
+                        },
+                        // Node 9: Option b, c item c
+                        Node {
+                            top: 3,
+                            ulink: 3, // Header for c
+                            dlink: 3, // Header for c
+                        },
+                        // Node 10: final spacer
+                        Node {
+                            top: -2,
+                            ulink: 8, // First node of option b, c
+                            dlink: 0  // unused
+                        }
+                    ],
+                }
+            );
+        }
+
+        #[test]
+        fn large_test_case_initializes() {
+            // This is the example from TAOCP 7.2.2.1 (6), except that fg have
+            // been made secondary.
+            let option1 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["c", "e"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["a", "d"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option3 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["b", "c"],
+                /*secondary_items=*/ &["f"],
+            ));
+            let option4 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["a", "d"],
+                /*secondary_items=*/ &["f"],
+            ));
+            let option5 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option6 = assert_ok!(Option::new_from_str(
+                /*primary_items=*/ &["d", "e"],
+                /*secondary_items=*/ &["g"],
+            ));
+
+            assert_ok_eq!(
+                SolutionState::initiate(vec![option1, option2, option3, option4, option5, option6]),
+                SolutionState {
+                    num_primary_items: 5,
+                    items: vec![
+                        // Primary items.
+                        Item {
+                            llink: 7,
+                            rlink: 1,
+                            name: EMPTY_ITEM_STRING.to_string()
+                        },
+                        Item {
+                            llink: 0,
+                            rlink: 2,
+                            name: "a".to_string()
+                        },
+                        Item {
+                            llink: 1,
+                            rlink: 3,
+                            name: "b".to_string()
+                        },
+                        Item {
+                            llink: 2,
+                            rlink: 4,
+                            name: "c".to_string()
+                        },
+                        Item {
+                            llink: 3,
+                            rlink: 5,
+                            name: "d".to_string()
+                        },
+                        Item {
+                            llink: 4,
+                            rlink: 6,
+                            name: "e".to_string()
+                        },
+                        // Secondary items
+                        Item {
+                            llink: 5,
+                            rlink: 7,
+                            name: "f".to_string(),
+                        },
+                        Item {
+                            llink: 6,
+                            rlink: 0,
+                            name: "g".to_string(),
+                        }
+                    ],
+                    nodes: vec![
+                        // Node 0: empty
+                        Node::default(),
+                        // Node 1: header node for 'a'
+                        Node {
+                            top: 2,
+                            ulink: 20, // Option a d
+                            dlink: 12, // Option a d g
+                        },
+                        // Node 2: header node for 'b'
+                        Node {
+                            top: 2,
+                            ulink: 24, // Option b, g
+                            dlink: 16  // Option b, c, f
+                        },
+                        // Node 3: header node for 'c'
+                        Node {
+                            top: 2,
+                            ulink: 17, // Option b, c, f
+                            dlink: 9   // Option c, e
+                        },
+                        // Node 4: header node for 'd'
+                        Node {
+                            top: 3,
+                            ulink: 27, // Option d e g
+                            dlink: 13, // Option a d g
+                        },
+                        // Node 5: header node for 'e'
+                        Node {
+                            top: 2,
+                            ulink: 28, // Option d e g
+                            dlink: 10  // Option c e
+                        },
+                        // Node 6: header node for 'f'
+                        Node {
+                            top: 2,
+                            ulink: 22, // Option a d f
+                            dlink: 18  // Option b c f
+                        },
+                        // Node 7: header node for 'g'
+                        Node {
+                            top: 3,
+                            ulink: 29, // Option d e g
+                            dlink: 14  // Option a d g
+                        },
+                        // Node 8: Spacer node.
+                        Node {
+                            top: 0,
+                            ulink: 0,  // unused.
+                            dlink: 10  // Last node in option c, e
+                        },
+                        // Nodes 9-10: Option c e
+                        // Node 9: item c
+                        Node {
+                            top: 3,
+                            ulink: 3,  // Header
+                            dlink: 17, // Option b c f
+                        },
+                        // Node 10: item e
+                        Node {
+                            top: 5,
+                            ulink: 5,  // Header
+                            dlink: 28  // Option d e g
+                        },
+                        // Node 11: Spacer
+                        Node {
+                            top: -1,
+                            ulink: 9,
+                            dlink: 14
+                        },
+                        // Nodes 12-14: Option a d g
+                        // Node 12: item a
+                        Node {
+                            top: 1,
+                            ulink: 1,  // Header
+                            dlink: 20  // Option a d f
+                        },
+                        // Node 13: item d
+                        Node {
+                            top: 4,
+                            ulink: 4,  // Header
+                            dlink: 21  // Option a d f
+                        },
+                        // Node 14: item g
+                        Node {
+                            top: 7,
+                            ulink: 7,  // Header
+                            dlink: 25, // Option b g
+                        },
+                        // Node 15: Spacer
+                        Node {
+                            top: -2,
+                            ulink: 12,
+                            dlink: 18
+                        },
+                        // Nodes 16-18: Option b c f
+                        // Node 16: item b
+                        Node {
+                            top: 2,
+                            ulink: 2,  // Header
+                            dlink: 24  // Option b g
+                        },
+                        // Node 17: item c
+                        Node {
+                            top: 3,
+                            ulink: 9, // Option c e
+                            dlink: 3  // Header
+                        },
+                        // Node 18: item f
+                        Node {
+                            top: 6,
+                            ulink: 6,  // Header
+                            dlink: 22  // Option a d f
+                        },
+                        // Node 19: spacer
+                        Node {
+                            top: -3,
+                            ulink: 16,
+                            dlink: 22
+                        },
+                        // Nodes 20-22: Option a d f
+                        // Node 20: item a
+                        Node {
+                            top: 1,
+                            ulink: 12, // Option a d g
+                            dlink: 1   // Header
+                        },
+                        // Node 21: item d
+                        Node {
+                            top: 4,
+                            ulink: 13, // Option a d g
+                            dlink: 27  // Option d e g
+                        },
+                        // Node 22: item f
+                        Node {
+                            top: 6,
+                            ulink: 18, // Option b c f
+                            dlink: 6   // Header
+                        },
+                        // Node 23: spacer
+                        Node {
+                            top: -4,
+                            ulink: 20,
+                            dlink: 25
+                        },
+                        // Nodes 24-25: Option b g
+                        // Node 24: item b
+                        Node {
+                            top: 2,
+                            ulink: 16, // Option b c f
+                            dlink: 2   // Header
+                        },
+                        // Node 25: item g
+                        Node {
+                            top: 7,
+                            ulink: 14, // Option a d g
+                            dlink: 29  // Option d e g
+                        },
+                        // Node 26: spacer
+                        Node {
+                            top: -5,
+                            ulink: 24,
+                            dlink: 29
+                        },
+                        // Node 27-29: Option d e g
+                        // Node 27: item d
+                        Node {
+                            top: 4,
+                            ulink: 21, // Option a d f
+                            dlink: 4   // Header
+                        },
+                        // Node 28: item e
+                        Node {
+                            top: 5,
+                            ulink: 10, // Option c e
+                            dlink: 5   // Header
+                        },
+                        // Node 29: item g
+                        Node {
+                            top: 7,
+                            ulink: 25, // Option b g
+                            dlink: 7   // Header
+                        },
+                        // Node 30: final spacer
+                        Node {
+                            top: -6,
+                            ulink: 27,
+                            dlink: 0 // unused
+                        }
+                    ],
+                }
+            );
         }
     }
 }
