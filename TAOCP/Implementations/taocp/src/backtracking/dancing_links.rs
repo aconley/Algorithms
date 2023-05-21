@@ -1,6 +1,8 @@
 // An implementation of Knuth's Algorithm X: Dancing links from
 // TAOCP Volume 4B 7.2.2.1.
 
+use std::collections::BTreeSet;
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Eq)]
@@ -13,8 +15,8 @@ pub struct Option {
 pub struct DancingLinksError(String);
 
 impl DancingLinksError {
-    fn new(message: &str) -> DancingLinksError {
-        DancingLinksError(message.to_string())
+    fn new<S: Into<String>>(message: S) -> DancingLinksError {
+        DancingLinksError(message.into())
     }
 }
 
@@ -69,8 +71,13 @@ impl Option {
                 .collect(),
         )
     }
+
+    fn len(&self) -> usize {
+        self.primary_items.len() + self.secondary_items.len()
+    }
 }
 
+#[derive(Debug)]
 struct Item {
     // The link to the preceding item.
     llink: u16,
@@ -80,9 +87,10 @@ struct Item {
     name: String,
 }
 
+#[derive(Debug, Default)]
 struct Node {
-    // Which item this node represents.  Negative numbers are spacer nodes,
-    // and in header nodes this represents the number of active items.
+    // Which item this node represents.  Non-positive values for top are spacer
+    // nodes, and in header nodes top represents the number of active items.
     top: i16,
     // Link to the link above this one.
     ulink: u16,
@@ -91,16 +99,149 @@ struct Node {
 }
 
 struct SolutionState {
-    num_items: u16,
     last_spacer_address: u16,
+    num_primary_items: u16,
     items: Vec<Item>,
     nodes: Vec<Node>,
 }
 
 impl SolutionState {
-    fn initiate(options: &[Option]) -> SolutionState {
-        assert!(!options.is_empty(), "No options");
-        todo!("Unimplemented")
+    fn initiate(options: &[Option]) -> Result<SolutionState, DancingLinksError> {
+        if options.is_empty() {
+            return Err(DancingLinksError::new(
+                "At least one Option must be provided",
+            ));
+        }
+
+        // Build up an ordered list of the primary and secondary items.
+        let primary_items: BTreeSet<String> = options
+            .iter()
+            .flat_map(|option| option.primary_items.clone())
+            .collect::<BTreeSet<String>>();
+        let secondary_items: BTreeSet<String> = options
+            .iter()
+            .flat_map(|option| option.secondary_items.clone())
+            .collect::<BTreeSet<String>>();
+        if primary_items.is_empty() {
+            return Err(DancingLinksError::new("No primary items in options"));
+        }
+
+        // Make sure there are no overlaps.
+        {
+            let mut primary_and_secondary = primary_items.intersection(&secondary_items).peekable();
+            if primary_and_secondary.peek().is_some() {
+                return Err(DancingLinksError::new(format!(
+                    "Can't have items that are both primary and secondary: {:?}",
+                    primary_and_secondary
+                )));
+            }
+        }
+
+        let n_items = primary_items.len() + secondary_items.len();
+        if n_items > i16::MAX as usize {
+            return Err(DancingLinksError::new(format!(
+                "Too many items: {} > {}",
+                n_items,
+                i16::MAX
+            )));
+        }
+        let num_primary = primary_items.len() as u16;
+
+        let mut items = std::iter::once(Item {
+            llink: n_items as u16,
+            rlink: 1,
+            name: "EMPTY NODE".to_string(),
+        })
+        .chain(
+            primary_items
+                .into_iter()
+                .chain(secondary_items.into_iter())
+                .enumerate()
+                .map(|(idx, name)| Item {
+                    llink: idx as u16,
+                    rlink: idx as u16 + 2,
+                    name: name,
+                }),
+        )
+        .collect::<Vec<_>>();
+        items[n_items].rlink = 0;
+
+        let name_to_item_index = items
+            .iter()
+            .enumerate()
+            .skip(1)
+            .map(|(idx, item)| (&item.name, idx))
+            .collect::<HashMap<&String, usize>>();
+
+        let num_nodes: usize = items.len()
+            + options.len()
+            + options.iter().map(|option| option.len()).sum::<usize>()
+            + 1;
+        if num_nodes > u16::MAX as usize {
+            // The node points will run out of range.
+            return Err(DancingLinksError::new(format!(
+                "Too many total nodes required: {} > {}",
+                num_nodes,
+                u16::MAX
+            )));
+        }
+        let mut nodes = Vec::with_capacity(num_nodes);
+        // Create the item header nodes.
+        nodes.push(Node::default()); // Unused 'spacer'
+        for idx in 1..=(items.len() as u16) {
+            nodes.push(Node {
+                top: 0, // Len in headers.
+                ulink: idx,
+                dlink: idx,
+            });
+        }
+
+        // The first (real) spacer.
+        nodes.push(Node::default());
+        let mut last_spacer_idx = nodes.len();
+
+        // Now the nodes representing the options.
+        let mut spacer_top = 0;
+        for option in options.into_iter() {
+            for item_name in option
+                .primary_items
+                .iter()
+                .chain(option.secondary_items.iter())
+            {
+                let item_idx = name_to_item_index[&item_name];
+
+                // Update the previous last occurrence of this item.
+                let node_idx = nodes.len();
+                let prev_tail_idx = nodes[item_idx].ulink as usize;
+                nodes[prev_tail_idx].dlink = node_idx as u16;
+                nodes.push(Node {
+                    top: item_idx as i16,
+                    ulink: prev_tail_idx as u16,
+                    dlink: item_idx as u16,
+                });
+
+                // Update the header
+                nodes[item_idx].top += 1; // Len in header nodes.
+                nodes[item_idx].ulink = node_idx as u16;
+            }
+            // Update the spacer before this option.
+            nodes[last_spacer_idx].dlink = nodes.len() as u16;
+            // Add a new spacer.
+            spacer_top -= 1;
+            nodes.push(Node {
+                top: spacer_top,
+                ulink: last_spacer_idx as u16 + 1,
+                dlink: 0,
+            });
+            last_spacer_idx = nodes.len();
+        }
+
+        Ok(SolutionState {
+            num_primary_items: num_primary,
+            last_spacer_address: last_spacer_idx as u16,
+            items: items,
+            nodes: nodes,
+        })
     }
 
     fn cover(&mut self, i: u16) {
