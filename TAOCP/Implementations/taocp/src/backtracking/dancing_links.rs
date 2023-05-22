@@ -13,7 +13,7 @@ pub struct ProblemOption {
     secondary_items: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct DancingLinksError(String);
 
 impl DancingLinksError {
@@ -79,7 +79,7 @@ impl ProblemOption {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 struct Item {
     // The link to the preceding item.
     llink: u16,
@@ -89,7 +89,7 @@ struct Item {
     name: String,
 }
 
-#[derive(Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 struct Node {
     // Which item this node represents.  Non-positive values for top are spacer
     // nodes, and in header nodes top represents the number of active items.
@@ -100,7 +100,7 @@ struct Node {
     dlink: u16,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 struct SolutionState {
     num_primary_items: u16,
     items: Vec<Item>,
@@ -979,6 +979,208 @@ mod tests {
                 .map(|s| s.to_string())
                 .collect::<HashSet<_>>()
                 .contains(choice));
+        }
+    }
+
+    mod cover {
+        use crate::backtracking::dancing_links::{
+            Item, Node, ProblemOption, SolutionState, EMPTY_ITEM_STRING,
+        };
+        use claim::{assert_ok, assert_ok_eq};
+
+        #[test]
+        fn single_primary_item_cover() {
+            let option = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+
+            let mut state = assert_ok!(SolutionState::initiate(vec![option]));
+
+            // For a single item, cover only affects the item links.
+            let mut expected_state = state.clone();
+            expected_state.items[0].llink = 0;
+            expected_state.items[0].rlink = 0;
+
+            state.cover(1);
+            assert_eq!(state, expected_state);
+        }
+
+        #[test]
+        fn large_test_case_cover() {
+            // This is the example from TAOCP 7.2.2.1 (6), updated following
+            // exercise 11 from that section.
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["c", "e"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d", "g"],
+                /*secondary_items=*/ &[],
+            ));
+            let option3 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "c", "f"],
+                /*secondary_items=*/ &[],
+            ));
+            let option4 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d", "f"],
+                /*secondary_items=*/ &[],
+            ));
+            let option5 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "g"],
+                /*secondary_items=*/ &[],
+            ));
+            let option6 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d", "e", "g"],
+                /*secondary_items=*/ &[],
+            ));
+
+            let mut state = assert_ok!(SolutionState::initiate(vec![
+                option1, option2, option3, option4, option5, option6
+            ]));
+
+            // cover(1).
+            let mut expected_state = state.clone();
+            // Item 1 ('a') will be unlinked.
+            expected_state.items[0].rlink = 2;
+            expected_state.items[2].llink = 0;
+            // From hide(12)
+            expected_state.nodes[4].dlink = 2;
+            expected_state.nodes[21].ulink = 4;
+            expected_state.nodes[4].top = 2;
+            expected_state.nodes[7].dlink = 25;
+            expected_state.nodes[25].ulink = 7;
+            expected_state.nodes[7].top = 2;
+            // From hide(20)
+            expected_state.nodes[4].dlink = 27;
+            expected_state.nodes[27].ulink = 4;
+            expected_state.nodes[4].top = 1;
+            expected_state.nodes[18].dlink = 6;
+            expected_state.nodes[6].ulink = 18;
+            expected_state.nodes[6].top = 1;
+
+            state.cover(1);
+            assert_eq!(state, expected_state);
+
+            // cover(4).
+            expected_state.items[5].llink = 3;
+            expected_state.items[3].rlink = 5;
+            expected_state.nodes[10].dlink = 5;
+            expected_state.nodes[5].ulink = 10;
+            expected_state.nodes[5].top = 1;
+            expected_state.nodes[25].dlink = 7;
+            expected_state.nodes[7].ulink = 25;
+            expected_state.nodes[7].top = 1;
+
+            state.cover(4);
+            assert_eq!(state, expected_state);
+
+            // cover(7)
+            expected_state.items[6].rlink = 0;
+            expected_state.items[0].llink = 6;
+            expected_state.nodes[16].dlink = 2;
+            expected_state.nodes[2].ulink = 16;
+            expected_state.nodes[2].top = 1;
+
+            state.cover(7);
+            assert_eq!(state, expected_state);
+
+            // cover(2)
+            expected_state.items[3].llink = 0;
+            expected_state.items[0].rlink = 3;
+            expected_state.nodes[3].ulink = 9;
+            expected_state.nodes[9].dlink = 3;
+            expected_state.nodes[3].top = 1;
+            expected_state.nodes[6].ulink = 6;
+            expected_state.nodes[6].dlink = 6;
+            expected_state.nodes[6].top = 0;
+
+            state.cover(2);
+            assert_eq!(state, expected_state);
+        }
+
+        #[test]
+        fn single_primary_item_uncover() {
+            // Check that uncover undoes what we tested in single_primary_item_cover
+            let option = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+            let initial_state = assert_ok!(SolutionState::initiate(vec![option]));
+
+            let mut state = initial_state.clone();
+            state.cover(1);
+            state.uncover(1);
+
+            assert_eq!(state, initial_state);
+        }
+
+        #[test]
+        fn large_test_case_uncover() {
+            // This is the example from TAOCP 7.2.2.1 (6), updated following
+            // exercise 11 from that section.
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["c", "e"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d", "g"],
+                /*secondary_items=*/ &[],
+            ));
+            let option3 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "c", "f"],
+                /*secondary_items=*/ &[],
+            ));
+            let option4 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d", "f"],
+                /*secondary_items=*/ &[],
+            ));
+            let option5 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "g"],
+                /*secondary_items=*/ &[],
+            ));
+            let option6 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d", "e", "g"],
+                /*secondary_items=*/ &[],
+            ));
+
+            let initial_state = assert_ok!(SolutionState::initiate(vec![
+                option1, option2, option3, option4, option5, option6
+            ]));
+
+            let mut state = initial_state.clone();
+            state.cover(1);
+            let state_before_cover_4 = state.clone();
+            state.cover(4);
+            let state_before_cover_7 = state.clone();
+            state.cover(7);
+            let state_before_cover_2 = state.clone();
+            state.cover(2);
+            let state_before_cover_3 = state.clone();
+            state.cover(3);
+
+            state.uncover(3);
+            assert_eq!(
+                state, state_before_cover_3,
+                "uncover(3) did not reverse cover(3)"
+            );
+            state.uncover(2);
+            assert_eq!(
+                state, state_before_cover_2,
+                "uncover(2) did not reverse cover(2)"
+            );
+            state.uncover(7);
+            assert_eq!(
+                state, state_before_cover_7,
+                "uncover(7) did not reverse cover(7)"
+            );
+            state.uncover(4);
+            assert_eq!(
+                state, state_before_cover_4,
+                "uncover(4) did not reverse cover(4)"
+            );
+            state.uncover(1);
+            assert_eq!(state, initial_state, "uncover(1) did not reverse cover(1)");
         }
     }
 }
