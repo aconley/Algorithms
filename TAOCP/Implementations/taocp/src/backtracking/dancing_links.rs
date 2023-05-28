@@ -4,6 +4,7 @@
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::num::NonZeroU16;
 
 const EMPTY_ITEM_STRING: &str = "EMPTY ITEM";
 
@@ -315,15 +316,17 @@ impl SolutionState {
         }
     }
 
-    // Chose the next item using the MRV heuristic.  Assumes there is at
-    // least one uncovered item.
-    fn chose_next_item_mrv(&self) -> u16 {
+    // Choose the next item using the MRV heuristic.  Returns None if there is
+    // no move.
+    fn choose_next_item(&self) -> Option<NonZeroU16> {
         let mut current_item_idx = self.items[0].rlink;
-        debug_assert!(current_item_idx != 0);
+        if current_item_idx == 0 {
+            return None;
+        }
 
         let mut best_len = self.nodes[current_item_idx as usize].top;
         if best_len == 0 {
-            return current_item_idx;
+            return None;
         }
         let mut best_item = current_item_idx;
 
@@ -331,8 +334,9 @@ impl SolutionState {
         while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
             let current_len = self.nodes[current_item_idx as usize].top;
             if current_len == 0 {
-                // This item has no choices, we should abort.
-                return current_item_idx;
+                // Item has no choices.
+                best_item = 0;
+                break;
             }
             if current_len < best_len {
                 best_len = current_len;
@@ -341,7 +345,7 @@ impl SolutionState {
 
             current_item_idx = self.items[current_item_idx as usize].rlink;
         }
-        return best_item;
+        NonZeroU16::new(best_item)
     }
 }
 
@@ -859,7 +863,7 @@ mod tests {
         }
     }
 
-    mod chose_next {
+    mod choose_next {
         use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
         use claim::{assert_ok, assert_some, assert_some_eq};
         use std::collections::HashSet;
@@ -873,7 +877,9 @@ mod tests {
             let solution_state = assert_ok!(SolutionState::initiate(vec![option]));
 
             assert_some_eq!(
-                solution_state.item_name(solution_state.chose_next_item_mrv()),
+                solution_state
+                    .choose_next_item()
+                    .and_then(|v| solution_state.item_name(v.get())),
                 "a"
             );
         }
@@ -913,7 +919,9 @@ mod tests {
             );
 
             assert_some_eq!(
-                solution_state.item_name(solution_state.chose_next_item_mrv()),
+                solution_state
+                    .choose_next_item()
+                    .and_then(|v| solution_state.item_name(v.get())),
                 "b"
             );
         }
@@ -931,7 +939,9 @@ mod tests {
             let solution_state = assert_ok!(SolutionState::initiate(vec![option1, option2]));
 
             assert_some_eq!(
-                solution_state.item_name(solution_state.chose_next_item_mrv()),
+                solution_state
+                    .choose_next_item()
+                    .and_then(|v| solution_state.item_name(v.get())),
                 "a"
             );
         }
@@ -972,8 +982,9 @@ mod tests {
 
             // b, c, e, f are all acceptable choices.  d is not because
             // it has 3 items, a and g are not because they are secondary.
-            let choice =
-                assert_some!(solution_state.item_name(solution_state.chose_next_item_mrv()));
+            let choice = assert_some!(solution_state
+                .choose_next_item()
+                .and_then(|v| solution_state.item_name(v.get())));
             assert!(["b", "c", "e", "f"]
                 .into_iter()
                 .map(|s| s.to_string())
@@ -983,10 +994,8 @@ mod tests {
     }
 
     mod cover {
-        use crate::backtracking::dancing_links::{
-            Item, Node, ProblemOption, SolutionState, EMPTY_ITEM_STRING,
-        };
-        use claim::{assert_ok, assert_ok_eq};
+        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use claim::assert_ok;
 
         #[test]
         fn single_primary_item_cover() {
