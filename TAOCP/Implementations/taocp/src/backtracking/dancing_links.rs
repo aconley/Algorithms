@@ -80,6 +80,7 @@ impl ProblemOption {
     }
 }
 
+#[derive(Debug)]
 pub struct DancingLinksIterator {
     state: IteratorState,
 }
@@ -483,6 +484,46 @@ mod tests {
 
             assert!(res.is_err());
             assert!(res.unwrap_err().0.contains("overlap"));
+        }
+    }
+
+    mod initialize_iterator {
+        use crate::backtracking::dancing_links::{
+            DancingLinksIterator, IteratorState, ProblemOption,
+        };
+        use claim::assert_ok;
+
+        #[test]
+        fn no_options_is_done_iterator() {
+            let it = assert_ok!(DancingLinksIterator::new(vec![]));
+            assert!(matches!(it.state, IteratorState::DONE));
+        }
+
+        #[test]
+        fn single_option_is_in_new_state() {
+            let option = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &["b"],
+            ));
+
+            let it = assert_ok!(DancingLinksIterator::new(vec![option]));
+            assert!(matches!(it.state, IteratorState::NEW { .. }));
+        }
+
+        #[test]
+        fn item_that_is_primary_and_secondary_is_error() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "b"],
+                /*secondary_items=*/ &["c"],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["c"],
+                /*secondary_items=*/ &[],
+            ));
+            let res = DancingLinksIterator::new(vec![option1, option2]);
+
+            assert!(res.is_err());
+            assert!(res.unwrap_err().0.contains("both primary and secondary"));
         }
     }
 
