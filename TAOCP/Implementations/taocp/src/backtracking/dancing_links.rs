@@ -80,51 +80,39 @@ impl ProblemOption {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Item {
-    // The link to the preceding item.
-    llink: u16,
-    // The link to the next item.
-    rlink: u16,
-    // The name of the item.
-    name: String,
+pub struct DancingLinksIterator {
+    state: IteratorState,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-struct Node {
-    // Which item this node represents.  Non-positive values for top are spacer
-    // nodes, and in header nodes top represents the number of active items.
-    top: i16,
-    // Link to the link above this one.
-    ulink: u16,
-    // Link to the node below this one.
-    dlink: u16,
+#[derive(Debug)]
+enum IteratorState {
+    DONE,
+    NEW {
+        primary_items: BTreeSet<String>,
+        secondary_items: BTreeSet<String>,
+        options: Vec<ProblemOption>,
+        num_nodes: u16,
+    },
+    READY(Box<SolutionState>),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct SolutionState {
-    num_primary_items: u16,
-    items: Vec<Item>,
-    nodes: Vec<Node>,
-}
-
-impl SolutionState {
-    pub fn initiate(options: Vec<ProblemOption>) -> Result<SolutionState, DancingLinksError> {
+impl DancingLinksIterator {
+    pub fn new(options: Vec<ProblemOption>) -> Result<Self, DancingLinksError> {
         if options.is_empty() {
-            return Err(DancingLinksError::new(
-                "At least one ProblemOption must be provided",
-            ));
+            return Ok(DancingLinksIterator {
+                state: IteratorState::DONE,
+            });
         }
 
-        // Build up an ordered list of the primary and secondary items.
         let primary_items: BTreeSet<String> = options
             .iter()
             .flat_map(|option| option.primary_items.clone())
-            .collect::<BTreeSet<String>>();
+            .collect();
         let secondary_items: BTreeSet<String> = options
             .iter()
             .flat_map(|option| option.secondary_items.clone())
-            .collect::<BTreeSet<String>>();
+            .collect();
+
         if primary_items.is_empty() {
             return Err(DancingLinksError::new("No primary items in options"));
         }
@@ -148,8 +136,67 @@ impl SolutionState {
                 i16::MAX
             )));
         }
-        let num_primary = primary_items.len() as u16;
 
+        let num_nodes: usize =
+            n_items + options.len() + options.iter().map(|option| option.len()).sum::<usize>() + 1;
+        if num_nodes > u16::MAX as usize {
+            // The node points will run out of range.
+            return Err(DancingLinksError::new(format!(
+                "Too many total nodes required: {} > {}",
+                num_nodes,
+                u16::MAX
+            )));
+        }
+
+        Ok(DancingLinksIterator {
+            state: IteratorState::NEW {
+                primary_items,
+                secondary_items,
+                options,
+                num_nodes: num_nodes as u16,
+            },
+        })
+    }
+}
+
+// SolutionState is the internal representation of the dancing links state.
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct SolutionState {
+    num_primary_items: u16,
+    items: Vec<Item>,
+    nodes: Vec<Node>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct Item {
+    // The link to the preceding item.
+    llink: u16,
+    // The link to the next item.
+    rlink: u16,
+    // The name of the item.
+    name: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+struct Node {
+    // Which item this node represents.  Non-positive values for top are spacer
+    // nodes, and in header nodes top represents the number of active items.
+    top: i16,
+    // Link to the link above this one.
+    ulink: u16,
+    // Link to the node below this one.
+    dlink: u16,
+}
+
+impl SolutionState {
+    pub fn initiate(
+        primary_items: BTreeSet<String>,
+        secondary_items: BTreeSet<String>,
+        options: Vec<ProblemOption>,
+        num_nodes: u16,
+    ) -> Self {
+        let n_primary = primary_items.len();
+        let n_items = primary_items.len() + secondary_items.len();
         let mut items = std::iter::once(Item {
             llink: n_items as u16,
             rlink: 1,
@@ -176,19 +223,7 @@ impl SolutionState {
             .map(|(idx, item)| (&item.name, idx))
             .collect::<HashMap<&String, usize>>();
 
-        let num_nodes: usize = items.len()
-            + options.len()
-            + options.iter().map(|option| option.len()).sum::<usize>()
-            + 1;
-        if num_nodes > u16::MAX as usize {
-            // The node points will run out of range.
-            return Err(DancingLinksError::new(format!(
-                "Too many total nodes required: {} > {}",
-                num_nodes,
-                u16::MAX
-            )));
-        }
-        let mut nodes = Vec::with_capacity(num_nodes);
+        let mut nodes = Vec::with_capacity(num_nodes as usize);
         // Create the item header nodes.
         nodes.push(Node::default()); // Unused 'spacer'
         for idx in 1..(items.len() as u16) {
@@ -240,11 +275,11 @@ impl SolutionState {
             last_spacer_idx = nodes.len() - 1;
         }
 
-        Ok(SolutionState {
-            num_primary_items: num_primary,
+        SolutionState {
+            num_primary_items: n_primary as u16,
             items: items,
             nodes: nodes,
-        })
+        }
     }
 
     fn item_name(&self, idx: u16) -> Option<&String> {
@@ -351,9 +386,35 @@ impl SolutionState {
 
 #[cfg(test)]
 mod tests {
+    use crate::backtracking::dancing_links::{
+        DancingLinksError, DancingLinksIterator, IteratorState, ProblemOption, SolutionState,
+    };
+
+    fn create_solution_state(
+        options: Vec<ProblemOption>,
+    ) -> Result<SolutionState, DancingLinksError> {
+        let iterator = DancingLinksIterator::new(options)?;
+        match iterator.state {
+            IteratorState::DONE => Err(DancingLinksError::new("Iterator created in DONE state")),
+            IteratorState::READY(_) => {
+                Err(DancingLinksError::new("Iterator created in READY state"))
+            }
+            IteratorState::NEW {
+                primary_items,
+                secondary_items,
+                options,
+                num_nodes,
+            } => Ok(SolutionState::initiate(
+                primary_items,
+                secondary_items,
+                options,
+                num_nodes,
+            )),
+        }
+    }
+
     mod options {
         use crate::backtracking::dancing_links::ProblemOption;
-
         #[test]
         fn option_has_expected_items() {
             let res = ProblemOption::new_from_str(
@@ -425,7 +486,8 @@ mod tests {
         }
     }
 
-    mod initialization {
+    mod initialize_solution_state {
+        use super::create_solution_state;
         use crate::backtracking::dancing_links::{
             Item, Node, ProblemOption, SolutionState, EMPTY_ITEM_STRING,
         };
@@ -439,7 +501,7 @@ mod tests {
             ));
 
             assert_ok_eq!(
-                SolutionState::initiate(vec![option]),
+                create_solution_state(vec![option]),
                 SolutionState {
                     num_primary_items: 1,
                     items: vec![
@@ -498,7 +560,7 @@ mod tests {
             ));
 
             assert_ok_eq!(
-                SolutionState::initiate(vec![option1, option2]),
+                create_solution_state(vec![option1, option2]),
                 SolutionState {
                     num_primary_items: 2,
                     items: vec![
@@ -621,7 +683,7 @@ mod tests {
             ));
 
             assert_ok_eq!(
-                SolutionState::initiate(vec![option1, option2, option3, option4, option5, option6]),
+                create_solution_state(vec![option1, option2, option3, option4, option5, option6]),
                 SolutionState {
                     num_primary_items: 5,
                     items: vec![
@@ -864,7 +926,8 @@ mod tests {
     }
 
     mod choose_next {
-        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use super::create_solution_state;
+        use crate::backtracking::dancing_links::ProblemOption;
         use claim::{assert_ok, assert_some, assert_some_eq};
         use std::collections::HashSet;
 
@@ -874,7 +937,7 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
             ));
-            let solution_state = assert_ok!(SolutionState::initiate(vec![option]));
+            let solution_state = assert_ok!(create_solution_state(vec![option]));
 
             assert_some_eq!(
                 solution_state
@@ -895,7 +958,7 @@ mod tests {
                 /*secondary_items=*/ &[],
             ));
 
-            let solution_state = assert_ok!(SolutionState::initiate(vec![option1, option2]));
+            let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
 
             assert_eq!(solution_state.num_primary_items, 3);
             assert_eq!(
@@ -936,7 +999,7 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &["b"],
             ));
-            let solution_state = assert_ok!(SolutionState::initiate(vec![option1, option2]));
+            let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
 
             assert_some_eq!(
                 solution_state
@@ -975,7 +1038,7 @@ mod tests {
                 /*secondary_items=*/ &["g"],
             ));
 
-            let solution_state = assert_ok!(SolutionState::initiate(vec![
+            let solution_state = assert_ok!(create_solution_state(vec![
                 option1, option2, option3, option4, option5, option6
             ]));
             assert_eq!(solution_state.num_primary_items, 5);
@@ -994,7 +1057,8 @@ mod tests {
     }
 
     mod cover {
-        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use super::create_solution_state;
+        use crate::backtracking::dancing_links::ProblemOption;
         use claim::assert_ok;
 
         #[test]
@@ -1004,7 +1068,7 @@ mod tests {
                 /*secondary_items=*/ &[],
             ));
 
-            let mut state = assert_ok!(SolutionState::initiate(vec![option]));
+            let mut state = assert_ok!(create_solution_state(vec![option]));
 
             // For a single item, cover only affects the item links.
             let mut expected_state = state.clone();
@@ -1044,7 +1108,7 @@ mod tests {
                 /*secondary_items=*/ &[],
             ));
 
-            let mut state = assert_ok!(SolutionState::initiate(vec![
+            let mut state = assert_ok!(create_solution_state(vec![
                 option1, option2, option3, option4, option5, option6
             ]));
 
@@ -1115,7 +1179,7 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
             ));
-            let initial_state = assert_ok!(SolutionState::initiate(vec![option]));
+            let initial_state = assert_ok!(create_solution_state(vec![option]));
 
             let mut state = initial_state.clone();
             state.cover(1);
@@ -1153,7 +1217,7 @@ mod tests {
                 /*secondary_items=*/ &[],
             ));
 
-            let initial_state = assert_ok!(SolutionState::initiate(vec![
+            let initial_state = assert_ok!(create_solution_state(vec![
                 option1, option2, option3, option4, option5, option6
             ]));
 
