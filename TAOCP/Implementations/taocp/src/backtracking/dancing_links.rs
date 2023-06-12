@@ -88,13 +88,11 @@ pub struct DancingLinksIterator {
 #[derive(Debug)]
 enum IteratorState {
     DONE,
-    NEW {
-        primary_items: BTreeSet<String>,
-        secondary_items: BTreeSet<String>,
-        options: Vec<ProblemOption>,
-        num_nodes: u16,
+    NEW(InitialState),
+    READY {
+        x: Vec<u16>,
+        solution_state: Box<SolutionState>,
     },
-    READY(Box<SolutionState>),
 }
 
 impl DancingLinksIterator {
@@ -150,14 +148,95 @@ impl DancingLinksIterator {
         }
 
         Ok(DancingLinksIterator {
-            state: IteratorState::NEW {
+            state: IteratorState::NEW(InitialState {
                 primary_items,
                 secondary_items,
                 options,
                 num_nodes: num_nodes as u16,
-            },
+            }),
         })
     }
+}
+
+impl Iterator for DancingLinksIterator {
+    type Item = Vec<u16>;
+    fn next(&mut self) -> Option<Self::Item> {
+        match &mut self.state {
+            IteratorState::DONE => None,
+            IteratorState::NEW(ref mut initial_state) => {
+                let mut solution_state =
+                    Box::new(SolutionState::initiate(std::mem::take(initial_state)));
+                match solution_state.choose_next_item() {
+                    None => {
+                        // No possible moves immediately.
+                        self.state = IteratorState::DONE;
+                        None
+                    }
+                    Some(next_item) => {
+                        solution_state.cover(next_item.get());
+                        self.state = IteratorState::READY {
+                            x: vec![next_item.get()],
+                            solution_state,
+                        };
+                        self.next()
+                    }
+                }
+            }
+            IteratorState::READY {
+                ref mut x,
+                ref mut solution_state,
+            } => {
+                loop {
+                    // Backtrack.
+                    let mut xl = x[x.len() - 1];
+                    while xl
+                        == solution_state.nodes[solution_state.nodes[xl as usize].top as usize]
+                            .ulink
+                    {
+                        // The last x was pointing at the final option for this item,
+                        // so we have to backtrack.
+                        solution_state.unapply_move(xl);
+                        solution_state.uncover(solution_state.nodes[xl as usize].top as u16);
+                        x.pop();
+                        if x.is_empty() {
+                            // Terminate.
+                            self.state = IteratorState::DONE;
+                            return None;
+                        }
+                        xl = x[x.len() - 1];
+                    }
+
+                    // Try the next value of xl.
+                    let xl_idx = x.len() - 1;
+                    x[xl_idx] = solution_state.nodes[x[xl_idx] as usize].dlink;
+                    solution_state.apply_move(x[xl_idx]);
+
+                    // Done?
+                    if solution_state.items[0].rlink == 0 {
+                        return Some(x.clone());
+                    }
+
+                    // Not done, select the next item we will try.
+                    match solution_state.choose_next_item() {
+                        None => (), // No choice was possible, let the loop try the next value.
+                        Some(next_item) => {
+                            solution_state.cover(next_item.get());
+                            x.push(next_item.get());
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// InitialState is the initial info needed to create SolutionState.
+#[derive(Debug, Default)]
+struct InitialState {
+    primary_items: BTreeSet<String>,
+    secondary_items: BTreeSet<String>,
+    options: Vec<ProblemOption>,
+    num_nodes: u16,
 }
 
 // SolutionState is the internal representation of the dancing links state.
@@ -170,6 +249,8 @@ struct SolutionState {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Item {
+    // The number of active options that involve this item.
+    len: u16,
     // The link to the preceding item.
     llink: u16,
     // The link to the next item.
@@ -181,7 +262,7 @@ struct Item {
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 struct Node {
     // Which item this node represents.  Non-positive values for top are spacer
-    // nodes, and in header nodes top represents the number of active items.
+    // nodes.
     top: i16,
     // Link to the link above this one.
     ulink: u16,
@@ -190,25 +271,24 @@ struct Node {
 }
 
 impl SolutionState {
-    pub fn initiate(
-        primary_items: BTreeSet<String>,
-        secondary_items: BTreeSet<String>,
-        options: Vec<ProblemOption>,
-        num_nodes: u16,
-    ) -> Self {
-        let n_primary = primary_items.len();
-        let n_items = primary_items.len() + secondary_items.len();
+    pub fn initiate(initial_state: InitialState) -> Self {
+        let n_primary = initial_state.primary_items.len();
+        let n_items = initial_state.primary_items.len() + initial_state.secondary_items.len();
+
         let mut items = std::iter::once(Item {
+            len: 0,
             llink: n_items as u16,
             rlink: 1,
             name: EMPTY_ITEM_STRING.to_string(),
         })
         .chain(
-            primary_items
+            initial_state
+                .primary_items
                 .into_iter()
-                .chain(secondary_items.into_iter())
+                .chain(initial_state.secondary_items.into_iter())
                 .enumerate()
                 .map(|(idx, name)| Item {
+                    len: 0,
                     llink: idx as u16,
                     rlink: idx as u16 + 2,
                     name: name,
@@ -224,12 +304,12 @@ impl SolutionState {
             .map(|(idx, item)| (&item.name, idx))
             .collect::<HashMap<&String, usize>>();
 
-        let mut nodes = Vec::with_capacity(num_nodes as usize);
+        let mut nodes = Vec::with_capacity(initial_state.num_nodes as usize);
         // Create the item header nodes.
         nodes.push(Node::default()); // Unused 'spacer'
         for idx in 1..(items.len() as u16) {
             nodes.push(Node {
-                top: 0, // Len in headers.
+                top: idx as i16,
                 ulink: idx,
                 dlink: idx,
             });
@@ -241,7 +321,7 @@ impl SolutionState {
 
         // Now the nodes representing the options.
         let mut spacer_top = 0;
-        for option in options.into_iter() {
+        for option in initial_state.options.into_iter() {
             for item_name in option
                 .primary_items
                 .iter()
@@ -260,7 +340,6 @@ impl SolutionState {
                 });
 
                 // Update the header
-                nodes[item_idx].top += 1; // Len in header nodes.
                 nodes[item_idx].ulink = node_idx as u16;
             }
             // Update the spacer before this option to point at the last node
@@ -274,6 +353,16 @@ impl SolutionState {
                 dlink: 0,
             });
             last_spacer_idx = nodes.len() - 1;
+        }
+
+        // Count the number of times each item is used.
+        drop(name_to_item_index);
+        for (item_idx, item) in items.iter_mut().enumerate().skip(1) {
+            let mut curr_idx = nodes[item_idx].dlink as usize;
+            while curr_idx != item_idx {
+                curr_idx = nodes[curr_idx].dlink as usize;
+                item.len += 1;
+            }
         }
 
         SolutionState {
@@ -291,14 +380,14 @@ impl SolutionState {
         }
     }
 
-    fn cover(&mut self, i: u16) {
-        let mut p = self.nodes[i as usize].dlink;
-        while p != i {
+    fn cover(&mut self, item: u16) {
+        let mut p = self.nodes[item as usize].dlink;
+        while p != item {
             self.hide(p);
             p = self.nodes[p as usize].dlink;
         }
-        let l = self.items[i as usize].llink;
-        let r = self.items[i as usize].rlink;
+        let l = self.items[item as usize].llink;
+        let r = self.items[item as usize].rlink;
         self.items[l as usize].rlink = r;
         self.items[r as usize].llink = l;
     }
@@ -315,20 +404,20 @@ impl SolutionState {
                 let d = self.nodes[q as usize].dlink;
                 self.nodes[u as usize].dlink = d;
                 self.nodes[d as usize].ulink = u;
-                self.nodes[x as usize].top -= 1;
+                self.items[x as usize].len -= 1;
                 q += 1;
             }
         }
     }
 
-    fn uncover(&mut self, i: u16) {
-        let l = self.items[i as usize].llink;
-        let r = self.items[i as usize].rlink;
-        self.items[l as usize].rlink = i;
-        self.items[r as usize].llink = i;
+    fn uncover(&mut self, item: u16) {
+        let l = self.items[item as usize].llink;
+        let r = self.items[item as usize].rlink;
+        self.items[l as usize].rlink = item;
+        self.items[r as usize].llink = item;
 
-        let mut p = self.nodes[i as usize].ulink;
-        while p != i {
+        let mut p = self.nodes[item as usize].ulink;
+        while p != item {
             self.unhide(p);
             p = self.nodes[p as usize].ulink;
         }
@@ -346,8 +435,36 @@ impl SolutionState {
                 let u = self.nodes[q as usize].ulink;
                 self.nodes[u as usize].dlink = q;
                 self.nodes[d as usize].ulink = q;
-                self.nodes[x as usize].top += 1;
+                self.items[x as usize].len += 1;
                 q -= 1;
+            }
+        }
+    }
+
+    fn apply_move(&mut self, xl: u16) {
+        let mut p = xl + 1;
+        while p != xl {
+            let j = self.nodes[p as usize].top;
+            if j <= 0 {
+                // Spacer.
+                p = self.nodes[p as usize].ulink;
+            } else {
+                self.cover(j as u16);
+                p += 1;
+            }
+        }
+    }
+
+    fn unapply_move(&mut self, xl: u16) {
+        let mut p = xl + 1;
+        while p != xl {
+            let j = self.nodes[p as usize].top;
+            if j <= 0 {
+                // Spacer.
+                p = self.nodes[p as usize].ulink;
+            } else {
+                self.uncover(j as u16);
+                p += 1;
             }
         }
     }
@@ -360,7 +477,7 @@ impl SolutionState {
             return None;
         }
 
-        let mut best_len = self.nodes[current_item_idx as usize].top;
+        let mut best_len = self.items[current_item_idx as usize].len;
         if best_len == 0 {
             return None;
         }
@@ -368,7 +485,7 @@ impl SolutionState {
 
         current_item_idx = self.items[current_item_idx as usize].rlink;
         while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
-            let current_len = self.nodes[current_item_idx as usize].top;
+            let current_len = self.items[current_item_idx as usize].len;
             if current_len == 0 {
                 // Item has no choices.
                 best_item = 0;
@@ -397,20 +514,10 @@ mod tests {
         let iterator = DancingLinksIterator::new(options)?;
         match iterator.state {
             IteratorState::DONE => Err(DancingLinksError::new("Iterator created in DONE state")),
-            IteratorState::READY(_) => {
+            IteratorState::READY { .. } => {
                 Err(DancingLinksError::new("Iterator created in READY state"))
             }
-            IteratorState::NEW {
-                primary_items,
-                secondary_items,
-                options,
-                num_nodes,
-            } => Ok(SolutionState::initiate(
-                primary_items,
-                secondary_items,
-                options,
-                num_nodes,
-            )),
+            IteratorState::NEW(initial_state) => Ok(SolutionState::initiate(initial_state)),
         }
     }
 
@@ -547,11 +654,13 @@ mod tests {
                     num_primary_items: 1,
                     items: vec![
                         Item {
+                            len: 0,
                             llink: 1,
                             rlink: 1,
                             name: EMPTY_ITEM_STRING.to_string()
                         },
                         Item {
+                            len: 1,
                             llink: 0,
                             rlink: 0,
                             name: "a".to_string()
@@ -606,21 +715,25 @@ mod tests {
                     num_primary_items: 2,
                     items: vec![
                         Item {
+                            len: 0,
                             llink: 3,
                             rlink: 1,
                             name: EMPTY_ITEM_STRING.to_string()
                         },
                         Item {
+                            len: 1,
                             llink: 0,
                             rlink: 2,
                             name: "a".to_string()
                         },
                         Item {
+                            len: 2,
                             llink: 1,
                             rlink: 3,
                             name: "b".to_string()
                         },
                         Item {
+                            len: 1,
                             llink: 2,
                             rlink: 0,
                             name: "c".to_string()
@@ -643,7 +756,7 @@ mod tests {
                         },
                         // Node 3: header node for 'c'
                         Node {
-                            top: 1,
+                            top: 3,
                             ulink: 9, // ProblemOption b, c
                             dlink: 9  // ProblemOption b, c
                         },
@@ -730,42 +843,50 @@ mod tests {
                     items: vec![
                         // Primary items.
                         Item {
+                            len: 0,
                             llink: 7,
                             rlink: 1,
                             name: EMPTY_ITEM_STRING.to_string()
                         },
                         Item {
+                            len: 2,
                             llink: 0,
                             rlink: 2,
                             name: "a".to_string()
                         },
                         Item {
+                            len: 2,
                             llink: 1,
                             rlink: 3,
                             name: "b".to_string()
                         },
                         Item {
+                            len: 2,
                             llink: 2,
                             rlink: 4,
                             name: "c".to_string()
                         },
                         Item {
+                            len: 3,
                             llink: 3,
                             rlink: 5,
                             name: "d".to_string()
                         },
                         Item {
+                            len: 2,
                             llink: 4,
                             rlink: 6,
                             name: "e".to_string()
                         },
                         // Secondary items
                         Item {
+                            len: 2,
                             llink: 5,
                             rlink: 7,
                             name: "f".to_string(),
                         },
                         Item {
+                            len: 3,
                             llink: 6,
                             rlink: 0,
                             name: "g".to_string(),
@@ -776,7 +897,7 @@ mod tests {
                         Node::default(),
                         // Node 1: header node for 'a'
                         Node {
-                            top: 2,
+                            top: 1,
                             ulink: 20, // ProblemOption a d
                             dlink: 12, // ProblemOption a d g
                         },
@@ -788,31 +909,31 @@ mod tests {
                         },
                         // Node 3: header node for 'c'
                         Node {
-                            top: 2,
+                            top: 3,
                             ulink: 17, // ProblemOption b, c, f
                             dlink: 9   // ProblemOption c, e
                         },
                         // Node 4: header node for 'd'
                         Node {
-                            top: 3,
+                            top: 4,
                             ulink: 27, // ProblemOption d e g
                             dlink: 13, // ProblemOption a d g
                         },
                         // Node 5: header node for 'e'
                         Node {
-                            top: 2,
+                            top: 5,
                             ulink: 28, // ProblemOption d e g
                             dlink: 10  // ProblemOption c e
                         },
                         // Node 6: header node for 'f'
                         Node {
-                            top: 2,
+                            top: 6,
                             ulink: 22, // ProblemOption a d f
                             dlink: 18  // ProblemOption b c f
                         },
                         // Node 7: header node for 'g'
                         Node {
-                            top: 3,
+                            top: 7,
                             ulink: 29, // ProblemOption d e g
                             dlink: 14  // ProblemOption a d g
                         },
@@ -1002,13 +1123,14 @@ mod tests {
             let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
 
             assert_eq!(solution_state.num_primary_items, 3);
+            // Check the LEN vars are what we expect.
             assert_eq!(
                 solution_state
-                    .nodes
+                    .items
                     .iter()
                     .skip(1)
                     .take(3)
-                    .map(|node| node.top)
+                    .map(|item| item.len)
                     .collect::<Vec<_>>(),
                 vec![2, 1, 2]
             );
@@ -1161,17 +1283,17 @@ mod tests {
             // From hide(12)
             expected_state.nodes[4].dlink = 2;
             expected_state.nodes[21].ulink = 4;
-            expected_state.nodes[4].top = 2;
+            expected_state.items[4].len = 2;
             expected_state.nodes[7].dlink = 25;
             expected_state.nodes[25].ulink = 7;
-            expected_state.nodes[7].top = 2;
+            expected_state.items[7].len = 2;
             // From hide(20)
             expected_state.nodes[4].dlink = 27;
             expected_state.nodes[27].ulink = 4;
-            expected_state.nodes[4].top = 1;
+            expected_state.items[4].len = 1;
             expected_state.nodes[18].dlink = 6;
             expected_state.nodes[6].ulink = 18;
-            expected_state.nodes[6].top = 1;
+            expected_state.items[6].len = 1;
 
             state.cover(1);
             assert_eq!(state, expected_state);
@@ -1181,10 +1303,10 @@ mod tests {
             expected_state.items[3].rlink = 5;
             expected_state.nodes[10].dlink = 5;
             expected_state.nodes[5].ulink = 10;
-            expected_state.nodes[5].top = 1;
+            expected_state.items[5].len = 1;
             expected_state.nodes[25].dlink = 7;
             expected_state.nodes[7].ulink = 25;
-            expected_state.nodes[7].top = 1;
+            expected_state.items[7].len = 1;
 
             state.cover(4);
             assert_eq!(state, expected_state);
@@ -1194,7 +1316,7 @@ mod tests {
             expected_state.items[0].llink = 6;
             expected_state.nodes[16].dlink = 2;
             expected_state.nodes[2].ulink = 16;
-            expected_state.nodes[2].top = 1;
+            expected_state.items[2].len = 1;
 
             state.cover(7);
             assert_eq!(state, expected_state);
@@ -1204,10 +1326,10 @@ mod tests {
             expected_state.items[0].rlink = 3;
             expected_state.nodes[3].ulink = 9;
             expected_state.nodes[9].dlink = 3;
-            expected_state.nodes[3].top = 1;
+            expected_state.items[3].len = 1;
             expected_state.nodes[6].ulink = 6;
             expected_state.nodes[6].dlink = 6;
-            expected_state.nodes[6].top = 0;
+            expected_state.items[6].len = 0;
 
             state.cover(2);
             assert_eq!(state, expected_state);
