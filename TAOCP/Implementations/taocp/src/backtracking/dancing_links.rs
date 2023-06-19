@@ -8,7 +8,7 @@ use std::num::NonZeroU16;
 
 const EMPTY_ITEM_STRING: &str = "EMPTY ITEM";
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProblemOption {
     primary_items: Vec<String>,
     secondary_items: Vec<String>,
@@ -159,7 +159,7 @@ impl DancingLinksIterator {
 }
 
 impl Iterator for DancingLinksIterator {
-    type Item = Vec<u16>;
+    type Item = Vec<ProblemOption>;
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.state {
             IteratorState::DONE => None,
@@ -213,7 +213,11 @@ impl Iterator for DancingLinksIterator {
 
                     // Done?
                     if solution_state.items[0].rlink == 0 {
-                        return Some(x.clone());
+                        return Some(
+                            x.iter()
+                                .map(|&x| solution_state.to_option(x as usize))
+                                .collect(),
+                        );
                     }
 
                     // Not done, select the next item we will try.
@@ -271,7 +275,7 @@ struct Node {
 }
 
 impl SolutionState {
-    pub fn initiate(initial_state: InitialState) -> Self {
+    fn initiate(initial_state: InitialState) -> Self {
         let n_primary = initial_state.primary_items.len();
         let n_items = initial_state.primary_items.len() + initial_state.secondary_items.len();
 
@@ -373,11 +377,35 @@ impl SolutionState {
     }
 
     fn item_name(&self, idx: u16) -> Option<&String> {
-        if idx == 0 || idx >= self.items.len() as u16 {
+        let idx_u = idx as usize;
+        if idx_u >= self.items.len() {
             None
         } else {
-            Some(&self.items[idx as usize].name)
+            Some(&self.items[idx_u].name)
         }
+    }
+
+    fn to_option(&self, mut x: usize) -> ProblemOption {
+        while self.nodes[x - 1].top > 0 {
+            x -= 1;
+        }
+        let mut res = ProblemOption {
+            primary_items: Vec::default(),
+            secondary_items: Vec::default(),
+        };
+        // x now points at the first non-spacer node of the solution.
+        let n_primary = self.num_primary_items as i16;
+        while self.nodes[x].top > 0 && self.nodes[x].top <= n_primary {
+            res.primary_items
+                .push(self.items[self.nodes[x].top as usize].name.clone());
+            x += 1;
+        }
+        while self.nodes[x].top > 0 {
+            res.secondary_items
+                .push(self.items[self.nodes[x].top as usize].name.clone());
+            x += 1;
+        }
+        res
     }
 
     fn cover(&mut self, item: u16) {
@@ -1417,6 +1445,76 @@ mod tests {
             );
             state.uncover(1);
             assert_eq!(state, initial_state, "uncover(1) did not reverse cover(1)");
+        }
+    }
+
+    mod to_solution {
+        use super::create_solution_state;
+        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use claim::assert_ok;
+
+        #[test]
+        fn small_test_case_get_options() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "b"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["c"],
+            ));
+
+            let state: SolutionState = assert_ok!(create_solution_state(vec![
+                option1.clone(),
+                option2.clone()
+            ]));
+
+            assert_eq!(state.to_option(5), option1);
+            assert_eq!(state.to_option(6), option1);
+            assert_eq!(state.to_option(8), option2);
+        }
+
+        #[test]
+        fn large_test_case_get_options() {
+            // This is the example from TAOCP 7.2.2.1 (6), except that fg have
+            // been made secondary.
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["c", "e"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option3 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "c"],
+                /*secondary_items=*/ &["f"],
+            ));
+            let option4 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d"],
+                /*secondary_items=*/ &["f"],
+            ));
+            let option5 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option6 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d", "e"],
+                /*secondary_items=*/ &["g"],
+            ));
+
+            let state = assert_ok!(create_solution_state(vec![
+                option1.clone(),
+                option2,
+                option3.clone(),
+                option4,
+                option5,
+                option6
+            ]));
+
+            assert_eq!(state.to_option(9), option1);
+            assert_eq!(state.to_option(10), option1);
+            assert_eq!(state.to_option(16), option3);
         }
     }
 }
