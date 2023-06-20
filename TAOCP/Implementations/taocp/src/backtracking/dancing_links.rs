@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::num::NonZeroU16;
 
-const EMPTY_ITEM_STRING: &str = "EMPTY ITEM";
+const PRIMARY_LIST_HEAD: &str = "PRIMARY LIST HEAD";
+const SECONDARY_LIST_HEAD: &str = "SECONDARY LIST HEAD";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProblemOption {
@@ -277,13 +278,13 @@ struct Node {
 impl SolutionState {
     fn initiate(initial_state: InitialState) -> Self {
         let n_primary = initial_state.primary_items.len();
-        let n_items = initial_state.primary_items.len() + initial_state.secondary_items.len();
+        let n_secondary = initial_state.secondary_items.len();
 
         let mut items = std::iter::once(Item {
             len: 0,
-            llink: n_items as u16,
+            llink: n_primary as u16,
             rlink: 1,
-            name: EMPTY_ITEM_STRING.to_string(),
+            name: PRIMARY_LIST_HEAD.to_string(),
         })
         .chain(
             initial_state
@@ -298,20 +299,28 @@ impl SolutionState {
                     name: name,
                 }),
         )
+        .chain(std::iter::once(Item {
+            len: 0,
+            llink: (n_primary + n_secondary) as u16,
+            rlink: (n_primary + 1) as u16,
+            name: SECONDARY_LIST_HEAD.to_string(),
+        }))
         .collect::<Vec<_>>();
-        items[n_items].rlink = 0;
+        items[n_primary as usize].rlink = 0;
+        items[(n_primary + 1) as usize].llink = (n_primary + n_secondary + 1) as u16;
 
         let name_to_item_index = items
             .iter()
             .enumerate()
             .skip(1)
+            .take(n_primary + n_secondary)
             .map(|(idx, item)| (&item.name, idx))
             .collect::<HashMap<&String, usize>>();
 
         let mut nodes = Vec::with_capacity(initial_state.num_nodes as usize);
         // Create the item header nodes.
         nodes.push(Node::default()); // Unused 'spacer'
-        for idx in 1..(items.len() as u16) {
+        for idx in 1..(items.len() as u16 - 1) {
             nodes.push(Node {
                 top: idx as i16,
                 ulink: idx,
@@ -361,7 +370,12 @@ impl SolutionState {
 
         // Count the number of times each item is used.
         drop(name_to_item_index);
-        for (item_idx, item) in items.iter_mut().enumerate().skip(1) {
+        for (item_idx, item) in items
+            .iter_mut()
+            .enumerate()
+            .skip(1)
+            .take(n_primary + n_secondary)
+        {
             let mut curr_idx = nodes[item_idx].dlink as usize;
             while curr_idx != item_idx {
                 curr_idx = nodes[curr_idx].dlink as usize;
@@ -665,7 +679,7 @@ mod tests {
     mod initialize_solution_state {
         use super::create_solution_state;
         use crate::backtracking::dancing_links::{
-            Item, Node, ProblemOption, SolutionState, EMPTY_ITEM_STRING,
+            Item, Node, ProblemOption, SolutionState, PRIMARY_LIST_HEAD, SECONDARY_LIST_HEAD,
         };
         use claim::{assert_ok, assert_ok_eq};
 
@@ -685,13 +699,19 @@ mod tests {
                             len: 0,
                             llink: 1,
                             rlink: 1,
-                            name: EMPTY_ITEM_STRING.to_string()
+                            name: PRIMARY_LIST_HEAD.to_string()
                         },
                         Item {
                             len: 1,
                             llink: 0,
                             rlink: 0,
                             name: "a".to_string()
+                        },
+                        Item {
+                            len: 0,
+                            llink: 2,
+                            rlink: 2,
+                            name: SECONDARY_LIST_HEAD.to_string()
                         }
                     ],
                     nodes: vec![
@@ -744,10 +764,11 @@ mod tests {
                     items: vec![
                         Item {
                             len: 0,
-                            llink: 3,
+                            llink: 2,
                             rlink: 1,
-                            name: EMPTY_ITEM_STRING.to_string()
+                            name: PRIMARY_LIST_HEAD.to_string()
                         },
+                        // Primary
                         Item {
                             len: 1,
                             llink: 0,
@@ -757,14 +778,21 @@ mod tests {
                         Item {
                             len: 2,
                             llink: 1,
-                            rlink: 3,
+                            rlink: 0,
                             name: "b".to_string()
                         },
+                        // Secondary
                         Item {
                             len: 1,
-                            llink: 2,
-                            rlink: 0,
+                            llink: 4,
+                            rlink: 4,
                             name: "c".to_string()
+                        },
+                        Item {
+                            len: 0,
+                            llink: 3,
+                            rlink: 3,
+                            name: SECONDARY_LIST_HEAD.to_string()
                         }
                     ],
                     nodes: vec![
@@ -872,9 +900,9 @@ mod tests {
                         // Primary items.
                         Item {
                             len: 0,
-                            llink: 7,
+                            llink: 5,
                             rlink: 1,
-                            name: EMPTY_ITEM_STRING.to_string()
+                            name: PRIMARY_LIST_HEAD.to_string()
                         },
                         Item {
                             len: 2,
@@ -903,21 +931,27 @@ mod tests {
                         Item {
                             len: 2,
                             llink: 4,
-                            rlink: 6,
+                            rlink: 0,
                             name: "e".to_string()
                         },
                         // Secondary items
                         Item {
                             len: 2,
-                            llink: 5,
+                            llink: 8,
                             rlink: 7,
                             name: "f".to_string(),
                         },
                         Item {
                             len: 3,
                             llink: 6,
-                            rlink: 0,
+                            rlink: 8,
                             name: "g".to_string(),
+                        },
+                        Item {
+                            len: 0,
+                            llink: 7,
+                            rlink: 6,
+                            name: SECONDARY_LIST_HEAD.to_string()
                         }
                     ],
                     nodes: vec![
@@ -1122,7 +1156,7 @@ mod tests {
         use std::collections::HashSet;
 
         #[test]
-        fn single_primary_item_choses_only_option() {
+        fn single_primary_item_chooses_only_option() {
             let option = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
@@ -1138,7 +1172,7 @@ mod tests {
         }
 
         #[test]
-        fn choses_item_with_fewest_options() {
+        fn chooses_item_with_fewest_options() {
             let option1 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b", "c"],
                 /*secondary_items=*/ &[],
@@ -1167,6 +1201,7 @@ mod tests {
                     .items
                     .iter()
                     .skip(1)
+                    .take(3)
                     .map(|item| item.rlink)
                     .collect::<Vec<_>>(),
                 vec![2, 3, 0]
@@ -1201,7 +1236,7 @@ mod tests {
         }
 
         #[test]
-        fn large_test_case_choses_next_item() {
+        fn large_test_case_chooses_next_item() {
             // This is the example from TAOCP 7.2.2.1 (6), except that ag have
             // been made secondary.
             let option1 = assert_ok!(ProblemOption::new_from_str(
@@ -1515,6 +1550,83 @@ mod tests {
             assert_eq!(state.to_option(9), option1);
             assert_eq!(state.to_option(10), option1);
             assert_eq!(state.to_option(16), option3);
+        }
+    }
+
+    mod iterates_over_solutions {
+        use crate::backtracking::dancing_links::{DancingLinksIterator, ProblemOption};
+        use claim::{assert_none, assert_ok, assert_some_eq};
+
+        #[test]
+        fn single_item_one_option_solution() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+            let mut iterator = assert_ok!(DancingLinksIterator::new(vec![option1.clone()]));
+
+            assert_some_eq!(iterator.next(), vec![option1]);
+            assert_none!(iterator.next());
+        }
+
+        #[test]
+        fn small_test_case_iterator() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "b"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["c"],
+            ));
+
+            let mut iterator =
+                assert_ok!(DancingLinksIterator::new(vec![option1.clone(), option2]));
+
+            assert_some_eq!(iterator.next(), vec![option1]);
+            assert_none!(iterator.next());
+        }
+
+        #[test]
+        fn large_test_case_iterator() {
+            // This is the example from TAOCP 7.2.2.1 (6), except that fg have
+            // been made secondary.
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["c", "e"],
+                /*secondary_items=*/ &[],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option3 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b", "c"],
+                /*secondary_items=*/ &["f"],
+            ));
+            let option4 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "d"],
+                /*secondary_items=*/ &["f"],
+            ));
+            let option5 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["g"],
+            ));
+            let option6 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["d", "e"],
+                /*secondary_items=*/ &["g"],
+            ));
+
+            let mut iterator = assert_ok!(DancingLinksIterator::new(vec![
+                option1.clone(),
+                option2,
+                option3,
+                option4.clone(),
+                option5.clone(),
+                option6
+            ]));
+
+            assert_some_eq!(iterator.next(), vec![option1, option4, option5]);
+            assert_none!(iterator.next());
         }
     }
 }
