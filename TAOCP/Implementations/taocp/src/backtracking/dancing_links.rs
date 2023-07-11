@@ -9,7 +9,7 @@ use std::num::NonZeroU16;
 const PRIMARY_LIST_HEAD: &str = "PRIMARY LIST HEAD";
 const SECONDARY_LIST_HEAD: &str = "SECONDARY LIST HEAD";
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ProblemOption {
     primary_items: Vec<String>,
     secondary_items: Vec<String>,
@@ -21,6 +21,12 @@ pub struct DancingLinksError(String);
 impl DancingLinksError {
     fn new<S: Into<String>>(message: S) -> DancingLinksError {
         DancingLinksError(message.into())
+    }
+}
+
+impl From<String> for DancingLinksError {
+    fn from(value: String) -> Self {
+        DancingLinksError(value)
     }
 }
 
@@ -207,10 +213,13 @@ impl Iterator for DancingLinksIterator {
                         xl = x[x.len() - 1];
                     }
 
-                    // Try the next value of xl.
-                    let xl_idx = x.len() - 1;
-                    x[xl_idx] = solution_state.nodes[x[xl_idx] as usize].dlink;
-                    solution_state.apply_move(x[xl_idx]);
+                    solution_state.unapply_move(xl);
+                    // We know there is a next  value because of the backtracking
+                    // loop above.
+                    xl = solution_state.nodes[xl as usize].dlink;
+                    solution_state.apply_move(xl);
+                    let x_idx = x.len() - 1;
+                    x[x_idx] = xl;
 
                     // Done?
                     if solution_state.items[0].rlink == 0 {
@@ -390,15 +399,6 @@ impl SolutionState {
         }
     }
 
-    fn item_name(&self, idx: u16) -> Option<&String> {
-        let idx_u = idx as usize;
-        if idx_u >= self.items.len() {
-            None
-        } else {
-            Some(&self.items[idx_u].name)
-        }
-    }
-
     fn to_option(&self, mut x: usize) -> ProblemOption {
         while self.nodes[x - 1].top > 0 {
             x -= 1;
@@ -498,6 +498,9 @@ impl SolutionState {
     }
 
     fn unapply_move(&mut self, xl: u16) {
+        if xl <= self.num_primary_items {
+            return;
+        }
         let mut p = xl + 1;
         while p != xl {
             let j = self.nodes[p as usize].top;
@@ -1151,9 +1154,18 @@ mod tests {
 
     mod choose_next {
         use super::create_solution_state;
-        use crate::backtracking::dancing_links::ProblemOption;
+        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
         use claim::{assert_ok, assert_some, assert_some_eq};
         use std::collections::HashSet;
+
+        fn item_name(solution_state: &SolutionState, idx: u16) -> Option<&String> {
+            let idx_u = idx as usize;
+            if idx_u >= solution_state.items.len() {
+                None
+            } else {
+                Some(&solution_state.items[idx_u].name)
+            }
+        }
 
         #[test]
         fn single_primary_item_chooses_only_option() {
@@ -1166,7 +1178,7 @@ mod tests {
             assert_some_eq!(
                 solution_state
                     .choose_next_item()
-                    .and_then(|v| solution_state.item_name(v.get())),
+                    .and_then(|v| item_name(&solution_state, v.get())),
                 "a"
             );
         }
@@ -1210,7 +1222,7 @@ mod tests {
             assert_some_eq!(
                 solution_state
                     .choose_next_item()
-                    .and_then(|v| solution_state.item_name(v.get())),
+                    .and_then(|v| item_name(&solution_state, v.get())),
                 "b"
             );
         }
@@ -1230,7 +1242,7 @@ mod tests {
             assert_some_eq!(
                 solution_state
                     .choose_next_item()
-                    .and_then(|v| solution_state.item_name(v.get())),
+                    .and_then(|v| item_name(&solution_state, v.get())),
                 "a"
             );
         }
@@ -1273,7 +1285,7 @@ mod tests {
             // it has 3 items, a and g are not because they are secondary.
             let choice = assert_some!(solution_state
                 .choose_next_item()
-                .and_then(|v| solution_state.item_name(v.get())));
+                .and_then(|v| item_name(&solution_state, v.get())));
             assert!(["b", "c", "e", "f"]
                 .into_iter()
                 .map(|s| s.to_string())
@@ -1556,6 +1568,7 @@ mod tests {
     mod iterates_over_solutions {
         use crate::backtracking::dancing_links::{DancingLinksIterator, ProblemOption};
         use claim::{assert_none, assert_ok, assert_some_eq};
+        use std::collections::HashSet;
 
         #[test]
         fn single_item_one_option_solution() {
@@ -1570,7 +1583,7 @@ mod tests {
         }
 
         #[test]
-        fn small_test_case_iterator() {
+        fn very_small_test_case_iterator() {
             let option1 = assert_ok!(ProblemOption::new_from_str(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &[],
@@ -1584,6 +1597,42 @@ mod tests {
                 assert_ok!(DancingLinksIterator::new(vec![option1.clone(), option2]));
 
             assert_some_eq!(iterator.next(), vec![option1]);
+            assert_none!(iterator.next());
+        }
+
+        #[test]
+        fn small_test_case_iterator() {
+            let option1 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a", "b"],
+                /*secondary_items=*/ &["c"],
+            ));
+            let option2 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["a"],
+                /*secondary_items=*/ &[],
+            ));
+            let option3 = assert_ok!(ProblemOption::new_from_str(
+                /*primary_items=*/ &["b"],
+                /*secondary_items=*/ &["c"],
+            ));
+
+            let mut iterator = assert_ok!(DancingLinksIterator::new(vec![
+                option1.clone(),
+                option2.clone(),
+                option3.clone()
+            ]));
+
+            assert_some_eq!(
+                iterator
+                    .next()
+                    .map(move |v| v.into_iter().collect::<HashSet<_>>()),
+                HashSet::from([option1])
+            );
+            assert_some_eq!(
+                iterator
+                    .next()
+                    .map(move |v| v.into_iter().collect::<HashSet<_>>()),
+                HashSet::from([option2, option3])
+            );
             assert_none!(iterator.next());
         }
 
@@ -1625,7 +1674,12 @@ mod tests {
                 option6
             ]));
 
-            assert_some_eq!(iterator.next(), vec![option1, option4, option5]);
+            assert_some_eq!(
+                iterator
+                    .next()
+                    .map(move |v| v.into_iter().collect::<HashSet<_>>()),
+                HashSet::from([option1, option4, option5])
+            );
             assert_none!(iterator.next());
         }
     }
