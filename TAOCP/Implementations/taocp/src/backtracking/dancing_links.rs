@@ -11,15 +11,15 @@ const SECONDARY_LIST_HEAD: &str = "SECONDARY LIST HEAD";
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ProblemOption {
-    primary_items: Vec<String>,
-    secondary_items: Vec<String>,
+    pub primary_items: Vec<String>,
+    pub secondary_items: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct DancingLinksError(String);
 
 impl DancingLinksError {
-    fn new<S: Into<String>>(message: S) -> DancingLinksError {
+    pub(crate) fn new<S: Into<String>>(message: S) -> DancingLinksError {
         DancingLinksError(message.into())
     }
 }
@@ -27,6 +27,12 @@ impl DancingLinksError {
 impl From<String> for DancingLinksError {
     fn from(value: String) -> Self {
         DancingLinksError(value)
+    }
+}
+
+impl From<&str> for DancingLinksError {
+    fn from(value: &str) -> Self {
+        DancingLinksError(value.into())
     }
 }
 
@@ -214,7 +220,7 @@ impl Iterator for DancingLinksIterator {
                     }
 
                     solution_state.unapply_move(xl);
-                    // We know there is a next  value because of the backtracking
+                    // We know there is a next value because of the backtracking
                     // loop above.
                     xl = solution_state.nodes[xl as usize].dlink;
                     solution_state.apply_move(xl);
@@ -376,9 +382,9 @@ impl SolutionState {
             });
             last_spacer_idx = nodes.len() - 1;
         }
+        drop(name_to_item_index);
 
         // Count the number of times each item is used.
-        drop(name_to_item_index);
         for (item_idx, item) in items
             .iter_mut()
             .enumerate()
@@ -394,8 +400,8 @@ impl SolutionState {
 
         SolutionState {
             num_primary_items: n_primary as u16,
-            items: items,
-            nodes: nodes,
+            items,
+            nodes,
         }
     }
 
@@ -420,6 +426,11 @@ impl SolutionState {
             x += 1;
         }
         res
+    }
+
+    #[allow(dead_code)]
+    fn name(&self, idx: u16) -> &String {
+        &self.items[self.nodes[idx as usize].top as usize].name
     }
 
     fn cover(&mut self, item: u16) {
@@ -501,15 +512,15 @@ impl SolutionState {
         if xl <= self.num_primary_items {
             return;
         }
-        let mut p = xl + 1;
+        let mut p = xl - 1;
         while p != xl {
             let j = self.nodes[p as usize].top;
             if j <= 0 {
                 // Spacer.
-                p = self.nodes[p as usize].ulink;
+                p = self.nodes[p as usize].dlink;
             } else {
                 self.uncover(j as u16);
-                p += 1;
+                p -= 1;
             }
         }
     }
