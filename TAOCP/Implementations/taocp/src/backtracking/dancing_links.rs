@@ -1,18 +1,28 @@
 // An implementation of Knuth's Algorithm X: Dancing links from
 // TAOCP Volume 4B 7.2.2.1.
 
+use std::collections::BTreeMap;
 use std::collections::BTreeSet;
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::marker::PhantomData;
 use std::num::NonZeroU16;
 
-const PRIMARY_LIST_HEAD: &str = "PRIMARY LIST HEAD";
-const SECONDARY_LIST_HEAD: &str = "SECONDARY LIST HEAD";
+pub trait ProblemOption<ItemType> {
+    type IteratorType: Iterator<Item = ItemType>;
+    type BuilderType: ProblemOptionBuilder<ItemType, ProblemOptionType = Self>;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ProblemOption {
-    pub primary_items: Vec<String>,
-    pub secondary_items: Vec<String>,
+    fn primary_items(&self) -> Self::IteratorType;
+    fn secondary_items(&self) -> Self::IteratorType;
+
+    fn builder() -> Self::BuilderType;
+}
+
+pub trait ProblemOptionBuilder<ItemType> {
+    type ProblemOptionType: ProblemOption<ItemType>;
+
+    fn add_primary(&mut self, item: &ItemType) -> &mut Self;
+    fn add_secondary(&mut self, item: &ItemType) -> &mut Self;
+
+    fn build(self) -> Self::ProblemOptionType;
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -36,143 +46,46 @@ impl From<&str> for DancingLinksError {
     }
 }
 
-impl ProblemOption {
-    pub fn new(
-        primary_items: Vec<String>,
-        secondary_items: Vec<String>,
-    ) -> Result<ProblemOption, DancingLinksError> {
-        // Reject duplicates, or items that are both primary and secondary.
-        if primary_items.is_empty() {
-            return Err(DancingLinksError::new(
-                "ProblemOption must contain at least one primary item",
-            ));
-        }
-        let primary_set = primary_items.iter().collect::<HashSet<&String>>();
-        if primary_set.len() < primary_items.len() {
-            return Err(DancingLinksError::new(
-                "primary_items contained at least one duplicate",
-            ));
-        }
-        if !secondary_items.is_empty() {
-            let secondary_set = secondary_items.iter().collect::<HashSet<&String>>();
-            if secondary_set.len() < secondary_items.len() {
-                return Err(DancingLinksError::new(
-                    "secondary_items contained at least one duplicate",
-                ));
-            }
-            if primary_set.intersection(&secondary_set).next().is_some() {
-                return Err(DancingLinksError::new(
-                    "Primary and secondary items overlap",
-                ));
-            }
-        }
-        Ok(ProblemOption {
-            primary_items,
-            secondary_items,
-        })
-    }
-
-    pub fn new_from_str(
-        primary_items: &[&str],
-        secondary_items: &[&str],
-    ) -> Result<ProblemOption, DancingLinksError> {
-        ProblemOption::new(
-            primary_items
-                .into_iter()
-                .map(|item| String::from(*item))
-                .collect(),
-            secondary_items
-                .into_iter()
-                .map(|item| String::from(*item))
-                .collect(),
-        )
-    }
-
-    fn len(&self) -> usize {
-        self.primary_items.len() + self.secondary_items.len()
-    }
+#[derive(Debug)]
+pub struct DancingLinksIterator<ItemType, OptionType> {
+    state: IteratorState<ItemType>,
+    iterator_item_type: PhantomData<OptionType>,
 }
 
 #[derive(Debug)]
-pub struct DancingLinksIterator {
-    state: IteratorState,
-}
-
-#[derive(Debug)]
-enum IteratorState {
+enum IteratorState<ItemType> {
     DONE,
-    NEW(InitialState),
+    NEW(InitialState<ItemType>),
     READY {
         x: Vec<u16>,
-        solution_state: Box<SolutionState>,
+        solution_state: Box<SolutionState<ItemType>>,
     },
 }
 
-impl DancingLinksIterator {
-    pub fn new(options: Vec<ProblemOption>) -> Result<Self, DancingLinksError> {
+impl<ItemType, OptionType> DancingLinksIterator<ItemType, OptionType>
+where
+    ItemType: Ord,
+    OptionType: ProblemOption<ItemType>,
+{
+    pub fn new(options: Vec<OptionType>) -> Result<Self, DancingLinksError> {
         if options.is_empty() {
             return Ok(DancingLinksIterator {
                 state: IteratorState::DONE,
+                iterator_item_type: PhantomData,
             });
         }
-
-        let primary_items: BTreeSet<String> = options
-            .iter()
-            .flat_map(|option| option.primary_items.clone())
-            .collect();
-        let secondary_items: BTreeSet<String> = options
-            .iter()
-            .flat_map(|option| option.secondary_items.clone())
-            .collect();
-
-        if primary_items.is_empty() {
-            return Err(DancingLinksError::new("No primary items in options"));
-        }
-
-        // Make sure there are no overlaps.
-        {
-            let mut primary_and_secondary = primary_items.intersection(&secondary_items).peekable();
-            if primary_and_secondary.peek().is_some() {
-                return Err(DancingLinksError::new(format!(
-                    "Can't have items that are both primary and secondary: {:?}",
-                    primary_and_secondary
-                )));
-            }
-        }
-
-        let n_items = primary_items.len() + secondary_items.len();
-        if n_items > i16::MAX as usize {
-            return Err(DancingLinksError::new(format!(
-                "Too many items: {} > {}",
-                n_items,
-                i16::MAX
-            )));
-        }
-
-        let num_nodes: usize =
-            n_items + options.len() + options.iter().map(|option| option.len()).sum::<usize>() + 1;
-        if num_nodes > u16::MAX as usize {
-            // The node points will run out of range.
-            return Err(DancingLinksError::new(format!(
-                "Too many total nodes required: {} > {}",
-                num_nodes,
-                u16::MAX
-            )));
-        }
-
         Ok(DancingLinksIterator {
-            state: IteratorState::NEW(InitialState {
-                primary_items,
-                secondary_items,
-                options,
-                num_nodes: num_nodes as u16,
-            }),
+            state: IteratorState::NEW(InitialState::new(options)?),
+            iterator_item_type: PhantomData,
         })
     }
 }
 
-impl Iterator for DancingLinksIterator {
-    type Item = Vec<ProblemOption>;
+impl<ItemType, OptionType> Iterator for DancingLinksIterator<ItemType, OptionType>
+where
+    OptionType: ProblemOption<ItemType>,
+{
+    type Item = Vec<OptionType>;
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.state {
             IteratorState::DONE => None,
@@ -203,13 +116,14 @@ impl Iterator for DancingLinksIterator {
                     // Backtrack.
                     let mut xl = x[x.len() - 1];
                     while xl
-                        == solution_state.nodes[solution_state.nodes[xl as usize].top as usize]
+                        == solution_state.option_nodes
+                            [solution_state.option_nodes[xl as usize].top as usize]
                             .ulink
                     {
                         // The last x was pointing at the final option for this item,
                         // so we have to backtrack.
                         solution_state.unapply_move(xl);
-                        solution_state.uncover(solution_state.nodes[xl as usize].top as u16);
+                        solution_state.uncover(solution_state.option_nodes[xl as usize].top as u16);
                         x.pop();
                         if x.is_empty() {
                             // Terminate.
@@ -222,13 +136,13 @@ impl Iterator for DancingLinksIterator {
                     solution_state.unapply_move(xl);
                     // We know there is a next value because of the backtracking
                     // loop above.
-                    xl = solution_state.nodes[xl as usize].dlink;
+                    xl = solution_state.option_nodes[xl as usize].dlink;
                     solution_state.apply_move(xl);
                     let x_idx = x.len() - 1;
                     x[x_idx] = xl;
 
                     // Done?
-                    if solution_state.items[0].rlink == 0 {
+                    if solution_state.item_nodes[0].rlink == 0 {
                         return Some(
                             x.iter()
                                 .map(|&x| solution_state.to_option(x as usize))
@@ -250,39 +164,145 @@ impl Iterator for DancingLinksIterator {
     }
 }
 
+impl<ItemType, OptionType> std::iter::FusedIterator for DancingLinksIterator<ItemType, OptionType> where
+    OptionType: ProblemOption<ItemType>
+{
+}
+
 // InitialState is the initial info needed to create SolutionState.
-#[derive(Debug, Default)]
-struct InitialState {
-    primary_items: BTreeSet<String>,
-    secondary_items: BTreeSet<String>,
-    options: Vec<ProblemOption>,
+#[derive(Debug)]
+struct InitialState<ItemType> {
+    items: Vec<ItemType>,   // The sorted items, with the primary items first.
+    num_primary_items: u16, // The number of primary items.
+    options: Vec<InitialStateOption>, // The options.
     num_nodes: u16,
+}
+
+#[derive(Debug)]
+struct InitialStateOption {
+    item_indices: Vec<u16>,
+}
+
+impl<ItemType> InitialState<ItemType>
+where
+    ItemType: Ord,
+{
+    pub fn new<OptionType: ProblemOption<ItemType>>(
+        options: Vec<OptionType>,
+    ) -> Result<Self, DancingLinksError> {
+        let mut primary_items = BTreeSet::new();
+        let mut secondary_items = BTreeSet::new();
+        for option in &options {
+            primary_items.extend(option.primary_items());
+            secondary_items.extend(option.secondary_items());
+        }
+
+        if primary_items.is_empty() {
+            return Err(DancingLinksError::new("No primary items in options"));
+        }
+
+        // Make sure there are no overlaps.
+        {
+            let mut primary_and_secondary = primary_items.intersection(&secondary_items).peekable();
+            if primary_and_secondary.peek().is_some() {
+                return Err(DancingLinksError::new(
+                    "Can't have items that are both primary and secondary",
+                ));
+            }
+        }
+
+        let n_items = primary_items.len() + secondary_items.len();
+        if n_items > i16::MAX as usize {
+            return Err(DancingLinksError::new(format!(
+                "Too many items: {} > {}",
+                n_items,
+                i16::MAX
+            )));
+        }
+
+        // Convert each option into indices into the ordered list of items.
+        let item_to_index: BTreeMap<&ItemType, u16> = primary_items
+            .iter()
+            .chain(secondary_items.iter())
+            .enumerate()
+            .map(|(idx, item)| (item, idx as u16))
+            .collect();
+        let num_primary_items = primary_items.len();
+        let initial_state_options: Vec<InitialStateOption> = options
+            .into_iter()
+            .map(|option| InitialStateOption {
+                item_indices: option
+                    .primary_items()
+                    .chain(option.secondary_items())
+                    .map(|item| item_to_index[&item])
+                    .collect(),
+            })
+            .collect();
+
+        let num_nodes: usize = n_items
+            + initial_state_options.len()
+            + initial_state_options
+                .iter()
+                .map(|option| option.item_indices.len())
+                .sum::<usize>()
+            + 1;
+        if num_nodes > u16::MAX as usize {
+            // The node points will run out of range.
+            return Err(DancingLinksError::new(format!(
+                "Too many total nodes required: {} > {}",
+                num_nodes,
+                u16::MAX
+            )));
+        }
+
+        Ok(InitialState {
+            items: primary_items
+                .into_iter()
+                .chain(secondary_items.into_iter())
+                .collect(),
+            num_primary_items: num_primary_items as u16,
+            options: initial_state_options,
+            num_nodes: num_nodes as u16,
+        })
+    }
+}
+
+impl<ItemType> Default for InitialState<ItemType> {
+    fn default() -> Self {
+        InitialState {
+            items: vec![],
+            num_primary_items: 0,
+            options: vec![],
+            num_nodes: 0,
+        }
+    }
 }
 
 // SolutionState is the internal representation of the dancing links state.
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct SolutionState {
+struct SolutionState<ItemType> {
+    items: Vec<ItemType>,
     num_primary_items: u16,
-    items: Vec<Item>,
-    nodes: Vec<Node>,
+    item_nodes: Vec<ItemNode>,
+    option_nodes: Vec<OptionNode>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct Item {
+struct ItemNode {
     // The number of active options that involve this item.
     len: u16,
     // The link to the preceding item.
     llink: u16,
     // The link to the next item.
     rlink: u16,
-    // The name of the item.
-    name: String,
+    // The index of the item in SolutionState::items, or MAX if not used.
+    item_index: u16,
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-struct Node {
-    // Which item this node represents.  Non-positive values for top are spacer
-    // nodes.
+struct OptionNode {
+    // Which item node this node is associated with.  Non-positive values are
+    // spacer nodes.
     top: i16,
     // Link to the link above this one.
     ulink: u16,
@@ -290,53 +310,47 @@ struct Node {
     dlink: u16,
 }
 
-impl SolutionState {
-    fn initiate(initial_state: InitialState) -> Self {
-        let n_primary = initial_state.primary_items.len();
-        let n_secondary = initial_state.secondary_items.len();
-
-        let mut items = std::iter::once(Item {
+impl<ItemType> SolutionState<ItemType> {
+    fn initiate(initial_state: InitialState<ItemType>) -> Self {
+        // Build the nodes for each item.
+        // First the header node for the primary items.
+        let mut item_nodes = std::iter::once(ItemNode {
             len: 0,
-            llink: n_primary as u16,
+            llink: initial_state.num_primary_items,
             rlink: 1,
-            name: PRIMARY_LIST_HEAD.to_string(),
+            item_index: u16::MAX, // Not used.
         })
+        // Then all the items.
         .chain(
-            initial_state
-                .primary_items
+            (1..=initial_state.items.len())
                 .into_iter()
-                .chain(initial_state.secondary_items.into_iter())
-                .enumerate()
-                .map(|(idx, name)| Item {
+                .map(|idx| ItemNode {
                     len: 0,
-                    llink: idx as u16,
-                    rlink: idx as u16 + 2,
-                    name: name,
+                    llink: idx as u16 - 1,
+                    rlink: idx as u16 + 1,
+                    item_index: idx as u16 - 1,
                 }),
         )
-        .chain(std::iter::once(Item {
+        // Then the header for the secondary items.
+        .chain(std::iter::once(ItemNode {
             len: 0,
-            llink: (n_primary + n_secondary) as u16,
-            rlink: (n_primary + 1) as u16,
-            name: SECONDARY_LIST_HEAD.to_string(),
+            llink: initial_state.items.len() as u16,
+            rlink: (initial_state.num_primary_items + 1),
+            item_index: u16::MAX, // Not used
         }))
         .collect::<Vec<_>>();
-        items[n_primary as usize].rlink = 0;
-        items[(n_primary + 1) as usize].llink = (n_primary + n_secondary + 1) as u16;
+        // Link the primary items and secondary items into their own
+        // circular lists, so that we never try to select a primary.
+        item_nodes[initial_state.num_primary_items as usize].rlink = 0;
+        item_nodes[(initial_state.num_primary_items + 1) as usize].llink =
+            (initial_state.items.len() + 1) as u16;
 
-        let name_to_item_index = items
-            .iter()
-            .enumerate()
-            .skip(1)
-            .take(n_primary + n_secondary)
-            .map(|(idx, item)| (&item.name, idx))
-            .collect::<HashMap<&String, usize>>();
-
-        let mut nodes = Vec::with_capacity(initial_state.num_nodes as usize);
+        // Now build the option nodes.
+        let mut option_nodes = Vec::with_capacity(initial_state.num_nodes as usize);
         // Create the item header nodes.
-        nodes.push(Node::default()); // Unused 'spacer'
-        for idx in 1..(items.len() as u16 - 1) {
-            nodes.push(Node {
+        option_nodes.push(OptionNode::default()); // Unused 'spacer'
+        for idx in 1..=(initial_state.items.len() as u16) {
+            option_nodes.push(OptionNode {
                 top: idx as i16,
                 ulink: idx,
                 dlink: idx,
@@ -344,151 +358,113 @@ impl SolutionState {
         }
 
         // The first (real) spacer.
-        nodes.push(Node::default());
-        let mut last_spacer_idx = nodes.len() - 1;
+        option_nodes.push(OptionNode::default());
+        let mut last_spacer_idx = option_nodes.len() - 1;
 
-        // Now the nodes representing the options.
+        // Now the real options.
         let mut spacer_top = 0;
-        for option in initial_state.options.into_iter() {
-            for item_name in option
-                .primary_items
-                .iter()
-                .chain(option.secondary_items.iter())
-            {
-                let item_idx = name_to_item_index[&item_name];
+        for input_option in initial_state.options.into_iter() {
+            for item_index in input_option.item_indices.into_iter() {
+                // The header option node this points to.  +1 for the spacer.
+                let header_node_index = item_index as usize + 1;
+                // The index the new node will have.
+                let new_node_index = option_nodes.len() as u16;
 
-                // Update the previous last occurrence of this item.
-                let node_idx = nodes.len();
-                let prev_tail_idx = nodes[item_idx].ulink as usize;
-                nodes[prev_tail_idx].dlink = node_idx as u16;
-                nodes.push(Node {
-                    top: item_idx as i16,
+                // Update the previous last occurence of this item to downpoint
+                // to the new one we are about to add.
+                let prev_tail_idx = option_nodes[header_node_index].ulink as usize;
+                option_nodes[prev_tail_idx].dlink = new_node_index;
+
+                // Push the new one.
+                option_nodes.push(OptionNode {
+                    top: header_node_index as i16,
                     ulink: prev_tail_idx as u16,
-                    dlink: item_idx as u16,
+                    dlink: header_node_index as u16,
                 });
 
-                // Update the header
-                nodes[item_idx].ulink = node_idx as u16;
+                // Update the header to upoint to this new node.
+                option_nodes[header_node_index].ulink = new_node_index;
+
+                // Update the len in the item nodes.
+                item_nodes[header_node_index].len += 1;
             }
+
             // Update the spacer before this option to point at the last node
             // from this option.
-            nodes[last_spacer_idx].dlink = (nodes.len() - 1) as u16;
+            option_nodes[last_spacer_idx].dlink = (option_nodes.len() - 1) as u16;
             // Add a new spacer.
             spacer_top -= 1;
-            nodes.push(Node {
+            option_nodes.push(OptionNode {
                 top: spacer_top,
                 ulink: last_spacer_idx as u16 + 1,
                 dlink: 0,
             });
-            last_spacer_idx = nodes.len() - 1;
-        }
-        drop(name_to_item_index);
-
-        // Count the number of times each item is used.
-        for (item_idx, item) in items
-            .iter_mut()
-            .enumerate()
-            .skip(1)
-            .take(n_primary + n_secondary)
-        {
-            let mut curr_idx = nodes[item_idx].dlink as usize;
-            while curr_idx != item_idx {
-                curr_idx = nodes[curr_idx].dlink as usize;
-                item.len += 1;
-            }
+            last_spacer_idx = option_nodes.len() - 1;
         }
 
         SolutionState {
-            num_primary_items: n_primary as u16,
-            items,
-            nodes,
+            items: initial_state.items,
+            num_primary_items: initial_state.num_primary_items,
+            item_nodes,
+            option_nodes,
         }
     }
-
-    fn to_option(&self, mut x: usize) -> ProblemOption {
-        while self.nodes[x - 1].top > 0 {
-            x -= 1;
-        }
-        let mut res = ProblemOption {
-            primary_items: Vec::default(),
-            secondary_items: Vec::default(),
-        };
-        // x now points at the first non-spacer node of the solution.
-        let n_primary = self.num_primary_items as i16;
-        while self.nodes[x].top > 0 && self.nodes[x].top <= n_primary {
-            res.primary_items
-                .push(self.items[self.nodes[x].top as usize].name.clone());
-            x += 1;
-        }
-        while self.nodes[x].top > 0 {
-            res.secondary_items
-                .push(self.items[self.nodes[x].top as usize].name.clone());
-            x += 1;
-        }
-        res
-    }
-
-    #[allow(dead_code)]
-    fn name(&self, idx: u16) -> &String {
-        &self.items[self.nodes[idx as usize].top as usize].name
-    }
-
     fn cover(&mut self, item: u16) {
-        let mut p = self.nodes[item as usize].dlink;
+        let mut p = self.option_nodes[item as usize].dlink;
         while p != item {
             self.hide(p);
-            p = self.nodes[p as usize].dlink;
+            p = self.option_nodes[p as usize].dlink;
         }
-        let l = self.items[item as usize].llink;
-        let r = self.items[item as usize].rlink;
-        self.items[l as usize].rlink = r;
-        self.items[r as usize].llink = l;
+        let l = self.item_nodes[item as usize].llink;
+        let r = self.item_nodes[item as usize].rlink;
+        self.item_nodes[l as usize].rlink = r;
+        self.item_nodes[r as usize].llink = l;
     }
 
     fn hide(&mut self, p: u16) {
         let mut q = p + 1;
         while q != p {
-            let x = self.nodes[q as usize].top;
-            let u = self.nodes[q as usize].ulink;
+            let x = self.option_nodes[q as usize].top;
+            let u = self.option_nodes[q as usize].ulink;
             if x <= 0 {
                 // Spacer node.
                 q = u;
             } else {
-                let d = self.nodes[q as usize].dlink;
-                self.nodes[u as usize].dlink = d;
-                self.nodes[d as usize].ulink = u;
-                self.items[x as usize].len -= 1;
+                let d = self.option_nodes[q as usize].dlink;
+                self.option_nodes[u as usize].dlink = d;
+                self.option_nodes[d as usize].ulink = u;
+                self.item_nodes[x as usize].len -= 1;
                 q += 1;
             }
         }
     }
 
     fn uncover(&mut self, item: u16) {
-        let l = self.items[item as usize].llink;
-        let r = self.items[item as usize].rlink;
-        self.items[l as usize].rlink = item;
-        self.items[r as usize].llink = item;
+        let l = self.item_nodes[item as usize].llink;
+        let r = self.item_nodes[item as usize].rlink;
+        self.item_nodes[l as usize].rlink = item;
+        self.item_nodes[r as usize].llink = item;
 
-        let mut p = self.nodes[item as usize].ulink;
+        let mut p = self.option_nodes[item as usize].ulink;
         while p != item {
             self.unhide(p);
-            p = self.nodes[p as usize].ulink;
+            p = self.option_nodes[p as usize].ulink;
         }
     }
 
     fn unhide(&mut self, p: u16) {
         let mut q = p - 1;
         while q != p {
-            let x = self.nodes[q as usize].top;
-            let d = self.nodes[q as usize].dlink;
+            let x = self.option_nodes[q as usize].top;
+            let d = self.option_nodes[q as usize].dlink;
             if x <= 0 {
                 // Spacer node.
                 q = d;
             } else {
-                let u = self.nodes[q as usize].ulink;
-                self.nodes[u as usize].dlink = q;
-                self.nodes[d as usize].ulink = q;
-                self.items[x as usize].len += 1;
+                let u = self.option_nodes[q as usize].ulink;
+                self.option_nodes[u as usize].dlink = q;
+                self.option_nodes[d as usize].ulink = q;
+                self.item_nodes[x as usize].len += 1;
                 q -= 1;
             }
         }
@@ -497,10 +473,10 @@ impl SolutionState {
     fn apply_move(&mut self, xl: u16) {
         let mut p = xl + 1;
         while p != xl {
-            let j = self.nodes[p as usize].top;
+            let j = self.option_nodes[p as usize].top;
             if j <= 0 {
                 // Spacer.
-                p = self.nodes[p as usize].ulink;
+                p = self.option_nodes[p as usize].ulink;
             } else {
                 self.cover(j as u16);
                 p += 1;
@@ -514,10 +490,10 @@ impl SolutionState {
         }
         let mut p = xl - 1;
         while p != xl {
-            let j = self.nodes[p as usize].top;
+            let j = self.option_nodes[p as usize].top;
             if j <= 0 {
                 // Spacer.
-                p = self.nodes[p as usize].dlink;
+                p = self.option_nodes[p as usize].dlink;
             } else {
                 self.uncover(j as u16);
                 p -= 1;
@@ -528,20 +504,20 @@ impl SolutionState {
     // Choose the next item using the MRV heuristic.  Returns None if there is
     // no move.
     fn choose_next_item(&self) -> Option<NonZeroU16> {
-        let mut current_item_idx = self.items[0].rlink;
+        let mut current_item_idx = self.item_nodes[0].rlink;
         if current_item_idx == 0 {
             return None;
         }
 
-        let mut best_len = self.items[current_item_idx as usize].len;
+        let mut best_len = self.item_nodes[current_item_idx as usize].len;
         if best_len == 0 {
             return None;
         }
         let mut best_item = current_item_idx;
 
-        current_item_idx = self.items[current_item_idx as usize].rlink;
+        current_item_idx = self.item_nodes[current_item_idx as usize].rlink;
         while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
-            let current_len = self.items[current_item_idx as usize].len;
+            let current_len = self.item_nodes[current_item_idx as usize].len;
             if current_len == 0 {
                 // Item has no choices.
                 best_item = 0;
@@ -552,21 +528,94 @@ impl SolutionState {
                 best_item = current_item_idx;
             }
 
-            current_item_idx = self.items[current_item_idx as usize].rlink;
+            current_item_idx = self.item_nodes[current_item_idx as usize].rlink;
         }
         NonZeroU16::new(best_item)
+    }
+
+    fn to_option<PO: ProblemOption<ItemType>>(&self, mut x: usize) -> PO {
+        let mut builder = PO::builder();
+        while self.option_nodes[x - 1].top > 0 {
+            x -= 1;
+        }
+        // x now points at the first non-spacer node of the solution.
+        let n_primary = self.num_primary_items as i16;
+        while self.option_nodes[x].top > 0 && self.option_nodes[x].top <= n_primary {
+            builder.add_primary(&self.items[self.option_nodes[x].top as usize - 1]);
+            x += 1;
+        }
+        while self.option_nodes[x].top > 0 {
+            builder.add_secondary(&self.items[self.option_nodes[x].top as usize - 1]);
+            x += 1;
+        }
+        builder.build()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::backtracking::dancing_links::{
-        DancingLinksError, DancingLinksIterator, IteratorState, ProblemOption, SolutionState,
+        DancingLinksError, DancingLinksIterator, IteratorState, ProblemOption,
+        ProblemOptionBuilder, SolutionState,
     };
 
+    // A simple string option type for tests.
+    #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Clone, Hash)]
+    struct StringOption {
+        primary_items: Vec<String>,
+        secondary_items: Vec<String>,
+    }
+
+    impl StringOption {
+        fn new(primary: &[&str], secondary: &[&str]) -> Self {
+            Self {
+                primary_items: primary.iter().map(|s| s.to_string()).collect(),
+                secondary_items: secondary.iter().map(|s| s.to_string()).collect(),
+            }
+        }
+    }
+
+    impl ProblemOption<String> for StringOption {
+        type IteratorType = std::vec::IntoIter<String>;
+        type BuilderType = Self;
+
+        fn primary_items(&self) -> Self::IteratorType {
+            self.primary_items.clone().into_iter()
+        }
+
+        fn secondary_items(&self) -> Self::IteratorType {
+            self.secondary_items.clone().into_iter()
+        }
+
+        fn builder() -> Self::BuilderType {
+            StringOption {
+                primary_items: vec![],
+                secondary_items: vec![],
+            }
+        }
+    }
+
+    impl ProblemOptionBuilder<String> for StringOption {
+        type ProblemOptionType = Self;
+
+        fn add_primary(&mut self, item: &String) -> &mut Self {
+            self.primary_items.push(item.clone());
+            self
+        }
+
+        fn add_secondary(&mut self, item: &String) -> &mut Self {
+            self.secondary_items.push(item.clone());
+            self
+        }
+
+        fn build(self) -> Self::ProblemOptionType {
+            self
+        }
+    }
+
     fn create_solution_state(
-        options: Vec<ProblemOption>,
-    ) -> Result<SolutionState, DancingLinksError> {
+        options: Vec<StringOption>,
+    ) -> Result<SolutionState<String>, DancingLinksError> {
         let iterator = DancingLinksIterator::new(options)?;
         match iterator.state {
             IteratorState::DONE => Err(DancingLinksError::new("Iterator created in DONE state")),
@@ -577,112 +626,38 @@ mod tests {
         }
     }
 
-    mod options {
-        use crate::backtracking::dancing_links::ProblemOption;
-        #[test]
-        fn option_has_expected_items() {
-            let res = ProblemOption::new_from_str(
-                /*primary_items=*/ &["a", "b"],
-                /*secondary_items=*/ &["c", "d"],
-            );
-
-            assert!(res.is_ok());
-            let opt = res.unwrap();
-            assert_eq!(opt.primary_items, vec!["a", "b"]);
-            assert_eq!(opt.secondary_items, vec!["c", "d"]);
-        }
-
-        #[test]
-        fn option_with_no_secondary_items_is_allowed() {
-            let res = ProblemOption::new_from_str(
-                /*primary_items=*/ &["a", "b"],
-                /*secondary_items=*/ &[],
-            );
-
-            assert!(res.is_ok());
-            let opt = res.unwrap();
-            assert_eq!(opt.primary_items, vec!["a", "b"]);
-            assert!(opt.secondary_items.is_empty());
-        }
-
-        #[test]
-        fn option_with_no_primary_items_is_error() {
-            let res = ProblemOption::new_from_str(
-                /*primary_items=*/ &[],
-                /*secondary_items=*/ &["a"],
-            );
-
-            assert!(res.is_err());
-            assert!(res.unwrap_err().0.contains("at least one primary item"));
-        }
-
-        #[test]
-        fn duplicate_primary_is_error() {
-            let res = ProblemOption::new_from_str(
-                /*primary_items=*/ &["a", "b", "c", "b"],
-                /*secondary_items=*/ &[],
-            );
-
-            assert!(res.is_err());
-            assert!(res.unwrap_err().0.contains("primary_items"));
-        }
-
-        #[test]
-        fn duplicate_secondary_is_error() {
-            let res = ProblemOption::new_from_str(
-                /*primary_items=*/ &["a", "b"],
-                /*secondary_items=*/ &["d", "e", "e"],
-            );
-
-            assert!(res.is_err());
-            assert!(res.unwrap_err().0.contains("secondary_items"));
-        }
-
-        #[test]
-        fn item_that_is_both_primary_and_secondary_is_error() {
-            let res = ProblemOption::new_from_str(
-                /*primary_items=*/ &["a", "b"],
-                /*secondary_items=*/ &["c", "a", "e"],
-            );
-
-            assert!(res.is_err());
-            assert!(res.unwrap_err().0.contains("overlap"));
-        }
-    }
-
     mod initialize_iterator {
-        use crate::backtracking::dancing_links::{
-            DancingLinksIterator, IteratorState, ProblemOption,
-        };
+        use super::StringOption;
+        use crate::backtracking::dancing_links::{DancingLinksIterator, IteratorState};
         use claim::assert_ok;
 
         #[test]
         fn no_options_is_done_iterator() {
-            let it = assert_ok!(DancingLinksIterator::new(vec![]));
+            let it = assert_ok!(DancingLinksIterator::<String, StringOption>::new(vec![]));
             assert!(matches!(it.state, IteratorState::DONE));
         }
 
         #[test]
         fn single_option_is_in_new_state() {
-            let option = assert_ok!(ProblemOption::new_from_str(
-                /*primary_items=*/ &["a"],
-                /*secondary_items=*/ &["b"],
-            ));
-
-            let it = assert_ok!(DancingLinksIterator::new(vec![option]));
+            let it = assert_ok!(DancingLinksIterator::<String, StringOption>::new(vec![
+                StringOption::new(
+                    /*primary_items=*/ &["a"],
+                    /*secondary_items=*/ &["b"]
+                )
+            ]));
             assert!(matches!(it.state, IteratorState::NEW { .. }));
         }
 
         #[test]
         fn item_that_is_primary_and_secondary_is_error() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &["c"],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["c"],
                 /*secondary_items=*/ &[],
-            ));
+            );
             let res = DancingLinksIterator::new(vec![option1, option2]);
 
             assert!(res.is_err());
@@ -691,66 +666,65 @@ mod tests {
     }
 
     mod initialize_solution_state {
-        use super::create_solution_state;
-        use crate::backtracking::dancing_links::{
-            Item, Node, ProblemOption, SolutionState, PRIMARY_LIST_HEAD, SECONDARY_LIST_HEAD,
-        };
-        use claim::{assert_ok, assert_ok_eq};
+        use super::{create_solution_state, StringOption};
+        use crate::backtracking::dancing_links::{ItemNode, OptionNode, SolutionState};
+        use claim::assert_ok_eq;
 
         #[test]
         fn single_primary_item_initializes() {
-            let option = assert_ok!(ProblemOption::new_from_str(
+            let option = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
+            );
 
             assert_ok_eq!(
                 create_solution_state(vec![option]),
                 SolutionState {
+                    items: vec!["a".to_string()],
                     num_primary_items: 1,
-                    items: vec![
-                        Item {
+                    item_nodes: vec![
+                        ItemNode {
                             len: 0,
                             llink: 1,
                             rlink: 1,
-                            name: PRIMARY_LIST_HEAD.to_string()
+                            item_index: u16::MAX,
                         },
-                        Item {
+                        ItemNode {
                             len: 1,
                             llink: 0,
                             rlink: 0,
-                            name: "a".to_string()
+                            item_index: 0,
                         },
-                        Item {
+                        ItemNode {
                             len: 0,
                             llink: 2,
                             rlink: 2,
-                            name: SECONDARY_LIST_HEAD.to_string()
+                            item_index: u16::MAX,
                         }
                     ],
-                    nodes: vec![
+                    option_nodes: vec![
                         // Node 0: empty
-                        Node::default(),
+                        OptionNode::default(),
                         // Node 1: header node for only item.
-                        Node {
+                        OptionNode {
                             top: 1,
                             ulink: 3,
                             dlink: 3
                         },
                         // Node 2: Spacer node.
-                        Node {
+                        OptionNode {
                             top: 0,
                             ulink: 0,
                             dlink: 3
                         },
                         // Node 3: Only item node.
-                        Node {
+                        OptionNode {
                             top: 1,
                             ulink: 1,
                             dlink: 1
                         },
                         // Node 4: Spacer node.
-                        Node {
+                        OptionNode {
                             top: -1,
                             ulink: 3,
                             dlink: 0
@@ -762,112 +736,113 @@ mod tests {
 
         #[test]
         fn small_test_case_initializes() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["c"],
-            ));
+            );
 
             assert_ok_eq!(
                 create_solution_state(vec![option1, option2]),
                 SolutionState {
+                    items: vec!["a".to_string(), "b".to_string(), "c".to_string()],
                     num_primary_items: 2,
-                    items: vec![
-                        Item {
+                    item_nodes: vec![
+                        ItemNode {
                             len: 0,
                             llink: 2,
                             rlink: 1,
-                            name: PRIMARY_LIST_HEAD.to_string()
+                            item_index: u16::MAX
                         },
                         // Primary
-                        Item {
+                        ItemNode {
                             len: 1,
                             llink: 0,
                             rlink: 2,
-                            name: "a".to_string()
+                            item_index: 0
                         },
-                        Item {
+                        ItemNode {
                             len: 2,
                             llink: 1,
                             rlink: 0,
-                            name: "b".to_string()
+                            item_index: 1
                         },
                         // Secondary
-                        Item {
+                        ItemNode {
                             len: 1,
                             llink: 4,
                             rlink: 4,
-                            name: "c".to_string()
+                            item_index: 2
                         },
-                        Item {
+                        ItemNode {
                             len: 0,
                             llink: 3,
                             rlink: 3,
-                            name: SECONDARY_LIST_HEAD.to_string()
+                            item_index: u16::MAX
                         }
                     ],
-                    nodes: vec![
+                    option_nodes: vec![
                         // Node 0: empty
-                        Node::default(),
+                        OptionNode::default(),
                         // Node 1: header node for 'a'
-                        Node {
+                        OptionNode {
                             top: 1,
                             ulink: 5,
                             dlink: 5
                         },
                         // Node 2: header node for 'b'
-                        Node {
+                        OptionNode {
                             top: 2,
                             ulink: 8, // ProblemOption b, c
                             dlink: 6  // ProblemOption a, b
                         },
                         // Node 3: header node for 'c'
-                        Node {
+                        OptionNode {
                             top: 3,
                             ulink: 9, // ProblemOption b, c
                             dlink: 9  // ProblemOption b, c
                         },
                         // Node 4: Spacer node.
-                        Node {
+                        OptionNode {
                             top: 0,
                             ulink: 0, // unused.
                             dlink: 6  // Last node in option a, b
                         },
-                        // Node 5: ProblemOption a, b item a
-                        Node {
+                        // Node 5: Option a, b item a
+                        OptionNode {
                             top: 1,
                             ulink: 1,
                             dlink: 1
                         },
-                        // Node 6: ProblemOption a, b item b
-                        Node {
+                        // Node 6: Option a, b item b
+                        OptionNode {
                             top: 2,
                             ulink: 2,
                             dlink: 8
                         },
                         // Node 7: Spacer between a, b and b, c
-                        Node {
+                        OptionNode {
                             top: -1,
                             ulink: 5, // First node in option a, b
                             dlink: 9  // Last node in option b, c
                         },
-                        // Node 8: ProblemOption b, c item b
-                        Node {
+                        // Node 8: Option b, c item b
+                        OptionNode {
                             top: 2,
                             ulink: 6, // ProblemOption a, b
                             dlink: 2, // Header for b
                         },
-                        // Node 9: ProblemOption b, c item c
-                        Node {
+                        // Node 9: Option b, c item c
+                        OptionNode {
                             top: 3,
                             ulink: 3, // Header for c
                             dlink: 3, // Header for c
                         },
                         // Node 10: final spacer
-                        Node {
+                        OptionNode {
                             top: -2,
                             ulink: 8, // First node of option b, c
                             dlink: 0  // unused
@@ -881,278 +856,282 @@ mod tests {
         fn large_test_case_initializes() {
             // This is the example from TAOCP 7.2.2.1 (6), except that fg have
             // been made secondary.
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b", "c"],
                 /*secondary_items=*/ &["f"],
-            ));
-            let option4 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option4 = StringOption::new(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["f"],
-            ));
-            let option5 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option5 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option6 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option6 = StringOption::new(
                 /*primary_items=*/ &["d", "e"],
                 /*secondary_items=*/ &["g"],
-            ));
+            );
 
             assert_ok_eq!(
                 create_solution_state(vec![option1, option2, option3, option4, option5, option6]),
                 SolutionState {
+                    items: ["a", "b", "c", "d", "e", "f", "g"]
+                        .into_iter()
+                        .map(|v| v.to_string())
+                        .collect(),
                     num_primary_items: 5,
-                    items: vec![
+                    item_nodes: vec![
                         // Primary items.
-                        Item {
+                        ItemNode {
                             len: 0,
                             llink: 5,
                             rlink: 1,
-                            name: PRIMARY_LIST_HEAD.to_string()
+                            item_index: u16::MAX,
                         },
-                        Item {
+                        ItemNode {
                             len: 2,
                             llink: 0,
                             rlink: 2,
-                            name: "a".to_string()
+                            item_index: 0
                         },
-                        Item {
+                        ItemNode {
                             len: 2,
                             llink: 1,
                             rlink: 3,
-                            name: "b".to_string()
+                            item_index: 1
                         },
-                        Item {
+                        ItemNode {
                             len: 2,
                             llink: 2,
                             rlink: 4,
-                            name: "c".to_string()
+                            item_index: 2
                         },
-                        Item {
+                        ItemNode {
                             len: 3,
                             llink: 3,
                             rlink: 5,
-                            name: "d".to_string()
+                            item_index: 3
                         },
-                        Item {
+                        ItemNode {
                             len: 2,
                             llink: 4,
                             rlink: 0,
-                            name: "e".to_string()
+                            item_index: 4
                         },
                         // Secondary items
-                        Item {
+                        ItemNode {
                             len: 2,
                             llink: 8,
                             rlink: 7,
-                            name: "f".to_string(),
+                            item_index: 5
                         },
-                        Item {
+                        ItemNode {
                             len: 3,
                             llink: 6,
                             rlink: 8,
-                            name: "g".to_string(),
+                            item_index: 6
                         },
-                        Item {
+                        ItemNode {
                             len: 0,
                             llink: 7,
                             rlink: 6,
-                            name: SECONDARY_LIST_HEAD.to_string()
+                            item_index: u16::MAX,
                         }
                     ],
-                    nodes: vec![
+                    option_nodes: vec![
                         // Node 0: empty
-                        Node::default(),
+                        OptionNode::default(),
                         // Node 1: header node for 'a'
-                        Node {
+                        OptionNode {
                             top: 1,
-                            ulink: 20, // ProblemOption a d
-                            dlink: 12, // ProblemOption a d g
+                            ulink: 20, // Option a d
+                            dlink: 12, // Option a d g
                         },
                         // Node 2: header node for 'b'
-                        Node {
+                        OptionNode {
                             top: 2,
-                            ulink: 24, // ProblemOption b, g
-                            dlink: 16  // ProblemOption b, c, f
+                            ulink: 24, // Option b, g
+                            dlink: 16  // Option b, c, f
                         },
                         // Node 3: header node for 'c'
-                        Node {
+                        OptionNode {
                             top: 3,
-                            ulink: 17, // ProblemOption b, c, f
-                            dlink: 9   // ProblemOption c, e
+                            ulink: 17, // Option b, c, f
+                            dlink: 9   // Option c, e
                         },
                         // Node 4: header node for 'd'
-                        Node {
+                        OptionNode {
                             top: 4,
-                            ulink: 27, // ProblemOption d e g
-                            dlink: 13, // ProblemOption a d g
+                            ulink: 27, // Option d e g
+                            dlink: 13, // Option a d g
                         },
                         // Node 5: header node for 'e'
-                        Node {
+                        OptionNode {
                             top: 5,
-                            ulink: 28, // ProblemOption d e g
-                            dlink: 10  // ProblemOption c e
+                            ulink: 28, // Option d e g
+                            dlink: 10  // Option c e
                         },
                         // Node 6: header node for 'f'
-                        Node {
+                        OptionNode {
                             top: 6,
-                            ulink: 22, // ProblemOption a d f
-                            dlink: 18  // ProblemOption b c f
+                            ulink: 22, // Option a d f
+                            dlink: 18  // Option b c f
                         },
                         // Node 7: header node for 'g'
-                        Node {
+                        OptionNode {
                             top: 7,
-                            ulink: 29, // ProblemOption d e g
-                            dlink: 14  // ProblemOption a d g
+                            ulink: 29, // Option d e g
+                            dlink: 14  // Option a d g
                         },
                         // Node 8: Spacer node.
-                        Node {
+                        OptionNode {
                             top: 0,
                             ulink: 0,  // unused.
                             dlink: 10  // Last node in option c, e
                         },
-                        // Nodes 9-10: ProblemOption c e
+                        // Nodes 9-10: Option c e
                         // Node 9: item c
-                        Node {
+                        OptionNode {
                             top: 3,
                             ulink: 3,  // Header
-                            dlink: 17, // ProblemOption b c f
+                            dlink: 17, // Option b c f
                         },
                         // Node 10: item e
-                        Node {
+                        OptionNode {
                             top: 5,
                             ulink: 5,  // Header
-                            dlink: 28  // ProblemOption d e g
+                            dlink: 28  // Option d e g
                         },
                         // Node 11: Spacer
-                        Node {
+                        OptionNode {
                             top: -1,
                             ulink: 9,
                             dlink: 14
                         },
-                        // Nodes 12-14: ProblemOption a d g
+                        // Nodes 12-14: Option a d g
                         // Node 12: item a
-                        Node {
+                        OptionNode {
                             top: 1,
                             ulink: 1,  // Header
-                            dlink: 20  // ProblemOption a d f
+                            dlink: 20  // Option a d f
                         },
                         // Node 13: item d
-                        Node {
+                        OptionNode {
                             top: 4,
                             ulink: 4,  // Header
-                            dlink: 21  // ProblemOption a d f
+                            dlink: 21  // Option a d f
                         },
                         // Node 14: item g
-                        Node {
+                        OptionNode {
                             top: 7,
                             ulink: 7,  // Header
-                            dlink: 25, // ProblemOption b g
+                            dlink: 25, // Option b g
                         },
                         // Node 15: Spacer
-                        Node {
+                        OptionNode {
                             top: -2,
                             ulink: 12,
                             dlink: 18
                         },
-                        // Nodes 16-18: ProblemOption b c f
+                        // Nodes 16-18: Option b c f
                         // Node 16: item b
-                        Node {
+                        OptionNode {
                             top: 2,
                             ulink: 2,  // Header
-                            dlink: 24  // ProblemOption b g
+                            dlink: 24  // Option b g
                         },
                         // Node 17: item c
-                        Node {
+                        OptionNode {
                             top: 3,
-                            ulink: 9, // ProblemOption c e
+                            ulink: 9, // Option c e
                             dlink: 3  // Header
                         },
                         // Node 18: item f
-                        Node {
+                        OptionNode {
                             top: 6,
                             ulink: 6,  // Header
-                            dlink: 22  // ProblemOption a d f
+                            dlink: 22  // Option a d f
                         },
                         // Node 19: spacer
-                        Node {
+                        OptionNode {
                             top: -3,
                             ulink: 16,
                             dlink: 22
                         },
-                        // Nodes 20-22: ProblemOption a d f
+                        // Nodes 20-22: Option a d f
                         // Node 20: item a
-                        Node {
+                        OptionNode {
                             top: 1,
-                            ulink: 12, // ProblemOption a d g
+                            ulink: 12, // Option a d g
                             dlink: 1   // Header
                         },
                         // Node 21: item d
-                        Node {
+                        OptionNode {
                             top: 4,
-                            ulink: 13, // ProblemOption a d g
-                            dlink: 27  // ProblemOption d e g
+                            ulink: 13, // Option a d g
+                            dlink: 27  // Option d e g
                         },
                         // Node 22: item f
-                        Node {
+                        OptionNode {
                             top: 6,
-                            ulink: 18, // ProblemOption b c f
+                            ulink: 18, // Option b c f
                             dlink: 6   // Header
                         },
                         // Node 23: spacer
-                        Node {
+                        OptionNode {
                             top: -4,
                             ulink: 20,
                             dlink: 25
                         },
-                        // Nodes 24-25: ProblemOption b g
+                        // Nodes 24-25: Option b g
                         // Node 24: item b
-                        Node {
+                        OptionNode {
                             top: 2,
-                            ulink: 16, // ProblemOption b c f
+                            ulink: 16, // Option b c f
                             dlink: 2   // Header
                         },
                         // Node 25: item g
-                        Node {
+                        OptionNode {
                             top: 7,
-                            ulink: 14, // ProblemOption a d g
-                            dlink: 29  // ProblemOption d e g
+                            ulink: 14, // Option a d g
+                            dlink: 29  // Option d e g
                         },
                         // Node 26: spacer
-                        Node {
+                        OptionNode {
                             top: -5,
                             ulink: 24,
                             dlink: 29
                         },
-                        // Node 27-29: ProblemOption d e g
+                        // Node 27-29: Option d e g
                         // Node 27: item d
-                        Node {
+                        OptionNode {
                             top: 4,
-                            ulink: 21, // ProblemOption a d f
+                            ulink: 21, // Option a d f
                             dlink: 4   // Header
                         },
                         // Node 28: item e
-                        Node {
+                        OptionNode {
                             top: 5,
-                            ulink: 10, // ProblemOption c e
+                            ulink: 10, // Option c e
                             dlink: 5   // Header
                         },
                         // Node 29: item g
-                        Node {
+                        OptionNode {
                             top: 7,
-                            ulink: 25, // ProblemOption b g
+                            ulink: 25, // Option b g
                             dlink: 7   // Header
                         },
                         // Node 30: final spacer
-                        Node {
+                        OptionNode {
                             top: -6,
                             ulink: 27,
                             dlink: 0 // unused
@@ -1164,26 +1143,26 @@ mod tests {
     }
 
     mod choose_next {
-        use super::create_solution_state;
-        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use super::{create_solution_state, StringOption};
+        use crate::backtracking::dancing_links::SolutionState;
         use claim::{assert_ok, assert_some, assert_some_eq};
-        use std::collections::HashSet;
+        use std::collections::BTreeSet;
 
-        fn item_name(solution_state: &SolutionState, idx: u16) -> Option<&String> {
+        fn item_name(solution_state: &SolutionState<String>, idx: u16) -> Option<&String> {
             let idx_u = idx as usize;
-            if idx_u >= solution_state.items.len() {
+            if idx_u >= solution_state.item_nodes.len() {
                 None
             } else {
-                Some(&solution_state.items[idx_u].name)
+                Some(&solution_state.items[solution_state.item_nodes[idx_u].item_index as usize])
             }
         }
 
         #[test]
         fn single_primary_item_chooses_only_option() {
-            let option = assert_ok!(ProblemOption::new_from_str(
+            let option = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
+            );
             let solution_state = assert_ok!(create_solution_state(vec![option]));
 
             assert_some_eq!(
@@ -1196,14 +1175,14 @@ mod tests {
 
         #[test]
         fn chooses_item_with_fewest_options() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a", "b", "c"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a", "c"],
                 /*secondary_items=*/ &[],
-            ));
+            );
 
             let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
 
@@ -1211,7 +1190,7 @@ mod tests {
             // Check the LEN vars are what we expect.
             assert_eq!(
                 solution_state
-                    .items
+                    .item_nodes
                     .iter()
                     .skip(1)
                     .take(3)
@@ -1221,7 +1200,7 @@ mod tests {
             );
             assert_eq!(
                 solution_state
-                    .items
+                    .item_nodes
                     .iter()
                     .skip(1)
                     .take(3)
@@ -1240,14 +1219,14 @@ mod tests {
 
         #[test]
         fn secondary_item_is_not_chosen_even_if_it_has_fewest_available_options() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &["b"],
-            ));
+            );
             let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
 
             assert_some_eq!(
@@ -1262,30 +1241,30 @@ mod tests {
         fn large_test_case_chooses_next_item() {
             // This is the example from TAOCP 7.2.2.1 (6), except that ag have
             // been made secondary.
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["d"],
                 /*secondary_items=*/ &["a", "g"],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b", "c", "f"],
                 /*secondary_items=*/ &[],
-            ));
-            let option4 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option4 = StringOption::new(
                 /*primary_items=*/ &["d", "f"],
                 /*secondary_items=*/ &["a"],
-            ));
-            let option5 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option5 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option6 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option6 = StringOption::new(
                 /*primary_items=*/ &["d", "e"],
                 /*secondary_items=*/ &["g"],
-            ));
+            );
 
             let solution_state = assert_ok!(create_solution_state(vec![
                 option1, option2, option3, option4, option5, option6
@@ -1300,29 +1279,28 @@ mod tests {
             assert!(["b", "c", "e", "f"]
                 .into_iter()
                 .map(|s| s.to_string())
-                .collect::<HashSet<_>>()
+                .collect::<BTreeSet<_>>()
                 .contains(choice));
         }
     }
 
     mod cover {
-        use super::create_solution_state;
-        use crate::backtracking::dancing_links::ProblemOption;
+        use super::{create_solution_state, StringOption};
         use claim::assert_ok;
 
         #[test]
         fn single_primary_item_cover() {
-            let option = assert_ok!(ProblemOption::new_from_str(
+            let option = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
+            );
 
             let mut state = assert_ok!(create_solution_state(vec![option]));
 
             // For a single item, cover only affects the item links.
             let mut expected_state = state.clone();
-            expected_state.items[0].llink = 0;
-            expected_state.items[0].rlink = 0;
+            expected_state.item_nodes[0].llink = 0;
+            expected_state.item_nodes[0].rlink = 0;
 
             state.cover(1);
             assert_eq!(state, expected_state);
@@ -1332,30 +1310,30 @@ mod tests {
         fn large_test_case_cover() {
             // This is the example from TAOCP 7.2.2.1 (6), updated following
             // exercise 11 from that section.
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a", "d", "g"],
                 /*secondary_items=*/ &[],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b", "c", "f"],
                 /*secondary_items=*/ &[],
-            ));
-            let option4 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option4 = StringOption::new(
                 /*primary_items=*/ &["a", "d", "f"],
                 /*secondary_items=*/ &[],
-            ));
-            let option5 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option5 = StringOption::new(
                 /*primary_items=*/ &["b", "g"],
                 /*secondary_items=*/ &[],
-            ));
-            let option6 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option6 = StringOption::new(
                 /*primary_items=*/ &["d", "e", "g"],
                 /*secondary_items=*/ &[],
-            ));
+            );
 
             let mut state = assert_ok!(create_solution_state(vec![
                 option1, option2, option3, option4, option5, option6
@@ -1363,59 +1341,59 @@ mod tests {
 
             // cover(1).
             let mut expected_state = state.clone();
-            // Item 1 ('a') will be unlinked.
-            expected_state.items[0].rlink = 2;
-            expected_state.items[2].llink = 0;
+            // ItemNode 1 ('a') will be unlinked.
+            expected_state.item_nodes[0].rlink = 2;
+            expected_state.item_nodes[2].llink = 0;
             // From hide(12)
-            expected_state.nodes[4].dlink = 2;
-            expected_state.nodes[21].ulink = 4;
-            expected_state.items[4].len = 2;
-            expected_state.nodes[7].dlink = 25;
-            expected_state.nodes[25].ulink = 7;
-            expected_state.items[7].len = 2;
+            expected_state.option_nodes[4].dlink = 2;
+            expected_state.option_nodes[21].ulink = 4;
+            expected_state.item_nodes[4].len = 2;
+            expected_state.option_nodes[7].dlink = 25;
+            expected_state.option_nodes[25].ulink = 7;
+            expected_state.item_nodes[7].len = 2;
             // From hide(20)
-            expected_state.nodes[4].dlink = 27;
-            expected_state.nodes[27].ulink = 4;
-            expected_state.items[4].len = 1;
-            expected_state.nodes[18].dlink = 6;
-            expected_state.nodes[6].ulink = 18;
-            expected_state.items[6].len = 1;
+            expected_state.option_nodes[4].dlink = 27;
+            expected_state.option_nodes[27].ulink = 4;
+            expected_state.item_nodes[4].len = 1;
+            expected_state.option_nodes[18].dlink = 6;
+            expected_state.option_nodes[6].ulink = 18;
+            expected_state.item_nodes[6].len = 1;
 
             state.cover(1);
             assert_eq!(state, expected_state);
 
             // cover(4).
-            expected_state.items[5].llink = 3;
-            expected_state.items[3].rlink = 5;
-            expected_state.nodes[10].dlink = 5;
-            expected_state.nodes[5].ulink = 10;
-            expected_state.items[5].len = 1;
-            expected_state.nodes[25].dlink = 7;
-            expected_state.nodes[7].ulink = 25;
-            expected_state.items[7].len = 1;
+            expected_state.item_nodes[5].llink = 3;
+            expected_state.item_nodes[3].rlink = 5;
+            expected_state.option_nodes[10].dlink = 5;
+            expected_state.option_nodes[5].ulink = 10;
+            expected_state.item_nodes[5].len = 1;
+            expected_state.option_nodes[25].dlink = 7;
+            expected_state.option_nodes[7].ulink = 25;
+            expected_state.item_nodes[7].len = 1;
 
             state.cover(4);
             assert_eq!(state, expected_state);
 
             // cover(7)
-            expected_state.items[6].rlink = 0;
-            expected_state.items[0].llink = 6;
-            expected_state.nodes[16].dlink = 2;
-            expected_state.nodes[2].ulink = 16;
-            expected_state.items[2].len = 1;
+            expected_state.item_nodes[6].rlink = 0;
+            expected_state.item_nodes[0].llink = 6;
+            expected_state.option_nodes[16].dlink = 2;
+            expected_state.option_nodes[2].ulink = 16;
+            expected_state.item_nodes[2].len = 1;
 
             state.cover(7);
             assert_eq!(state, expected_state);
 
             // cover(2)
-            expected_state.items[3].llink = 0;
-            expected_state.items[0].rlink = 3;
-            expected_state.nodes[3].ulink = 9;
-            expected_state.nodes[9].dlink = 3;
-            expected_state.items[3].len = 1;
-            expected_state.nodes[6].ulink = 6;
-            expected_state.nodes[6].dlink = 6;
-            expected_state.items[6].len = 0;
+            expected_state.item_nodes[3].llink = 0;
+            expected_state.item_nodes[0].rlink = 3;
+            expected_state.option_nodes[3].ulink = 9;
+            expected_state.option_nodes[9].dlink = 3;
+            expected_state.item_nodes[3].len = 1;
+            expected_state.option_nodes[6].ulink = 6;
+            expected_state.option_nodes[6].dlink = 6;
+            expected_state.item_nodes[6].len = 0;
 
             state.cover(2);
             assert_eq!(state, expected_state);
@@ -1424,10 +1402,10 @@ mod tests {
         #[test]
         fn single_primary_item_uncover() {
             // Check that uncover undoes what we tested in single_primary_item_cover
-            let option = assert_ok!(ProblemOption::new_from_str(
+            let option = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
+            );
             let initial_state = assert_ok!(create_solution_state(vec![option]));
 
             let mut state = initial_state.clone();
@@ -1441,30 +1419,30 @@ mod tests {
         fn large_test_case_uncover() {
             // This is the example from TAOCP 7.2.2.1 (6), updated following
             // exercise 11 from that section.
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a", "d", "g"],
                 /*secondary_items=*/ &[],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b", "c", "f"],
                 /*secondary_items=*/ &[],
-            ));
-            let option4 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option4 = StringOption::new(
                 /*primary_items=*/ &["a", "d", "f"],
                 /*secondary_items=*/ &[],
-            ));
-            let option5 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option5 = StringOption::new(
                 /*primary_items=*/ &["b", "g"],
                 /*secondary_items=*/ &[],
-            ));
-            let option6 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option6 = StringOption::new(
                 /*primary_items=*/ &["d", "e", "g"],
                 /*secondary_items=*/ &[],
-            ));
+            );
 
             let initial_state = assert_ok!(create_solution_state(vec![
                 option1, option2, option3, option4, option5, option6
@@ -1507,59 +1485,58 @@ mod tests {
     }
 
     mod to_solution {
-        use super::create_solution_state;
-        use crate::backtracking::dancing_links::{ProblemOption, SolutionState};
+        use super::{create_solution_state, StringOption};
         use claim::assert_ok;
 
         #[test]
         fn small_test_case_get_options() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["c"],
-            ));
+            );
 
-            let state: SolutionState = assert_ok!(create_solution_state(vec![
+            let state = assert_ok!(create_solution_state(vec![
                 option1.clone(),
                 option2.clone()
             ]));
 
-            assert_eq!(state.to_option(5), option1);
-            assert_eq!(state.to_option(6), option1);
-            assert_eq!(state.to_option(8), option2);
+            assert_eq!(state.to_option::<StringOption>(5), option1);
+            assert_eq!(state.to_option::<StringOption>(6), option1);
+            assert_eq!(state.to_option::<StringOption>(8), option2);
         }
 
         #[test]
         fn large_test_case_get_options() {
             // This is the example from TAOCP 7.2.2.1 (6), except that fg have
             // been made secondary.
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b", "c"],
                 /*secondary_items=*/ &["f"],
-            ));
-            let option4 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option4 = StringOption::new(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["f"],
-            ));
-            let option5 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option5 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option6 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option6 = StringOption::new(
                 /*primary_items=*/ &["d", "e"],
                 /*secondary_items=*/ &["g"],
-            ));
+            );
 
             let state = assert_ok!(create_solution_state(vec![
                 option1.clone(),
@@ -1570,23 +1547,24 @@ mod tests {
                 option6
             ]));
 
-            assert_eq!(state.to_option(9), option1);
-            assert_eq!(state.to_option(10), option1);
-            assert_eq!(state.to_option(16), option3);
+            assert_eq!(state.to_option::<StringOption>(9), option1);
+            assert_eq!(state.to_option::<StringOption>(10), option1);
+            assert_eq!(state.to_option::<StringOption>(16), option3);
         }
     }
 
     mod iterates_over_solutions {
-        use crate::backtracking::dancing_links::{DancingLinksIterator, ProblemOption};
+        use super::StringOption;
+        use crate::backtracking::dancing_links::DancingLinksIterator;
         use claim::{assert_none, assert_ok, assert_some_eq};
         use std::collections::HashSet;
 
         #[test]
         fn single_item_one_option_solution() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
+            );
             let mut iterator = assert_ok!(DancingLinksIterator::new(vec![option1.clone()]));
 
             assert_some_eq!(iterator.next(), vec![option1]);
@@ -1595,14 +1573,14 @@ mod tests {
 
         #[test]
         fn very_small_test_case_iterator() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["c"],
-            ));
+            );
 
             let mut iterator =
                 assert_ok!(DancingLinksIterator::new(vec![option1.clone(), option2]));
@@ -1613,18 +1591,18 @@ mod tests {
 
         #[test]
         fn small_test_case_iterator() {
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["a", "b"],
                 /*secondary_items=*/ &["c"],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["c"],
-            ));
+            );
 
             let mut iterator = assert_ok!(DancingLinksIterator::new(vec![
                 option1.clone(),
@@ -1651,30 +1629,30 @@ mod tests {
         fn large_test_case_iterator() {
             // This is the example from TAOCP 7.2.2.1 (6), except that fg have
             // been made secondary.
-            let option1 = assert_ok!(ProblemOption::new_from_str(
+            let option1 = StringOption::new(
                 /*primary_items=*/ &["c", "e"],
                 /*secondary_items=*/ &[],
-            ));
-            let option2 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option2 = StringOption::new(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option3 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option3 = StringOption::new(
                 /*primary_items=*/ &["b", "c"],
                 /*secondary_items=*/ &["f"],
-            ));
-            let option4 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option4 = StringOption::new(
                 /*primary_items=*/ &["a", "d"],
                 /*secondary_items=*/ &["f"],
-            ));
-            let option5 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option5 = StringOption::new(
                 /*primary_items=*/ &["b"],
                 /*secondary_items=*/ &["g"],
-            ));
-            let option6 = assert_ok!(ProblemOption::new_from_str(
+            );
+            let option6 = StringOption::new(
                 /*primary_items=*/ &["d", "e"],
                 /*secondary_items=*/ &["g"],
-            ));
+            );
 
             let mut iterator = assert_ok!(DancingLinksIterator::new(vec![
                 option1.clone(),
