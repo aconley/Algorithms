@@ -46,7 +46,7 @@ impl ProblemOption<LangfordItem> for LangfordOption {
 }
 
 impl ProblemOptionBuilder<LangfordItem> for LangfordOption {
-    type ProblemOptionType = LangfordOption;
+    type ProblemOptionType = Self;
 
     fn add_primary(&mut self, item: &LangfordItem) -> &mut Self {
         match item {
