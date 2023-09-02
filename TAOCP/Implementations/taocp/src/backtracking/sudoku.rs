@@ -111,8 +111,8 @@ struct Square {
 impl Square {
   fn create(row: u8, col: u8) -> Self {
     Square {
-      row: row,
-      col: col,
+      row,
+      col,
       r#box: 3 * (row / 3) + col / 3,
     }
   }
@@ -640,6 +640,7 @@ mod tests {
     use crate::backtracking::sudoku::{
       InitialPosition, IteratorState, SudokuIterator, SudokuSolution,
     };
+    use claim::{assert_some_eq, assert_none};
 
     #[test]
     fn solves_already_solved_puzzle() {
@@ -647,19 +648,9 @@ mod tests {
       let mut iterator = SudokuIterator::create(initial_position);
       assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
-      match iterator.next() {
-        None => panic!("Should have found solution"),
-        Some(solution) => {
-          let expected_solution = SudokuSolution::create(&SOL);
-          assert_eq!(solution, expected_solution, "Did not get expected solution");
-        }
-      }
-
-      assert_eq!(
-        iterator.next(),
-        None,
-        "DONE iterator should produce no more solutions"
-      );
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&SOL));
+      assert_none!(iterator.next());
+      assert_none!(iterator.next());
       assert!(
         matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
@@ -681,19 +672,8 @@ mod tests {
         "Iterator not in initial state"
       );
 
-      match iterator.next() {
-        None => panic!("Should have found solution"),
-        Some(solution) => {
-          let expected_solution = SudokuSolution::create(&SOL);
-          assert_eq!(solution, expected_solution, "Did not get expected solution");
-        }
-      }
-
-      assert_eq!(
-        iterator.next(),
-        None,
-        "DONE iterator should produce no more solutions"
-      );
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&SOL));
+      assert_none!(iterator.next());
       assert!(
         matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
@@ -719,19 +699,8 @@ mod tests {
       let mut iterator = SudokuIterator::create(initial_position);
       assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
-      match iterator.next() {
-        None => panic!("Should have found solution"),
-        Some(solution) => {
-          let expected_solution = SudokuSolution::create(&expected_solution);
-          assert_eq!(solution, expected_solution, "Did not get expected solution");
-        }
-      }
-
-      assert_eq!(
-        iterator.next(),
-        None,
-        "DONE iterator should produce no more solutions"
-      );
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
+      assert_none!(iterator.next());
       assert!(
         matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
@@ -769,19 +738,47 @@ mod tests {
       let mut iterator = SudokuIterator::create(initial_position);
       assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
-      match iterator.next() {
-        None => panic!("Should have found solution"),
-        Some(solution) => {
-          let expected_solution = SudokuSolution::create(&expected_solution);
-          assert_eq!(solution, expected_solution, "Did not get expected solution");
-        }
-      }
-
-      assert_eq!(
-        iterator.next(),
-        None,
-        "DONE iterator should produce no more solutions"
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
+      assert_none!(iterator.next());
+      assert!(
+        matches!(*iterator.state, IteratorState::DONE),
+        "Iterator should be done after discovering there are no more solutions"
       );
+    }
+
+    #[test]
+    fn solves_demanding_problem() {
+      #[rustfmt::skip]
+      let problem : [u8; 81] = [
+        2, 0, 0, 0, 0, 9, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 0, 0, 0,
+        9, 0, 0, 0, 0, 0, 0, 3, 4,
+        0, 0, 0, 0, 4, 0, 0, 0, 0,
+        1, 0, 7, 0, 0, 8, 2, 0, 0,
+        0, 2, 8, 1, 0, 5, 0, 0, 9,
+        0, 5, 0, 6, 0, 1, 0, 0, 0,
+        0, 0, 0, 8, 0, 0, 0, 6, 0,
+        0, 0, 0, 4, 7, 0, 8, 0, 0
+      ];
+      #[rustfmt::skip]
+      let expected_solution : [u8; 81] = [
+          2, 3, 4, 5, 8, 9, 6, 7, 1,
+          7, 6, 5, 3, 1, 4, 9, 8, 2,
+          9, 8, 1, 7, 2, 6, 5, 3, 4,
+          5, 9, 6, 2, 4, 7, 3, 1, 8,
+          1, 4, 7, 9, 3, 8, 2, 5, 6,
+          3, 2, 8, 1, 6, 5, 7, 4, 9,
+          8, 5, 3, 6, 9, 1, 4, 2, 7,
+          4, 7, 9, 8, 5, 2, 1, 6, 3,
+          6, 1, 2, 4, 7, 3, 8, 9, 5
+       ];
+
+      let initial_position = InitialPosition::create_from_values(&problem);
+      let mut iterator = SudokuIterator::create(initial_position);
+      assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
+      assert_none!(iterator.next());
       assert!(
         matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
@@ -819,19 +816,8 @@ mod tests {
       let mut iterator = SudokuIterator::create(initial_position);
       assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
-      match iterator.next() {
-        None => panic!("Should have found solution"),
-        Some(solution) => {
-          let expected_solution = SudokuSolution::create(&expected_solution);
-          assert_eq!(solution, expected_solution, "Did not get expected solution");
-        }
-      }
-
-      assert_eq!(
-        iterator.next(),
-        None,
-        "DONE iterator should produce no more solutions"
-      );
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
+      assert_none!(iterator.next());
       assert!(
         matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
@@ -871,19 +857,8 @@ mod tests {
       let mut iterator = SudokuIterator::create(initial_position);
       assert!(matches!(*iterator.state, IteratorState::NEW(_)));
 
-      match iterator.next() {
-        None => panic!("Should have found solution"),
-        Some(solution) => {
-          let expected_solution = SudokuSolution::create(&expected_solution);
-          assert_eq!(solution, expected_solution, "Did not get expected solution");
-        }
-      }
-
-      assert_eq!(
-        iterator.next(),
-        None,
-        "DONE iterator should produce no more solutions"
-      );
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
+      assert_none!(iterator.next());
       assert!(
         matches!(*iterator.state, IteratorState::DONE),
         "Iterator should be done after discovering there are no more solutions"
@@ -970,11 +945,10 @@ mod tests {
       ];
 
       let initial_position = InitialPosition::create_from_values(&problem);
-      let iterator = SudokuIterator::create(initial_position);
+      let mut iterator = SudokuIterator::create(initial_position);
 
-      let solutions: Vec<SudokuSolution> = iterator.collect();
-      assert_eq!(solutions.len(), 1, "Solution should be unique");
-      assert_eq!(solutions[0], SudokuSolution::create(&expected_solution));
+      assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
+      assert_none!(iterator.next());
     }
   }
 }
