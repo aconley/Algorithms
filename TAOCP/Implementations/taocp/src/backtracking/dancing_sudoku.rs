@@ -10,17 +10,6 @@ pub struct DancingSudokuSolution {
     rows: Vec<Vec<u8>>,
 }
 
-impl DancingSudokuSolution {
-    fn create(values: &[u8]) -> Self {
-        assert_eq!(values.len(), 81);
-        let mut result: Vec<Vec<u8>> = Vec::with_capacity(9);
-        for row in values.chunks(9) {
-            result.push(row.to_vec());
-        }
-        DancingSudokuSolution { rows: result }
-    }
-}
-
 impl fmt::Display for DancingSudokuSolution {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row_chunk in self.rows.chunks(3) {
@@ -287,6 +276,15 @@ mod tests {
     };
     use claim::{assert_none, assert_ok, assert_some_eq};
 
+    fn create_solution(values: &[u8]) -> DancingSudokuSolution {
+        assert_eq!(values.len(), 81);
+        let mut result: Vec<Vec<u8>> = Vec::with_capacity(9);
+        for row in values.chunks(9) {
+            result.push(row.to_vec());
+        }
+        DancingSudokuSolution { rows: result }
+    }
+
     // A fully solved sudoku puzzle.
     #[rustfmt::skip]
     const SOL: [u8; 81] = [
@@ -320,7 +318,7 @@ mod tests {
         let initial_position = SudokuEntry::create_from_values(&SOL);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(iterator.next(), DancingSudokuSolution::create(&SOL));
+        assert_some_eq!(iterator.next(), create_solution(&SOL));
         assert_none!(iterator.next());
     }
 
@@ -336,7 +334,7 @@ mod tests {
         let initial_position = SudokuEntry::create_from_values(&puzzle);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(iterator.next(), DancingSudokuSolution::create(&SOL));
+        assert_some_eq!(iterator.next(), create_solution(&SOL));
         assert_none!(iterator.next());
     }
 
@@ -360,7 +358,7 @@ mod tests {
 
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution)
+            create_solution(&expected_solution)
         );
         assert_none!(iterator.next());
     }
@@ -398,7 +396,7 @@ mod tests {
 
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution)
+            create_solution(&expected_solution)
         );
         assert_none!(iterator.next());
     }
@@ -433,7 +431,7 @@ mod tests {
       let initial_position = SudokuEntry::create_from_values(&problem);
       let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-      assert_some_eq!(iterator.next(), DancingSudokuSolution::create(&expected_solution));
+      assert_some_eq!(iterator.next(), create_solution(&expected_solution));
       assert_none!(iterator.next());
     }
 
@@ -469,7 +467,7 @@ mod tests {
 
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution)
+            create_solution(&expected_solution)
         );
         assert_none!(iterator.next());
     }
@@ -508,7 +506,7 @@ mod tests {
 
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution)
+            create_solution(&expected_solution)
         );
         assert_none!(iterator.next());
     }
@@ -558,11 +556,11 @@ mod tests {
 
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution1)
+            create_solution(&expected_solution1)
         );
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution2)
+            create_solution(&expected_solution2)
         );
         assert_none!(iterator.next());
     }
@@ -601,7 +599,7 @@ mod tests {
 
         assert_some_eq!(
             iterator.next(),
-            DancingSudokuSolution::create(&expected_solution)
+            create_solution(&expected_solution)
         );
         assert_none!(iterator.next());
     }

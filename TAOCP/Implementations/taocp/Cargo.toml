@@ -25,4 +25,3 @@ harness = false
 [[bench]]
 name = "sudoku_benchmark"
 harness = false
-html_reports = true
