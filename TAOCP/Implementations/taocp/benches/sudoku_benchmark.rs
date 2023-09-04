@@ -4,17 +4,11 @@ extern crate taocp;
 
 use criterion::Criterion;
 use std::time::Duration;
-use taocp::backtracking::dancing_sudoku::{DancingSudokuIterator, SudokuEntry};
 use taocp::backtracking::sudoku::{InitialPosition, SudokuIterator};
 
 fn create_iterator(pos: &[u8; 81]) -> SudokuIterator {
     let initial_position = InitialPosition::create_from_values(pos);
     SudokuIterator::create(initial_position)
-}
-
-fn create_dancing_iterator(pos: &[u8; 81]) -> DancingSudokuIterator {
-    let initial_position = SudokuEntry::create_from_values(pos);
-    DancingSudokuIterator::new(initial_position).unwrap()
 }
 
 #[rustfmt::skip]
@@ -33,12 +27,6 @@ const FULLY_SOLVED: [u8; 81] = [
 fn bench_already_solved(c: &mut Criterion) {
     c.bench_function("Sudoku: Already solved problem", |b| {
         b.iter(|| create_iterator(&FULLY_SOLVED).count())
-    });
-}
-
-fn dancing_bench_already_solved(c: &mut Criterion) {
-    c.bench_function("Dancing Sudoku: Already solved problem", |b| {
-        b.iter(|| create_dancing_iterator(&FULLY_SOLVED).count())
     });
 }
 
@@ -61,12 +49,6 @@ fn bench_medium_problem(c: &mut Criterion) {
     });
 }
 
-fn dancing_bench_medium_problem(c: &mut Criterion) {
-    c.bench_function("Dancing Sudoku: Medium problem", |b| {
-        b.iter(|| create_dancing_iterator(&MEDIUM_PROBLEM).count())
-    });
-}
-
 #[rustfmt::skip]
 const HARD_PROBLEM : [u8; 81] = [
   4, 0, 0, 0, 0, 0, 0, 1, 0,
@@ -83,12 +65,6 @@ const HARD_PROBLEM : [u8; 81] = [
 fn bench_hard_problem(c: &mut Criterion) {
     c.bench_function("Sudoku: Hard problem", |b| {
         b.iter(|| create_iterator(&HARD_PROBLEM).count())
-    });
-}
-
-fn dancing_bench_hard_problem(c: &mut Criterion) {
-    c.bench_function("Dancing Sudoku: Hard problem", |b| {
-        b.iter(|| create_dancing_iterator(&HARD_PROBLEM).count())
     });
 }
 
@@ -113,14 +89,6 @@ fn bench_very_hard_problem(c: &mut Criterion) {
     });
 }
 
-fn dancing_bench_very_hard_problem(c: &mut Criterion) {
-    let mut group = c.benchmark_group("Dancing Sudoku: very hard problem");
-    group.measurement_time(Duration::from_secs(15));
-    group.bench_function("Dancing Sudoku: Very hard problem", |b| {
-        b.iter(|| create_dancing_iterator(&VERY_HARD_PROBLEM).count())
-    });
-}
-
 #[rustfmt::skip]
 const PROBLEM_WITH_MULTIPLE_SOLUTIONS : [u8; 81] = [
   0, 3, 0, 0, 1, 0, 0, 0, 0,
@@ -140,12 +108,6 @@ fn bench_problem_with_multiple_solutions(c: &mut Criterion) {
     });
 }
 
-fn dancing_bench_problem_with_multiple_solutions(c: &mut Criterion) {
-    c.bench_function("Dancing Sudoku: Problem with multiple solutions", |b| {
-        b.iter(|| create_dancing_iterator(&PROBLEM_WITH_MULTIPLE_SOLUTIONS).count())
-    });
-}
-
 criterion_group!(
     benches,
     bench_already_solved,
@@ -154,12 +116,4 @@ criterion_group!(
     bench_very_hard_problem,
     bench_problem_with_multiple_solutions
 );
-criterion_group!(
-    dancing_benches,
-    dancing_bench_already_solved,
-    dancing_bench_medium_problem,
-    dancing_bench_hard_problem,
-    dancing_bench_very_hard_problem,
-    dancing_bench_problem_with_multiple_solutions
-);
-criterion_main!(benches, dancing_benches);
+criterion_main!(benches);

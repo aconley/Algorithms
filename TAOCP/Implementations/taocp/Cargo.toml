@@ -25,3 +25,7 @@ harness = false
 [[bench]]
 name = "sudoku_benchmark"
 harness = false
+
+[[bench]]
+name = "dancing_benchmark"
+harness = false
