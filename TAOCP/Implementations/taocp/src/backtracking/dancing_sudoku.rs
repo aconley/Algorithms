@@ -201,11 +201,12 @@ enum SudokuItem {
 }
 
 impl ProblemOption<SudokuItem> for SudokuEntry {
-    type IteratorType = std::vec::IntoIter<SudokuItem>;
+    type PrimaryIteratorType = std::array::IntoIter<SudokuItem, 4>;
+    type SecondaryIteratorType = std::iter::Empty<SudokuItem>;
     type BuilderType = Self;
 
-    fn primary_items(&self) -> Self::IteratorType {
-        vec![
+    fn primary_items(&self) -> Self::PrimaryIteratorType {
+        [
             SudokuItem::Position {
                 row: self.row,
                 col: self.col,
@@ -226,8 +227,8 @@ impl ProblemOption<SudokuItem> for SudokuEntry {
         .into_iter()
     }
 
-    fn secondary_items(&self) -> Self::IteratorType {
-        vec![].into_iter()
+    fn secondary_items(&self) -> Self::SecondaryIteratorType {
+      std::iter::empty::<SudokuItem>()
     }
 
     fn builder() -> Self::BuilderType {

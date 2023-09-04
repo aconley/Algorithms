@@ -20,11 +20,12 @@ struct LangfordOption {
 }
 
 impl ProblemOption<LangfordItem> for LangfordOption {
-    type IteratorType = std::vec::IntoIter<LangfordItem>;
+    type PrimaryIteratorType = std::array::IntoIter<LangfordItem, 3>;
+    type SecondaryIteratorType = std::iter::Empty<LangfordItem>;
     type BuilderType = Self;
 
-    fn primary_items(&self) -> Self::IteratorType {
-        vec![
+    fn primary_items(&self) -> Self::PrimaryIteratorType {
+        [
             LangfordItem::Value(self.value),
             LangfordItem::Position(self.p0),
             LangfordItem::Position(self.p1),
@@ -32,8 +33,8 @@ impl ProblemOption<LangfordItem> for LangfordOption {
         .into_iter()
     }
 
-    fn secondary_items(&self) -> Self::IteratorType {
-        vec![].into_iter()
+    fn secondary_items(&self) -> Self::SecondaryIteratorType {
+        std::iter::empty::<LangfordItem>()
     }
 
     fn builder() -> Self::BuilderType {

@@ -21,14 +21,15 @@ struct NQueensOption {
 }
 
 impl ProblemOption<NQueensItem> for NQueensOption {
-    type IteratorType = std::array::IntoIter<NQueensItem, 2>;
+    type PrimaryIteratorType = std::array::IntoIter<NQueensItem, 2>;
+    type SecondaryIteratorType = std::array::IntoIter<NQueensItem, 2>;
     type BuilderType = Self;
 
-    fn primary_items(&self) -> Self::IteratorType {
+    fn primary_items(&self) -> Self::PrimaryIteratorType {
         [NQueensItem::Row(self.row), NQueensItem::Column(self.column)].into_iter()
     }
 
-    fn secondary_items(&self) -> Self::IteratorType {
+    fn secondary_items(&self) -> Self::SecondaryIteratorType {
         [
             NQueensItem::UpDiagonal(self.row + self.column),
             NQueensItem::DownDiagonal(self.row as i8 - self.column as i8),

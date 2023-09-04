@@ -7,11 +7,12 @@ use std::marker::PhantomData;
 use std::num::NonZeroU16;
 
 pub trait ProblemOption<ItemType> {
-    type IteratorType: Iterator<Item = ItemType>;
+    type PrimaryIteratorType: Iterator<Item = ItemType>;
+    type SecondaryIteratorType: Iterator<Item = ItemType>;
     type BuilderType: ProblemOptionBuilder<ItemType, ProblemOptionType = Self>;
 
-    fn primary_items(&self) -> Self::IteratorType;
-    fn secondary_items(&self) -> Self::IteratorType;
+    fn primary_items(&self) -> Self::PrimaryIteratorType;
+    fn secondary_items(&self) -> Self::SecondaryIteratorType;
 
     fn builder() -> Self::BuilderType;
 }
@@ -576,14 +577,15 @@ mod tests {
     }
 
     impl ProblemOption<String> for StringOption {
-        type IteratorType = std::vec::IntoIter<String>;
+        type PrimaryIteratorType = std::vec::IntoIter<String>;
+        type SecondaryIteratorType = std::vec::IntoIter<String>;
         type BuilderType = Self;
 
-        fn primary_items(&self) -> Self::IteratorType {
+        fn primary_items(&self) -> Self::PrimaryIteratorType {
             self.primary_items.clone().into_iter()
         }
 
-        fn secondary_items(&self) -> Self::IteratorType {
+        fn secondary_items(&self) -> Self::SecondaryIteratorType {
             self.secondary_items.clone().into_iter()
         }
 
