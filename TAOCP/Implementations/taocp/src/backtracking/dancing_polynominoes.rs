@@ -1,6 +1,7 @@
 // Dancing links solution to polnomino packing problems.
 
 use std::collections::BTreeSet;
+use std::fmt;
 
 use crate::backtracking::dancing_links::{
     DancingLinksError, DancingLinksIterator, ProblemOption, ProblemOptionBuilder,
@@ -18,13 +19,13 @@ pub trait Shape {
 
     fn cells(&self) -> Self::CellIteratorType;
 
-    fn contains(cell: &Cell) -> bool;
+    fn contains(&self, cell: &Cell) -> bool;
 }
 
 // A polynomino.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Polynomino {
-    name: char,
+    label: char,
     cell_info: CellInfo,
 }
 
@@ -39,8 +40,14 @@ struct CellInfo {
     max_y: u8,
 }
 
+#[derive(Debug)]
+struct CellWithLabel {
+    label: char,
+    cell: Cell,
+}
+
 impl Polynomino {
-    fn new(name: char, mut cells: Vec<Cell>) -> Result<Self, DancingLinksError> {
+    fn new(label: char, mut cells: Vec<Cell>) -> Result<Self, DancingLinksError> {
         if cells.is_empty() {
             return Err(DancingLinksError::new("Cells cannot be empty"));
         }
@@ -50,16 +57,10 @@ impl Polynomino {
         let mut min_y = cells[0].y;
         let mut max_y = cells[0].y;
         for cell in cells.iter().skip(1) {
-            if cell.x < min_x {
-                min_x = cell.x;
-            } else if cell.x > max_x {
-                max_x = cell.x;
-            }
-            if cell.y < min_y {
-                min_y = cell.y;
-            } else if cell.y > max_y {
-                max_y = cell.y;
-            }
+            min_x = std::cmp::min(min_x, cell.x);
+            max_x = std::cmp::max(max_x, cell.x);
+            min_y = std::cmp::min(min_y, cell.y);
+            max_y = std::cmp::max(max_y, cell.y);
         }
 
         if min_x > 0 || min_y > 0 {
@@ -71,7 +72,7 @@ impl Polynomino {
         cells.sort();
 
         Ok(Polynomino {
-            name,
+            label,
             cell_info: CellInfo {
                 cells,
                 max_x: max_x - min_x,
@@ -96,6 +97,16 @@ impl CellInfo {
         results.insert(rot3.reflect());
         results.insert(rot3);
         results.into_iter()
+    }
+
+    fn offset(&self, offset_cell: Cell) -> Vec<Cell> {
+        self.cells
+            .iter()
+            .map(|cell| Cell {
+                x: cell.x + offset_cell.x,
+                y: cell.y + offset_cell.y,
+            })
+            .collect()
     }
 
     // Rotates the contents of the CellInfo, preserving normalization and ordering.
@@ -134,6 +145,130 @@ impl CellInfo {
     }
 }
 
+pub struct PolynominoIterator {
+    inner: DancingLinksIterator<PolynominoItem, PolynominoOption>,
+}
+
+#[derive(Debug)]
+pub struct PolynominoSolution {
+    cells: Vec<CellWithLabel>,
+}
+
+impl PolynominoIterator {
+    pub fn new<S: Shape>(
+        polynominoes: Vec<Polynomino>,
+        shape: S,
+    ) -> Result<Self, DancingLinksError> {
+        if polynominoes.is_empty() {
+            return Err("Must provide at least some polynominoes".into());
+        }
+        let mut options = Vec::with_capacity(polynominoes.len());
+        for polynomino in polynominoes {
+            for polynomino_cells in polynomino.cell_info.generate_rotations_and_transpositions() {
+                for shape_cell in shape.cells() {
+                    let positions_at_offset = polynomino_cells.offset(shape_cell);
+                    if positions_at_offset
+                        .iter()
+                        .all(|position_cell| shape.contains(position_cell))
+                    {
+                        options.push(PolynominoOption {
+                            label: polynomino.label,
+                            cells: positions_at_offset,
+                        });
+                    }
+                }
+            }
+        }
+        Ok(PolynominoIterator {
+            inner: DancingLinksIterator::new(options)?,
+        })
+    }
+}
+
+impl fmt::Display for PolynominoSolution {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.cells.is_empty() {
+            return write!(f, "<empty>");
+        }
+        let mut max_x = self.cells[0].cell.x;
+        let mut max_y = self.cells[0].cell.y;
+        for cell in self.cells.iter().skip(1) {
+            max_x = std::cmp::max(max_x, cell.cell.x);
+            max_y = std::cmp::max(max_y, cell.cell.y);
+        }
+
+        let mut shape = vec![vec!['.'; max_x as usize]; max_y as usize];
+        for cell in &self.cells {
+            shape[cell.cell.y as usize][cell.cell.x as usize] = cell.label;
+        }
+
+        let mut output = String::with_capacity((shape.len() + 1) * shape[0].len());
+        output.extend(&shape[0]);
+        for row in shape.into_iter().skip(1) {
+            output.push('\n');
+            output.extend(row);
+        }
+        write!(f, "{}", output)
+    }
+}
+
+#[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Copy, Clone)]
+pub enum PolynominoItem {
+    Piece(char),
+    Position(Cell),
+}
+
+struct PolynominoOption {
+    label: char,
+    cells: Vec<Cell>,
+}
+
+impl ProblemOption<PolynominoItem> for PolynominoOption {
+    type PrimaryIteratorType = std::vec::IntoIter<PolynominoItem>;
+    type SecondaryIteratorType = std::iter::Empty<PolynominoItem>;
+    type BuilderType = Self;
+
+    fn primary_items(&self) -> Self::PrimaryIteratorType {
+        let mut items = Vec::with_capacity(1 + self.cells.len());
+        items.push(PolynominoItem::Piece(self.label));
+        for cell in &self.cells {
+            items.push(PolynominoItem::Position(*cell));
+        }
+
+        items.into_iter()
+    }
+
+    fn secondary_items(&self) -> Self::SecondaryIteratorType {
+        std::iter::empty()
+    }
+
+    fn builder() -> Self::BuilderType {
+        PolynominoOption {
+            label: ' ',
+            cells: vec![],
+        }
+    }
+}
+
+impl ProblemOptionBuilder<PolynominoItem> for PolynominoOption {
+    type ProblemOptionType = Self;
+    fn add_primary(&mut self, item: &PolynominoItem) -> &mut Self {
+        match item {
+            PolynominoItem::Piece(label) => self.label = *label,
+            PolynominoItem::Position(cell) => self.cells.push(*cell),
+        }
+        self
+    }
+
+    fn add_secondary(&mut self, _item: &PolynominoItem) -> &mut Self {
+        self
+    }
+
+    fn build(self) -> Self::ProblemOptionType {
+        self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     mod polynomino_tests {
@@ -153,7 +288,7 @@ mod tests {
                     ]
                 ),
                 Polynomino {
-                    name: 'x',
+                    label: 'x',
                     cell_info: CellInfo {
                         cells: vec![
                             Cell { x: 0, y: 0 },
@@ -180,7 +315,7 @@ mod tests {
                     ]
                 ),
                 Polynomino {
-                    name: 'Y',
+                    label: 'Y',
                     cell_info: CellInfo {
                         cells: vec![
                             Cell { x: 0, y: 0 },
