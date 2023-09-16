@@ -22,6 +22,56 @@ pub trait Shape {
     fn contains(&self, cell: &Cell) -> bool;
 }
 
+// A simple box shape.
+pub struct SimpleBox {
+    pub width: u8,
+    pub height: u8,
+}
+
+pub struct SimpleBoxIterator {
+    width: u8,
+    height: u8,
+    curr_x: u8,
+    curr_y: u8,
+}
+
+impl Shape for SimpleBox {
+    type CellIteratorType = SimpleBoxIterator;
+
+    fn cells(&self) -> Self::CellIteratorType {
+        SimpleBoxIterator {
+            width: self.width,
+            height: self.height,
+            curr_x: 0,
+            curr_y: 0,
+        }
+    }
+
+    fn contains(&self, cell: &Cell) -> bool {
+        cell.x < self.width && cell.y < self.height
+    }
+}
+
+impl Iterator for SimpleBoxIterator {
+    type Item = Cell;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.curr_y == self.height {
+            None
+        } else {
+            let cell = Cell {
+                x: self.curr_x,
+                y: self.curr_y,
+            };
+            self.curr_x = (self.curr_x + 1) % self.width;
+            if self.curr_x == 0 {
+                self.curr_y += 1;
+            }
+            Some(cell)
+        }
+    }
+}
+
 // A polynomino.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Polynomino {
@@ -35,15 +85,9 @@ pub struct Polynomino {
 // all cells are always zero.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct CellInfo {
-    cells: Vec<Cell>,
+    cells: Vec<Cell>, // non-empty
     max_x: u8,
     max_y: u8,
-}
-
-#[derive(Debug)]
-struct CellWithLabel {
-    label: char,
-    cell: Cell,
 }
 
 impl Polynomino {
@@ -145,13 +189,14 @@ impl CellInfo {
     }
 }
 
+#[derive(Debug)]
 pub struct PolynominoIterator {
     inner: DancingLinksIterator<PolynominoItem, PolynominoOption>,
 }
 
 #[derive(Debug)]
 pub struct PolynominoSolution {
-    cells: Vec<CellWithLabel>,
+    options: Vec<PolynominoOption>,
 }
 
 impl PolynominoIterator {
@@ -185,21 +230,41 @@ impl PolynominoIterator {
     }
 }
 
+impl Iterator for PolynominoIterator {
+    type Item = PolynominoSolution;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner
+            .next()
+            .map(|options| PolynominoSolution { options })
+    }
+}
+
+impl std::iter::FusedIterator for PolynominoIterator {}
+
 impl fmt::Display for PolynominoSolution {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.cells.is_empty() {
+        if self.options.is_empty() {
             return write!(f, "<empty>");
         }
-        let mut max_x = self.cells[0].cell.x;
-        let mut max_y = self.cells[0].cell.y;
-        for cell in self.cells.iter().skip(1) {
-            max_x = std::cmp::max(max_x, cell.cell.x);
-            max_y = std::cmp::max(max_y, cell.cell.y);
+        let mut max_x = 0;
+        let mut max_y = 0;
+        for option in &self.options {
+            max_x = std::cmp::max(
+                max_x,
+                option.cells.iter().map(|cell| cell.x).max().unwrap_or(0),
+            );
+            max_y = std::cmp::max(
+                max_y,
+                option.cells.iter().map(|cell| cell.y).max().unwrap_or(0),
+            );
         }
 
         let mut shape = vec![vec!['.'; max_x as usize]; max_y as usize];
-        for cell in &self.cells {
-            shape[cell.cell.y as usize][cell.cell.x as usize] = cell.label;
+        for option in &self.options {
+            for cell in &option.cells {
+                shape[cell.y as usize][cell.x as usize] = option.label;
+            }
         }
 
         let mut output = String::with_capacity((shape.len() + 1) * shape[0].len());
@@ -218,6 +283,7 @@ pub enum PolynominoItem {
     Position(Cell),
 }
 
+#[derive(Debug, PartialEq, Eq)]
 struct PolynominoOption {
     label: char,
     cells: Vec<Cell>,
@@ -545,6 +611,79 @@ mod tests {
                     }
                 ]
             );
+        }
+    }
+
+    mod iterator {
+        use crate::backtracking::dancing_polynominoes::{
+            Cell, Polynomino, PolynominoIterator, SimpleBox,
+        };
+        use claim::assert_ok;
+
+        #[test]
+        fn single_item_filling_box() {
+            let box_piece = assert_ok!(Polynomino::new(
+                'B',
+                vec![
+                    Cell { x: 0, y: 0 },
+                    Cell { x: 0, y: 1 },
+                    Cell { x: 1, y: 0 },
+                    Cell { x: 1, y: 1 },
+                ],
+            ));
+            let shape = SimpleBox {
+                width: 2,
+                height: 2,
+            };
+
+            let iterator = assert_ok!(PolynominoIterator::new(vec![box_piece], shape));
+
+            assert_eq!(iterator.count(), 1);
+        }
+
+        #[test]
+        fn two_item_filling_box() {
+            // *
+            // * *
+            let l_piece = assert_ok!(Polynomino::new(
+                'L',
+                vec![
+                    Cell { x: 0, y: 0 },
+                    Cell { x: 0, y: 1 },
+                    Cell { x: 1, y: 0 },
+                ],
+            ));
+            // * *
+            // * * *
+            let p_piece = assert_ok!(Polynomino::new(
+                'P',
+                vec![
+                    Cell { x: 0, y: 0 },
+                    Cell { x: 0, y: 1 },
+                    Cell { x: 0, y: 2 },
+                    Cell { x: 1, y: 0 },
+                    Cell { x: 1, y: 1 }
+                ],
+            ));
+
+            let shape_wide = SimpleBox {
+                width: 4,
+                height: 2,
+            };
+            let iterator_wide = assert_ok!(PolynominoIterator::new(
+                vec![l_piece.clone(), p_piece.clone()],
+                shape_wide
+            ));
+            assert_eq!(iterator_wide.count(), 4);
+
+            // Rotating the box shouldn't affect anything.
+            let shape_tall = SimpleBox {
+                width: 2,
+                height: 4,
+            };
+            let iterator_tall =
+                assert_ok!(PolynominoIterator::new(vec![l_piece, p_piece], shape_tall));
+            assert_eq!(iterator_tall.count(), 4);
         }
     }
 }

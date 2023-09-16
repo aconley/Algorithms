@@ -116,7 +116,6 @@ impl DancingQueensIterator {
         if n == 0 || n > 32u8 {
             return Err("n not in valid range (1, 32]".into());
         }
-        // TODO: add additional items to break the symmetry.
         let mut options = Vec::with_capacity((n as usize) * (n as usize));
         for row_idx in 0..n {
             for col_idx in 0..n {
