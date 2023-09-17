@@ -49,7 +49,7 @@ impl ProblemOptionBuilder<NQueensItem> for NQueensOption {
         match item {
             NQueensItem::Row(r) => self.row = *r,
             NQueensItem::Column(c) => self.column = *c,
-            _ => panic!("Unexpected primary item type: {:?}", item),
+            _ => (),
         }
         self
     }

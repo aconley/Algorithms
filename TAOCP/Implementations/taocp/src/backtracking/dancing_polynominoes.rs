@@ -9,8 +9,8 @@ use crate::backtracking::dancing_links::{
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Cell {
-    x: u8,
-    y: u8,
+    pub x: u8,
+    pub y: u8,
 }
 
 // A shape that we are attempting to place Polynominoes into.
@@ -24,13 +24,13 @@ pub trait Shape {
 
 // A simple box shape.
 pub struct SimpleBox {
-    pub width: u8,
     pub height: u8,
+    pub width: u8,
 }
 
 pub struct SimpleBoxIterator {
-    width: u8,
     height: u8,
+    width: u8,
     curr_x: u8,
     curr_y: u8,
 }
@@ -40,15 +40,15 @@ impl Shape for SimpleBox {
 
     fn cells(&self) -> Self::CellIteratorType {
         SimpleBoxIterator {
-            width: self.width,
             height: self.height,
+            width: self.width,
             curr_x: 0,
             curr_y: 0,
         }
     }
 
     fn contains(&self, cell: &Cell) -> bool {
-        cell.x < self.width && cell.y < self.height
+        cell.y < self.height && cell.x < self.width
     }
 }
 
@@ -91,11 +91,10 @@ struct CellInfo {
 }
 
 impl Polynomino {
-    fn new(label: char, mut cells: Vec<Cell>) -> Result<Self, DancingLinksError> {
+    pub fn new(label: char, mut cells: Vec<Cell>) -> Result<Self, DancingLinksError> {
         if cells.is_empty() {
-            return Err(DancingLinksError::new("Cells cannot be empty"));
+            return Err("Cells cannot be empty".into());
         }
-
         let mut min_x = cells[0].x;
         let mut max_x = cells[0].x;
         let mut min_y = cells[0].y;
@@ -260,7 +259,7 @@ impl fmt::Display for PolynominoSolution {
             );
         }
 
-        let mut shape = vec![vec!['.'; max_x as usize]; max_y as usize];
+        let mut shape = vec![vec!['.'; max_x as usize + 1]; max_y as usize + 1];
         for option in &self.options {
             for cell in &option.cells {
                 shape[cell.y as usize][cell.x as usize] = option.label;
@@ -632,8 +631,8 @@ mod tests {
                 ],
             ));
             let shape = SimpleBox {
-                width: 2,
                 height: 2,
+                width: 2,
             };
 
             let iterator = assert_ok!(PolynominoIterator::new(vec![box_piece], shape));
@@ -667,8 +666,8 @@ mod tests {
             ));
 
             let shape_wide = SimpleBox {
-                width: 4,
                 height: 2,
+                width: 4,
             };
             let iterator_wide = assert_ok!(PolynominoIterator::new(
                 vec![l_piece.clone(), p_piece.clone()],
@@ -678,8 +677,8 @@ mod tests {
 
             // Rotating the box shouldn't affect anything.
             let shape_tall = SimpleBox {
-                width: 2,
                 height: 4,
+                width: 2,
             };
             let iterator_tall =
                 assert_ok!(PolynominoIterator::new(vec![l_piece, p_piece], shape_tall));

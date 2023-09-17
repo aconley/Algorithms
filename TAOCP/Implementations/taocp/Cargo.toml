@@ -5,10 +5,19 @@ edition = "2021"
 authors = ["Alex Conley <alexanderconley@gmail.com>"]
 
 [dependencies]
+lazy_static = "1.4.0"
 
 [dev-dependencies]
 criterion = "0.4"
 claim = "0.5"
+
+[lib]
+name = "taocp"
+path = "src/lib.rs"
+
+[[bin]]
+name = "pentominoes_box"
+path = "src/backtracking/pentominoes_box.rs"
 
 [[bench]]
 name = "combinatoric_benchmark"
