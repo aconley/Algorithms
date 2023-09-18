@@ -1,3 +1,4 @@
+\def\algorithm#1#2{\vskip 0.06in \noindent [p #1] {\bf #2}}
 \def\newstep#1{\smallskip \noindent {\bf #1}}
 \def\newitem#1{\vskip 0.06in \noindent [p #1]}
 \def\subsec#1{\vskip 0.15in \noindent {\bf #1}}
@@ -231,7 +232,7 @@ actually make that much difference.  For Walker's version:
  {\bf BS3}.
  \vskip 0.1in
 
-\subsec {Algorithm L}
+\algorithm {35}{Algorithm L}
 
 \noindent In this algorithm, $1 \le l \le 2n$, and $l$ simply indicates the 
 position we are trying to set.  $k$ is the value we are trying, and $k = p_j$.
@@ -284,6 +285,71 @@ goto {\bf L5}, otherwise goto {\bf L4}.
 for $n = 7$ for the raw and optimized Algorithm~L (both visiting both the 
 forward and reversed solutions), and 60 ms vs.\ 18 ms for $n = 11$.
 
+\sec {Section 7.2.2.1: Dancing Links}
+
+\algorithm {69} {Algorithm X}
+
+\noindent Why, when we cover an item, do we remove (hide) all the items from 
+all the options that contain it?  This isn't actually necessary, it's essentially 
+an eager optimization.  When we cover some item {\it i}, we know that any 
+downstream choices will include {\it exacty one} option that includes {\it i},
+and so we might as well remove all those options since each one of them is
+either the option we chose or something that is guaranteed to conflict with it.
+Note that we don't remove things that conflict with the items until we actually
+choose which on in {\bf X5}.
+
+One could instead have a lazy version of Algorithm~X that doesn't remove the
+items until it needs to.  Algorithm~M, in fact, takes this approach as long
+as there is still room to chose another {\it i}.
+
+One of the interesting properties of the cover step is that when you
+cover {\it i} it unlinks all the items in all the options that contain {\it i}
+{\it except} for item {\it i} itself, which remains linked.  That's because
+it needs to be able to find the options again later to undo the operation.
+
+Algorithm~X can also be converted to an iterator form following a similar
+approach to the basic backtracking.  In my implementation I found it useful
+to change a few things.  In particular, a tricky bit was the need to
+communicate which item had been chosen in {\bf X3} -- the books dance of
+{\bf X3-4} didn't work that well in the iterator formulation because the
+next re-entry needed a way to distinguish a new thing to try from a previous
+attempt that needed to be undone before trying the next one.  My solution was
+to set $x\left[l\right] \leftarrow i$ at the choice, and have the logic for
+undoing a previous move simply return if the undo was for an item with index
+less than $N$.
+
+My implementation was also more strongly typed than tossing Strings around,
+which was mostly a way to make it easier to have the iterator return something
+nicer than just a list of options -- for example the N-Queens implementation
+was just a vector of $N$ integers, the Sudoku solver just returned the solved
+board, and the Langford solver just returned the vector of $2n$ integers.
+
+It's interesting to compare the performance of Algorithm~X vs some other
+implementations for N-Queens, Langford pairs, and Sudoku.  Knuth provides
+mem-count comparisons for the first two, but that isn't always exactly the
+same thing because of the memory hierarchy.
+
+So, concretely, bitwise 10 queens is about 8x faster than the Algorithm~X version
+(although not in organ-pipe order, which is probably about 2x faster).
+The singly linked list version of Langford~8-12 is actually about the same
+speed as the Dancing Links version, and a more direct implementation of a Sudoku
+solver is about 2x faster than the Dancing Links version.
+
+\subsec {Secondary Items}
+
+\newitem {72} Removing symmetry with secondary items
+
+The way this is presented is a bit confusing -- after all, the example actually
+results in more solutions, not fewer, so what's the point?  The point is that
+in actual use you won't necessarily have the same primary item in each row, you will use
+this trick betwen multiple options to guarantee some ordering among them.
+
+The example given (for N-Queens as problems~20-23) is a somewhat complicated 
+one.  A simpler example is an alternative way to break the reflection symmetry
+of Langford pairs (that is, that if $x_0 \ldots x_{2n-1}$ is a solution, so
+is $x_{2n- 1} \ldots x_{0}$).  Problem~15 discusses how to do this by omitting
+options -- which is a better solution.  But we could also do this by using the
+ordering trick to ensure that, say, the first 1 is to the left of the first $2$.
 
 \sec{Section 7.2.2.2: Satisfiability}
 
