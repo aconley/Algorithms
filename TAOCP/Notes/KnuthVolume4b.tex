@@ -351,6 +351,60 @@ is $x_{2n- 1} \ldots x_{0}$).  Problem~15 discusses how to do this by omitting
 options -- which is a better solution.  But we could also do this by using the
 ordering trick to ensure that, say, the first 1 is to the left of the first $2$.
 
+To be concrete, consider the $n=3$ case, which has two solutions: 312132 and 
+231213.  We want to eliminate the second one.  To do this we are then
+enforcing an ordering, which we can do with the following options:
+$ 1\,s_1\,s_3, 1\,s_2\,s_4\,x_0, 1\,s_3\,s_5\,x_0\,x_1, 
+  1\,s_4\,s_6\,x_0\,x_1\,x_2, 2\,s_1\,s_4\,x_0, 2\,s_2\,s_5\,x_1, 
+  2\,s_3\,s_6\,x_2
+$, which force that 1 is to the left of 2.
+
+\subsec {Analysis of Algorithm~X}
+
+\newitem {98} Strictness
+
+If $n$ rows are identical, then that means the $n$ options represented by those
+rows are identical.  If we remove all but one duplicate, then each solution of
+the reduced problem corresponds to $n-1$ solutions of the original problem,
+where you simply take turns substituting the removed options for the one that
+was kept.  Similarly if two columns are identical, that means there is an item
+that plays exactly the same row as some other item.  We can remove the column
+without affecting the solution, we just need to remember to add it back for
+every opton that includes the item we kept.
+
+\newitem {99} Nodes in the search tree
+
+The $t$-way branch is {\it not} on which item to cover -- it's on the different
+options containing that item once the item is chosen.  After all, Algorithm~X
+doesn't revisit the choice of item to branch on unless it backtracks past that
+decision.
+
+Recall that the problem represented by the displayed matrix has the following
+options: 'ce', 'adg', 'bcf', 'adf', 'bg', 'deg'.  So the top row has the
+3rd and 5th squares for 'c' and 'e', etc.  However, there are 5 items with
+2 options ('a', 'b', 'c', 'e', and 'f'), but it's not a 5-way branch -- it's 
+a 2 way branch between the ways to cover 'a' ('adg' vs. 'adf').
+
+The first branch is 'adg'.  The residual branch has two options: 'ce' and
+'bcf'.  This is represented in the left branch by having the 2nd and 3rd
+items ('ce', now that 'a' has been eliminated) and the 1st, 2nd, and 4th
+('bcf').  Then it choses 'b', which only has 'bcf', but that leaves one
+item ('e') with no matching options, so it has to backtrack.
+
+In the right branch it then tries 'adf' which leaves 'ce' and 'bg'.
+It choses 'b' again, which leaves 'ce', choses that, and solves the problem.
+
+\subsec{Exploiting local equivalence}
+
+\newitem {107} Why does the new tree in (100) solve the focuse problem?
+The focus issue of (91) arises because the root node has 2 children, but on
+the level below that each node has 3 children.  Hence, the MRV heuristic will
+always choose from the root of each of the repeated subproblems instead of 
+staying in the tree it started with.  The new tree (100) also has degree 2
+in the level below the root -- so it's possible that pathological choices
+of items could first do all the roots, etc., and have bad focus, but it becomes
+much harder to arrange that.
+
 \sec{Section 7.2.2.2: Satisfiability}
 
 \newitem {185} Equation~2 is shorter, at 5 clauses, than the `shortest
