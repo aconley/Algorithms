@@ -359,6 +359,51 @@ $ 1\,s_1\,s_3, 1\,s_2\,s_4\,x_0, 1\,s_3\,s_5\,x_0\,x_1,
   2\,s_3\,s_6\,x_2
 $, which force that 1 is to the left of 2.
 
+\subsec {Factoring an Exact Cover Problem}
+
+\newitem {83} An exact cover problem solves other problems.
+\vskip 0.1in
+\noindent We have $\sum_i x_i a_{ij} = 1$ for $1 < j \le n$ 
+and $b_i = \alpha_1 a_{i1} + \ldots + \alpha_n a_{in}$.  So what is
+$\sum_i x_i b_i$?
+
+$$
+ \eqalign{
+  \sum_{i=1}^m x_i b_i &= \sum_{i=1}^m x_i \sum_{j=1}^n = \alpha_j a_{ij} \cr
+                       &= \sum_{j=1}^n \sum_{i=1}^m x_i \alpha_j a_{ij} \cr
+                       &= \sum_{j=1}^n \alpha_j \sum_{i=1}^m x_i a_{ij} \cr
+                       &= \sum_{j=1}^n \alpha_j \times 1 \cr
+                       &= \sum_{j=1}^n \alpha_j,
+ }
+$$
+as claimed.
+
+\newitem {84} Cover a chessboard with 21 straight trominoes and one monomino.
+\vskip 0.1in
+
+\noindent To rephrase the argument that the monomino has to go into a cell
+with $i \equiv j \left({\rm mod} 3\right)$: if we color the chessboard with
+3 colors based on $\left(i - j\right) {\rm mod} 3$, then there are 22 squares
+with $i \equiv j$ (and 21 each of the other two values), but we only have 21
+tromonioes, so we know the monomino must go into such a cell.
+
+\newitem {86} We know that five of the pieces 1, 2, 4, 5, 6, 7 occupy as
+many corner vertices as they can.
+\vskip 0.1in
+
+\noindent Why?  This goes back to the totals for $v$.  Removing piece 3,
+which we know must occupy 2 corners, we have $\left(1 {\rm or} 2\right)$ piece 2 
+plus $\left(0 {\rm or} 1\right)$ of pieces 1, 4, 5, 6, 7 must sum to 6.
+The only way to accomplish that is to have five of them take the high value
+for corner ($v$) cubies.
+
+The new options work as follows: one of the items will {\it not} take the $+$
+variant (it won't touch the maximum number of corners).  Say, for example,
+it's $7$, so the option will chose $7-$.  The new options will then force
+$1-\,2-\,4-\,5-\,6-\,7+$ to be chosen, which then forces all of the other
+items to take their $+$ version -- which requires them to touch the most
+corners.
+
 \subsec {Analysis of Algorithm~X}
 
 \newitem {98} Strictness
