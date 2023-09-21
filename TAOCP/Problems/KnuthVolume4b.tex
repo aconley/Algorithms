@@ -543,7 +543,35 @@ really part of the algorithm; all that matters is that it is negative.\hfil\brea
 (b) {\tt DLINK(23) = 25} because that is the last element of the next option
 (option 5).
 
-\newprob {Problem~18} {\it MRV Heuristic}\hfil\break
+\newprob {Problem~8} {\it Design an algorithm to set up the initial memory
+contents for Algorithm~X}\hfil\break
+My implementation differs slightly from the way the book approaches it.  First,
+I required the items to be sortable so that the entry order for the options
+doesn't affect the solution (it may find solutions in a different order, 
+however, depending on the option order).  The items from each input option
+are read into two BTrees (one primary, one secondary).  They are checked for
+overlaps -- if any are found it's an error -- and then read out into a flat
+array where the first $N_p$ items are primary followed by $N_s$ secondary items.
+Each option is converted into an indexed form where the primary and secondary
+items are replaced by indices into the items array.  The next step is to
+build the item nodes (the ones with rlink/llink), which are simply built
+by iterating over the item list in order, but adding the 0 node at one end
+and the secondary item header node at the end, and modifying the last primary
+item to RLINK to node 0 and the first secondary to LLINK to the secondary
+header.  In my implementation the item nodes don't hold the actual items,
+those are kept in a separate list.  This allows the header nodes to be smaller
+so they are more likely to be in cache -- the items are only needed when a
+solution is found, and the process of looking up the items involves indirection
+anyways, so there's no loss.
+
+Then the option nodes are built.  First, create a new spacer, then create 
+header nodes for each primary and secondary item.  Add another spacer, and then,
+for each option, iterate over the primary items and secondary items,
+inserting each into the doubly linked list for the respective header node
+and updating len for that item, finishing with another spacer that points back 
+to the first node added for the option.
+
+\newprob {Problem~9} {\it MRV Heuristic}\hfil\break
 Simply walk the list of active items and keep track of the minimum encountered
 so far.\hfil\break
 {\bf M1.} [Initialize] If $RLINK\left(0\right) = 0$, terminate unsuccessfully (there are no
@@ -554,7 +582,29 @@ so far.\hfil\break
 {\bf M4.} [Compare] Set $l \leftarrow LEN\left(p\right)$.  If $l < m$ set $m \leftarrow l$,
  $i \leftarrow p$.\hfil\break
 {\bf M5.} [Early terminate] If $m \ne 0$, goto {\bf M2}.\hfil\break
-{\bf M6.} [Exit] Return $i$.\hfil\break
+{\bf M6.} [Exit] Return $i$.
+
+\newprob {Problem~13} {\it How can we use the values of $x_0\ldots x_{l-1}$ to 
+figure out what the solution is?}\hfil\break
+Each $x_i$ is the item that was used to select a given option.  So, we
+essentially apply the solution of Problem~12 to each value: set $r \leftarrow x_i$,
+output the item associated with ${\rm TOP}\left(r\right)$, 
+and then repeat until $r = x_i$: set $r \leftarrow r + 1$, then if 
+${\rm TOP}\left(r\right) < 0$ set $r\leftarrow {\rm ULINK}\left(r\right)$,
+otherwise output the item for ${\rm TOP}\left(r\right)$.  If you prefer the
+items to be in order, you can walk backwards until you find the preceding
+spacer, and then walk forward until finding the following spacer.
+
+\newprob {Problem~15} {\it What options can you omit to eliminate mirror 
+solutions for the Langford problem?}\hfil\break
+A very simple approach is to force $1$ to be in the left half by simply
+omitting all items $1\,s_j\,s_{j+2}$ where $j \ge n$.  Knuth suggests it's
+more efficient to work with $i = n$.
+
+\newprob {Problem~18} {\it What are the solutions to (6) if $e$, $f$, $g$ 
+are secondary?}\hfil\break
+The previous solution still works of course (`ce', `adf', `bg').  But in
+addition `adg', `bcf' is now a solution (which doesn't cover `e').
 
 \topglue 0.5in
 \centerline{\tt Knuth 7.2.2.2: Satisfiability}
