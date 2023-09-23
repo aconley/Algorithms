@@ -439,9 +439,27 @@ item ('e') with no matching options, so it has to backtrack.
 In the right branch it then tries 'adf' which leaves 'ce' and 'bg'.
 It choses 'b' again, which leaves 'ce', choses that, and solves the problem.
 
+\subsec {Maintaining a decent focus}
+
+\newitem {105} Direct sums of search trees: the direct sum ($A \oplus A^{\prime}$)
+of the matricies is just writing $A$ in the upper left, $A^{\prime}$ in the
+lower right, and filling the rest with zeroes.
+
+One thing to be careful of in the search tree combination rules is to
+distinguish between the square nodes (solution) and the round ones (backtrack);
+when you hit a square node you (possibly) still have to solve the other
+part of the problem, so you basically get a complete duplicate of the other
+tree (at whatever level you were in in that tree), while when you hit a
+backtrack node you are done even if you are still in the middle of the other
+side.
+
+The tree combination rule assumes the MRV heuristic.  The fact that we
+take the left tree when $d = d^{\prime}$ is because MRV takes the {\it first}
+item with the minimum branching factor.
+
 \subsec{Exploiting local equivalence}
 
-\newitem {107} Why does the new tree in (100) solve the focuse problem?
+\newitem {107} Why does the new tree in (100) solve the focus problem?
 The focus issue of (91) arises because the root node has 2 children, but on
 the level below that each node has 3 children.  Hence, the MRV heuristic will
 always choose from the root of each of the repeated subproblems instead of 

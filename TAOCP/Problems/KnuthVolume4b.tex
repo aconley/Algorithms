@@ -606,6 +606,79 @@ are secondary?}\hfil\break
 The previous solution still works of course (`ce', `adf', `bg').  But in
 addition `adg', `bcf' is now a solution (which doesn't cover `e').
 
+\newprob {Problem~33} {\it Given an exact cover problem, construct another
+problem with exactly one more solution}\hfil\break
+Add one new item which is in none of the existing options, and two new
+options.  The first contains only the new item, the second contains all items.
+Every solution to the previous solution is still a solution with the first
+option added, and there is one more consisting purely of the second option.
+
+\newprob {Problem~202} {\it Form the $\oplus$ sum of two search trees.}\hfil\break
+This is obviously hard to do in text, but we can talk through what to do at
+each level.
+\vskip 0.05in
+\noindent The root node is aA.\hfil\break
+\noindent The branching factors of a and A are the same, but a is on the
+left, so we branch there first, forming bA and cA.
+\noindent For bA, the branching factors of b and A are again the same, so form
+dA and eA.\hfil\break
+\noindent For cA, the branching factor of c is more, so we branch on A, forming
+cB and cC.\hfil\break
+\noindent dA is a solution, so we get d paried with everything below A. In 
+particular, dF is a solution.\hfil\break
+\noindent eA is a backtrack node, so it is also a failure node, and so a leaf.
+\hfil\break
+\noindent cB, B doesn't branch, so form cD.\hfil\break
+\noindent cC, C has a lower branching factor than c, so form cE and cF.\hfil\break
+\noindent cD - D is a backtrack node, so it is a leaf.\hfil\break
+\noindent cE, E doesn't branch so form cG.\hfil\break
+\noindent cF, F is a solution node, so we get a copy of everything below c
+with F.  In particular, hF is a solution.\hfil\break
+\noindent cG - G is a backtrack node, so terminate.\hfil\break
+
+\newprob {Problem~203} {Is the $\oplus$ operation on search trees associative?
+Commutative?}\hfil\break
+It is associative, since the matrix sum is -- recall that $A \oplus A^{\prime}$
+is just putting $A$ in the upper left and $A^{\prime}$ in the lower right and
+filling the corners with 0, and that is associative.  It is not commutative
+though because of the 1) favor the left when each side has the same number
+of branches and 2) early termination rule when hitting a backtrack node.
+Consider the simple search tree $A$ with three nodes and no branching ending
+in a backtrack and $B$ the same thing but with two nodes.  In that case
+$A \oplus B = A$, but $B \oplus A = B$.
+
+\newprob {Proboem~266} {\it Sketch the design of a utility program that will
+create polynomino options to fill a shape.}\hfil\break
+First we generate all reflections and rotations of each polynomino, removing
+duplicates.  It's also possible to have the caller specify the symmetries
+(Knuth's version does this), but it is probably safer to just remove duplicates.
+This can be done by a) normalizing all the coordinates (so that the min x and
+min y are both zero) and b) sorting the resulting cells by $x$ with $y$ as a
+tiebreaker.  This puts each polynomino rotation/reflection into a canonical
+form with a defined sort order so duplicates can be easily removed.
+
+Then try placing each polynomino at every position in the shape, and, if all
+the cells are contained, add an appropriate option.  For some shapes you can
+do a bit better by keeping track of the $x, y$ extents of each polynomino, but
+that's a bit harder -- or at least less useful -- with irregular shapes.
+
+\newprob {Problem~268} {\it There are 1010 ways to pack the 12 pentominoes into 
+a $5 \times 12$ box.  What's a good way to do so?}\hfil\break
+Well, use Problem~266 to set up the options.  But perhaps more usefully, we
+want to remove the symmetry.  One possibility is to require that the $X$ piece
+be in the upper left quadrant -- $X$ is appropriate because it is fully symmetric
+so we don't have to worry about the interaction between the shape and having
+it in one quadrant.  This doesn't entirely work though when the center square
+of $X$ is in the middle row because you can then reflect top to bottom.  To
+remove this symmetry by adding a secondary item to the centered options,
+and add the same one to all options where some other piece is flipped over.
+
+\newprob {Problem~271} {\it How can you find the 2339 ways to pack the 
+pentominoes into a $6 \times 10$ box?}\hfil\break
+This is very like Problem~268, but you don't need to add the special item
+because there is no central row/column.
+
+
 \topglue 0.5in
 \centerline{\tt Knuth 7.2.2.2: Satisfiability}
 \vskip 0.3in
