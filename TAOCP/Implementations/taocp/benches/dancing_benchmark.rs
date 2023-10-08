@@ -30,7 +30,7 @@ const FULLY_SOLVED_SUDOKU: [u8; 81] = [
 ];
 
 fn bench_already_solved_sudoku(c: &mut Criterion) {
-    c.bench_function("DancingLinks Sudoku: Already solved problem", |b| {
+    c.bench_function("DancingLinks/Sudoku: Already solved problem", |b| {
         b.iter(|| create_sudoku_iterator(&FULLY_SOLVED_SUDOKU).count())
     });
 }
@@ -49,7 +49,7 @@ const MEDIUM_SUDOKU : [u8; 81] = [
 ];
 
 fn bench_medium_sudoku(c: &mut Criterion) {
-    c.bench_function("DancingLinks Sudoku: Medium problem", |b| {
+    c.bench_function("DancingLinks/Sudoku: Medium problem", |b| {
         b.iter(|| create_sudoku_iterator(&MEDIUM_SUDOKU).count())
     });
 }
@@ -68,7 +68,7 @@ const HARD_SUDOKU : [u8; 81] = [
 ];
 
 fn bench_hard_sudoku(c: &mut Criterion) {
-    c.bench_function("DancingLinks Sudoku: Hard problem", |b| {
+    c.bench_function("DancingLinks/Sudoku: Hard problem", |b| {
         b.iter(|| create_sudoku_iterator(&HARD_SUDOKU).count())
     });
 }
@@ -89,7 +89,7 @@ const VERY_HARD_SUDOKU : [u8; 81] = [
 fn bench_very_hard_sudoku(c: &mut Criterion) {
     let mut group = c.benchmark_group("DancingLinks Sudoku: very hard problem");
     group.measurement_time(Duration::from_secs(25));
-    group.bench_function("DancingLinks Sudoku: Very hard problem", |b| {
+    group.bench_function("DancingLinks/Sudoku: Very hard problem", |b| {
         b.iter(|| create_sudoku_iterator(&VERY_HARD_SUDOKU).count())
     });
 }
@@ -109,7 +109,7 @@ const SUDOKU_WITH_MULTIPLE_SOLUTIONS : [u8; 81] = [
 
 fn bench_sudoku_with_multiple_solutions(c: &mut Criterion) {
     c.bench_function(
-        "DancingLinks Sudoku: Problem with multiple solutions",
+        "DancingLinks/Sudoku: Problem with multiple solutions",
         |b| b.iter(|| create_sudoku_iterator(&SUDOKU_WITH_MULTIPLE_SOLUTIONS).count()),
     );
 }
@@ -125,13 +125,13 @@ criterion_group!(
 
 // Langford pairs.
 fn langford7_benchmark(c: &mut Criterion) {
-    c.bench_function("DancingLinks Langford 7", |b| {
+    c.bench_function("DancingLinks/Langford 7", |b| {
         b.iter(|| DancingLangfordIterator::new(7).unwrap().count())
     });
 }
 
 fn langford8_benchmark(c: &mut Criterion) {
-    c.bench_function("DancingLinks Langford 8", |b| {
+    c.bench_function("DancingLinks/Langford 8", |b| {
         b.iter(|| DancingLangfordIterator::new(8).unwrap().count())
     });
 }
@@ -139,7 +139,7 @@ fn langford8_benchmark(c: &mut Criterion) {
 fn langford12_benchmark(c: &mut Criterion) {
     let mut group = c.benchmark_group("DancingLinks Langford 12");
     group.measurement_time(Duration::from_secs(25));
-    group.bench_function("DancingLinks Langford 12", |b| {
+    group.bench_function("DancingLinks/Langford 12", |b| {
         b.iter(|| DancingLangfordIterator::new(12).unwrap().count())
     });
 }

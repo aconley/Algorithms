@@ -100,7 +100,9 @@ where
                         None
                     }
                     Some(next_item) => {
-                        solution_state.cover(next_item.get());
+                        unsafe {
+                            solution_state.cover(next_item.get());
+                        }
                         self.state = IteratorState::READY {
                             x: vec![next_item.get()],
                             solution_state,
@@ -114,49 +116,59 @@ where
                 ref mut solution_state,
             } => {
                 loop {
-                    // Backtrack.
-                    let mut xl = x[x.len() - 1];
-                    while xl
-                        == solution_state.option_nodes
-                            [solution_state.option_nodes[xl as usize].top as usize]
-                            .ulink
-                    {
-                        // The last x was pointing at the final option for this item,
-                        // so we have to backtrack.
-                        solution_state.unapply_move(xl);
-                        solution_state.uncover(solution_state.option_nodes[xl as usize].top as u16);
-                        x.pop();
-                        if x.is_empty() {
-                            // Terminate.
-                            self.state = IteratorState::DONE;
-                            return None;
+                    // Safety: all the indexing is internally controlled and
+                    // kept consistent.
+                    unsafe {
+                        // Backtrack.
+                        let mut xl = x[x.len() - 1];
+                        while xl
+                            == solution_state
+                                .option_nodes
+                                .get_unchecked(
+                                    solution_state.option_nodes.get_unchecked(xl as usize).top
+                                        as usize,
+                                )
+                                .ulink
+                        {
+                            // The last x was pointing at the final option for this item,
+                            // so we have to backtrack.
+                            solution_state.unapply_move(xl);
+                            solution_state.uncover(
+                                solution_state.option_nodes.get_unchecked(xl as usize).top as u16,
+                            );
+                            x.pop();
+                            if x.is_empty() {
+                                // Terminate.
+                                self.state = IteratorState::DONE;
+                                return None;
+                            }
+                            xl = x[x.len() - 1];
                         }
-                        xl = x[x.len() - 1];
-                    }
 
-                    solution_state.unapply_move(xl);
-                    // We know there is a next value because of the backtracking
-                    // loop above.
-                    xl = solution_state.option_nodes[xl as usize].dlink;
-                    solution_state.apply_move(xl);
-                    let x_idx = x.len() - 1;
-                    x[x_idx] = xl;
+                        solution_state.unapply_move(xl);
+                        // We know there is a next value because of the backtracking
+                        // loop above.
+                        xl = solution_state.option_nodes.get_unchecked(xl as usize).dlink;
+                        solution_state.apply_move(xl);
+                        let x_idx = x.len() - 1;
+                        *x.get_unchecked_mut(x_idx) = xl;
 
-                    // Done?
-                    if solution_state.item_nodes[0].rlink == 0 {
-                        return Some(
-                            x.iter()
-                                .map(|&x| solution_state.to_option(x as usize))
-                                .collect(),
-                        );
-                    }
+                        // Done?
+                        if solution_state.item_nodes.get_unchecked(0).rlink == 0 {
+                            return Some(
+                                x.iter()
+                                    .map(|&x| solution_state.to_option(x as usize))
+                                    .collect(),
+                            );
+                        }
 
-                    // Not done, select the next item we will try.
-                    match solution_state.choose_next_item() {
-                        None => (), // No choice was possible, let the loop try the next value.
-                        Some(next_item) => {
-                            solution_state.cover(next_item.get());
-                            x.push(next_item.get());
+                        // Not done, select the next item we will try.
+                        match solution_state.choose_next_item() {
+                            None => (), // No choice was possible, let the loop try the next value.
+                            Some(next_item) => {
+                                solution_state.cover(next_item.get());
+                                x.push(next_item.get());
+                            }
                         }
                     }
                 }
@@ -410,74 +422,80 @@ impl<ItemType> SolutionState<ItemType> {
             option_nodes,
         }
     }
-    fn cover(&mut self, item: u16) {
-        let mut p = self.option_nodes[item as usize].dlink;
+
+    unsafe fn cover(&mut self, item: u16) {
+        let iu = item as usize;
+        let mut p = self.option_nodes.get_unchecked(iu).dlink;
         while p != item {
             self.hide(p);
-            p = self.option_nodes[p as usize].dlink;
+            p = self.option_nodes.get_unchecked(p as usize).dlink;
         }
-        let l = self.item_nodes[item as usize].llink;
-        let r = self.item_nodes[item as usize].rlink;
-        self.item_nodes[l as usize].rlink = r;
-        self.item_nodes[r as usize].llink = l;
+        let l = self.item_nodes.get_unchecked(iu).llink;
+        let r = self.item_nodes.get_unchecked(iu).rlink;
+        self.item_nodes.get_unchecked_mut(l as usize).rlink = r;
+        self.item_nodes.get_unchecked_mut(r as usize).llink = l;
     }
 
-    fn hide(&mut self, p: u16) {
+    unsafe fn hide(&mut self, p: u16) {
         let mut q = p + 1;
         while q != p {
-            let x = self.option_nodes[q as usize].top;
-            let u = self.option_nodes[q as usize].ulink;
+            let qu = q as usize;
+            let x = self.option_nodes.get_unchecked(qu).top;
+            let u = self.option_nodes.get_unchecked(qu).ulink;
             if x <= 0 {
                 // Spacer node.
                 q = u;
             } else {
-                let d = self.option_nodes[q as usize].dlink;
-                self.option_nodes[u as usize].dlink = d;
-                self.option_nodes[d as usize].ulink = u;
-                self.item_nodes[x as usize].len -= 1;
+                let d = self.option_nodes.get_unchecked(qu).dlink;
+                self.option_nodes.get_unchecked_mut(u as usize).dlink = d;
+                self.option_nodes.get_unchecked_mut(d as usize).ulink = u;
+                self.item_nodes.get_unchecked_mut(x as usize).len -= 1;
                 q += 1;
             }
         }
     }
 
-    fn uncover(&mut self, item: u16) {
-        let l = self.item_nodes[item as usize].llink;
-        let r = self.item_nodes[item as usize].rlink;
-        self.item_nodes[l as usize].rlink = item;
-        self.item_nodes[r as usize].llink = item;
+    unsafe fn uncover(&mut self, item: u16) {
+        let iu = item as usize;
+        let l = self.item_nodes.get_unchecked(iu).llink;
+        let r = self.item_nodes.get_unchecked(iu).rlink;
+        self.item_nodes.get_unchecked_mut(l as usize).rlink = item;
+        self.item_nodes.get_unchecked_mut(r as usize).llink = item;
 
         let mut p = self.option_nodes[item as usize].ulink;
         while p != item {
             self.unhide(p);
-            p = self.option_nodes[p as usize].ulink;
+            p = self.option_nodes.get_unchecked(p as usize).ulink;
         }
     }
 
-    fn unhide(&mut self, p: u16) {
+    unsafe fn unhide(&mut self, p: u16) {
         let mut q = p - 1;
         while q != p {
-            let x = self.option_nodes[q as usize].top;
-            let d = self.option_nodes[q as usize].dlink;
+            let qu = q as usize;
+            let x = self.option_nodes.get_unchecked(qu).top;
+            let d = self.option_nodes.get_unchecked(qu).dlink;
             if x <= 0 {
                 // Spacer node.
                 q = d;
             } else {
-                let u = self.option_nodes[q as usize].ulink;
-                self.option_nodes[u as usize].dlink = q;
-                self.option_nodes[d as usize].ulink = q;
-                self.item_nodes[x as usize].len += 1;
+                let u = self.option_nodes.get_unchecked(qu).ulink;
+                self.option_nodes.get_unchecked_mut(u as usize).dlink = q;
+                self.option_nodes.get_unchecked_mut(d as usize).ulink = q;
+                self.item_nodes.get_unchecked_mut(x as usize).len += 1;
                 q -= 1;
             }
         }
     }
 
-    fn apply_move(&mut self, xl: u16) {
+    unsafe fn apply_move(&mut self, xl: u16) {
         let mut p = xl + 1;
         while p != xl {
-            let j = self.option_nodes[p as usize].top;
+            let pu = p as usize;
+            let j = self.option_nodes.get_unchecked(pu).top;
             if j <= 0 {
                 // Spacer.
-                p = self.option_nodes[p as usize].ulink;
+                p = self.option_nodes.get_unchecked(pu).ulink;
             } else {
                 self.cover(j as u16);
                 p += 1;
@@ -485,16 +503,17 @@ impl<ItemType> SolutionState<ItemType> {
         }
     }
 
-    fn unapply_move(&mut self, xl: u16) {
+    unsafe fn unapply_move(&mut self, xl: u16) {
         if xl <= self.num_primary_items {
             return;
         }
         let mut p = xl - 1;
         while p != xl {
-            let j = self.option_nodes[p as usize].top;
+            let pu = p as usize;
+            let j = self.option_nodes.get_unchecked(pu).top;
             if j <= 0 {
                 // Spacer.
-                p = self.option_nodes[p as usize].dlink;
+                p = self.option_nodes.get_unchecked(pu).dlink;
             } else {
                 self.uncover(j as u16);
                 p -= 1;
@@ -510,28 +529,37 @@ impl<ItemType> SolutionState<ItemType> {
             return None;
         }
 
-        let mut best_len = self.item_nodes[current_item_idx as usize].len;
-        if best_len == 0 {
-            return None;
-        }
-        let mut best_item = current_item_idx;
-
-        current_item_idx = self.item_nodes[current_item_idx as usize].rlink;
-        while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
-            let current_len = self.item_nodes[current_item_idx as usize].len;
-            if current_len == 0 {
-                // Item has no choices.
-                best_item = 0;
-                break;
+        // Safety: the current item index is always within bounds.
+        unsafe {
+            let mut best_len = self.item_nodes.get_unchecked(current_item_idx as usize).len;
+            if best_len == 0 {
+                return None;
             }
-            if current_len < best_len {
-                best_len = current_len;
-                best_item = current_item_idx;
-            }
+            let mut best_item = current_item_idx;
 
-            current_item_idx = self.item_nodes[current_item_idx as usize].rlink;
+            current_item_idx = self
+                .item_nodes
+                .get_unchecked(current_item_idx as usize)
+                .rlink;
+            while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
+                let current_len = self.item_nodes.get_unchecked(current_item_idx as usize).len;
+                if current_len == 0 {
+                    // Item has no choices.
+                    best_item = 0;
+                    break;
+                }
+                if current_len < best_len {
+                    best_len = current_len;
+                    best_item = current_item_idx;
+                }
+
+                current_item_idx = self
+                    .item_nodes
+                    .get_unchecked(current_item_idx as usize)
+                    .rlink;
+            }
+            NonZeroU16::new(best_item)
         }
-        NonZeroU16::new(best_item)
     }
 
     fn to_option<PO: ProblemOption<ItemType>>(&self, mut x: usize) -> PO {
@@ -1304,7 +1332,9 @@ mod tests {
             expected_state.item_nodes[0].llink = 0;
             expected_state.item_nodes[0].rlink = 0;
 
-            state.cover(1);
+            unsafe {
+                state.cover(1);
+            }
             assert_eq!(state, expected_state);
         }
 
@@ -1361,7 +1391,9 @@ mod tests {
             expected_state.option_nodes[6].ulink = 18;
             expected_state.item_nodes[6].len = 1;
 
-            state.cover(1);
+            unsafe {
+                state.cover(1);
+            }
             assert_eq!(state, expected_state);
 
             // cover(4).
@@ -1374,7 +1406,9 @@ mod tests {
             expected_state.option_nodes[7].ulink = 25;
             expected_state.item_nodes[7].len = 1;
 
-            state.cover(4);
+            unsafe {
+                state.cover(4);
+            }
             assert_eq!(state, expected_state);
 
             // cover(7)
@@ -1384,7 +1418,9 @@ mod tests {
             expected_state.option_nodes[2].ulink = 16;
             expected_state.item_nodes[2].len = 1;
 
-            state.cover(7);
+            unsafe {
+                state.cover(7);
+            }
             assert_eq!(state, expected_state);
 
             // cover(2)
@@ -1397,7 +1433,9 @@ mod tests {
             expected_state.option_nodes[6].dlink = 6;
             expected_state.item_nodes[6].len = 0;
 
-            state.cover(2);
+            unsafe {
+                state.cover(2);
+            }
             assert_eq!(state, expected_state);
         }
 
@@ -1411,8 +1449,10 @@ mod tests {
             let initial_state = assert_ok!(create_solution_state(vec![option]));
 
             let mut state = initial_state.clone();
-            state.cover(1);
-            state.uncover(1);
+            unsafe {
+                state.cover(1);
+                state.uncover(1);
+            }
 
             assert_eq!(state, initial_state);
         }
@@ -1451,38 +1491,41 @@ mod tests {
             ]));
 
             let mut state = initial_state.clone();
-            state.cover(1);
-            let state_before_cover_4 = state.clone();
-            state.cover(4);
-            let state_before_cover_7 = state.clone();
-            state.cover(7);
-            let state_before_cover_2 = state.clone();
-            state.cover(2);
-            let state_before_cover_3 = state.clone();
-            state.cover(3);
 
-            state.uncover(3);
-            assert_eq!(
-                state, state_before_cover_3,
-                "uncover(3) did not reverse cover(3)"
-            );
-            state.uncover(2);
-            assert_eq!(
-                state, state_before_cover_2,
-                "uncover(2) did not reverse cover(2)"
-            );
-            state.uncover(7);
-            assert_eq!(
-                state, state_before_cover_7,
-                "uncover(7) did not reverse cover(7)"
-            );
-            state.uncover(4);
-            assert_eq!(
-                state, state_before_cover_4,
-                "uncover(4) did not reverse cover(4)"
-            );
-            state.uncover(1);
-            assert_eq!(state, initial_state, "uncover(1) did not reverse cover(1)");
+            unsafe {
+                state.cover(1);
+                let state_before_cover_4 = state.clone();
+                state.cover(4);
+                let state_before_cover_7 = state.clone();
+                state.cover(7);
+                let state_before_cover_2 = state.clone();
+                state.cover(2);
+                let state_before_cover_3 = state.clone();
+                state.cover(3);
+
+                state.uncover(3);
+                assert_eq!(
+                    state, state_before_cover_3,
+                    "uncover(3) did not reverse cover(3)"
+                );
+                state.uncover(2);
+                assert_eq!(
+                    state, state_before_cover_2,
+                    "uncover(2) did not reverse cover(2)"
+                );
+                state.uncover(7);
+                assert_eq!(
+                    state, state_before_cover_7,
+                    "uncover(7) did not reverse cover(7)"
+                );
+                state.uncover(4);
+                assert_eq!(
+                    state, state_before_cover_4,
+                    "uncover(4) did not reverse cover(4)"
+                );
+                state.uncover(1);
+                assert_eq!(state, initial_state, "uncover(1) did not reverse cover(1)");
+            }
         }
     }
 
