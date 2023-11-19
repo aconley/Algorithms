@@ -686,10 +686,82 @@ because there is no central row/column.
 \newprob{Problem 1} The shortest unsatisfiable set of clauses is the
 empty clause $\epsilon$, the shortest satisfiable set is the empty set $\emptyset$.
 
+\newprob{Problem 20} Define clauses $waerden\left(k_0, \ldots, k_{b-1}; n \right)$
+that are satisfiable if and only if $n < W\left(k_0, \ldots, k_{b-1}\right)$.\hfil\break
+We have to introduce one variable for each possible value of an $x$: let
+$x_{i;a}$ mean that $x_i = a$ where $1 \le i \le n$ and $0 \le a < b$.  Then
+we require that at least one value is set for each $x_i$: $x_{i0} \vee
+x_{i;1} \vee \ldots \vee x_{i;b-1}$ for all values of $i$.  We also
+need to impose the spacing requirements, which are $\overline{x}_{i;a} \vee
+\overline{x}_{i + s;a} \vee \ldots \vee \overline{x}_{i+ \left(k_a - 1\right)s;a}$
+for all $d \ge 1$ and $1 \le i \le n - \left(k_a - 1\right)d$.  Note that this
+formulation allows both $x_{i;a}$ and $x_{i;b}$ for $a \ne b$ -- you can introduce
+pairwise clauses to force only one is set, or you can leave them out because
+they represent multiple solutions and so are harmless.
+
+\newprob{Problem~26} Prove that Sinz's clauses (18) and (19) enforce the cardinality
+constraint $x_1 + \ldots + x_n \le r$.\hfil\break
+
+\noindent The four cases for the clauses can be spelled out:\hfil\break
+1. $\overline{s}_j^k \vee s_{j+1}^k$ for $j \in [1, n-r)$, 
+$k \in \left[1 - r\right].$\hfil\break
+\hskip 1em
+2. $\overline{x}_{j+k} \vee \overline{s}_j^k \vee s_j^{k + 1}$ for
+$j \in \left[ 1, n - r \right]$, $k \in [1, r).$\hfil\break
+\hskip 1em
+3. $\overline{x}_j \vee s_j^1.$\hfil\break
+\hskip 1em
+4. $\overline{x}_{j+r} \vee \overline{s}_j^r.$\hfil\break
+\hskip 1em
+
+\noindent The hint is to show that these conditions imply 
+$s_j^k = 1$ whenever $x_1 + \ldots + x_{j + k - 1} \ge k$.
+
+The first set of clauses is: $s_j^k \vee s_{j+1}^k$ for $1 \le j < n - r$ and
+$1 \le k \le r$.  These are pretty simply just $s_1^k \le s_2^k \le \ldots \le s_{n-r}$.
+That is, once you have set $s_j^k = 1$, you also have $s_{>j}^k = 1$.
+The second set of clauses are $\overline{x}_{j+k} \vee \overline{s}_j^k \vee s_j^{k+1}$
+for $1 \le j \le n - r$ and $0 \le k \le r$.  Translated in a similar fashion
+this is $x_{j+k}\,s_j^k \le s_j^{k+1}$.  The final two clauses are just boundary
+conditions .
+
+The hint follows by induction.  First, the base case: $k = 1$, $j = 1$.
+The third item is then just $\overline{x}_1 \vee s_1^1$, or $x_1 \Rightarrow s_1^1$
+(and hence $s_j^1$ for all $j$ by the first set of clauses), which is the base case.
+
+Next assume that $s_{j}^k$, $x_1 + \ldots + x_{j + k - 1} \ge k$, and extend
+by induction.  There are two cases: increasing $j$ or increasing $k$.  Either
+on brings $x_{j+k}$ into the hint.  First consider increasing $j$.  We already
+had $x_1 + \ldots x_{j+k-1} \ge k$, and this remains true whe nwe add $x_{j+k}$
+no matter it's value.  So what we want to prove is that $s_{j+1}^k$ -- but we
+alredy have that from the first property ($s_j^k \Rightarrow s_{j+1}^k$).
+
+Next consider increasing $k$ (but not $j$).  Now we do care about the value
+of $x_{j+k}$ -- specifically, we want to show that if 
+$x_1 + \ldots + x_{j + k - 1} = k$, then $x_{j+k} \Rightarrow s_j^{k+1}$.
+But we already had $s_j^k$ from the inductive hint, so the item 2 is simply
+$\overline{x}_{j+k} \vee s_j^{k+1}$ -- exactly what we wanted.  So the hint
+is proved true by induction.  Now -- how does this solve the problem?
+
+There are two things to prove: that if $x_1 + \ldots x_n > r$, the clauses
+cannot be satisfied, and that they can be satisfied for $x_1 + \ldots x_n \le r$.
+The latter is just what we have been doing above -- you just set $s_j^k$ 
+according to the hint ($s_j^k = 1$ if and only if $x_1 + \ldots + x_{j+k-1} \ge k$).
+
+For the former, consider $j = n - r$ and $k = r$.  Then we have that
+$x_1 + \ldots + x_{n-1} = r \Rightarrow s_{n-r}^r$.  Now we add $x_n$.
+We want the clauses to be unsatisfiable if $x_n$, but still satisfiable if
+$x_n$.  Item 4 is $\overline{x}_n \vee \overline{s}_{n-r}^r$.
+So this is satisfiable if $\overline{x}_n$, but 
+$x_n \Rightarrow \overline{s}_{n-r}^r$. But this contradicts the implication 
+from the hint when we hadn't include $x_n$, so the clauses are not satisfied.  
+Furthermore, if $x_1 + \ldots + x_{n-1} < r$, there is no problem -- we can 
+satisfy all the clauses using the hint logic as before.
+
 \newprob{Problem~87}: Explain why the clauses (42) represent Alice and Bob's
 programs (40).\hfil\break
 Denoting Alice's states at time $t$ by $A0_t, \ldots, A4_t$ and Bob's by $B0_t, \ldots, B4_t$,
-the first set of clauses expresses the fact that neither can change state unless it is there term.
+the first set of clauses expresses the fact that neither can change state unless it is their turn.
 If we couple this with clauses that require that both Alice and Bob can only be in one
 state, these can be written $@_k \vee \overline{AK_{k}} \vee AK_{k+1}$
 and $\overline{@_k} \vee \overline{BK_{k}} \vee BK_{k+1}$.  For example, if Alice is in state
