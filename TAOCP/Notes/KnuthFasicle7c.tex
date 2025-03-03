@@ -1,0 +1,22 @@
+\def\algorithm#1#2{\vskip 0.06in \noindent [p #1] {\bf #2}}
+\def\newstep#1{\smallskip \noindent {\bf #1}}
+\def\newitem#1{\vskip 0.06in \noindent [p #1]}
+\def\subsec#1{\vskip 0.15in \noindent {\bf #1}}
+\def\sec#1 {\vfil\break \centerline{\tt #1} \vskip 0.2in}
+\def\CC{\hbox{C++}}
+
+\topglue 0.5in
+\centerline{Notes on Knuth Fascicle 7c: 7.2.2.3 Constraint Satisfaction}
+\vskip 0.3in
+
+\newitem{3} Homomorphisms: Note that there may be extra edges in $G^{\prime}$;
+it is not the case that $h\left(u\right) \relbar h\left(v\right) \Rightarrow u \relbar v$.
+
+\newitem{3} K-coloring and $K_d$: If $G$ is k-colorable, then $h\left(u\right) = C\left(u\right)$
+is a homomorphism from $G$ to $K_d$, where $C\left(u\right)$ is the color of vertex $u$.  
+Consider what it would mean for $G$ to not be K-colorable: in any coloring of $G$ there
+would be two vertices $u$ and $v$ such that $C\left(u\right) = C\left(v\right)$ and
+$u \relbar v$.  That pair of vertices would be mapped to the same vertex in $K_d$,
+and $K_d$ does not contain self loops, so the mapping could not be a homomorphism.
+
+\bye
