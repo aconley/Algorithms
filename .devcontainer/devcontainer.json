@@ -1,0 +1,34 @@
+{
+  "name": "Rust TAOCP"
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+     "--env-file",
+     "${localWorkspaceFolder}/.env-secrets"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "rust-analyzer.check.command": "clippy",
+        "rust-analyzer.cargo.features": "all",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "vadimcn.vscode-lldb",
+        "serayuzgur.crates",
+        "tamasfe.even-better-toml"
+      ]
+    }
+  },
+
+  "postCreateCommand": "rustc --version && cargo --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml",
+
+  "remoteUser": "vscode",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
+}
