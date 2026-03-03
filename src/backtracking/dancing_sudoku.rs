@@ -133,12 +133,12 @@ impl DancingSudokuIterator {
         }
 
         if initial_position.len() == 81 {
-          // In this case we want the iterator to return the one solution,
-          // so add one option with a single value.
-          let single_option = initial_position[0].clone();
+            // In this case we want the iterator to return the one solution,
+            // so add one option with a single value.
+            let single_option = initial_position[0].clone();
             return Ok(DancingSudokuIterator {
                 initial_position,
-                inner: DancingLinksIterator::new(vec![single_option])?
+                inner: DancingLinksIterator::new(vec![single_option])?,
             });
         }
         // There will be at least this many, almost certainly more.
@@ -228,7 +228,7 @@ impl ProblemOption<SudokuItem> for SudokuEntry {
     }
 
     fn secondary_items(&self) -> Self::SecondaryIteratorType {
-      std::iter::empty::<SudokuItem>()
+        std::iter::empty::<SudokuItem>()
     }
 
     fn builder() -> Self::BuilderType {
@@ -272,9 +272,7 @@ impl ProblemOptionBuilder<SudokuItem> for SudokuEntry {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        DancingSudokuIterator, DancingSudokuSolution, SudokuEntry
-    };
+    use super::{DancingSudokuIterator, DancingSudokuSolution, SudokuEntry};
     use claim::{assert_none, assert_ok, assert_some_eq};
 
     fn create_solution(values: &[u8]) -> DancingSudokuSolution {
@@ -343,24 +341,21 @@ mod tests {
     fn solves_partial_solution() {
         #[rustfmt::skip]
         let expected_solution : [u8; 81] = [
-            4, 6, 9, 5, 1, 3, 7, 8, 2, 
-            5, 7, 3, 2, 4, 8, 6, 1, 9, 
-            8, 2, 1, 6, 9, 7, 3, 4, 5, 
-            7, 5, 4, 9, 3, 1, 2, 6, 8, 
-            1, 9, 6, 7, 8, 2, 4, 5, 3, 
-            3, 8, 2, 4, 5, 6, 9, 7, 1, 
-            6, 1, 7, 3, 2, 5, 8, 9, 4, 
-            9, 3, 5, 8, 7, 4, 1, 2, 6, 
+            4, 6, 9, 5, 1, 3, 7, 8, 2,
+            5, 7, 3, 2, 4, 8, 6, 1, 9,
+            8, 2, 1, 6, 9, 7, 3, 4, 5,
+            7, 5, 4, 9, 3, 1, 2, 6, 8,
+            1, 9, 6, 7, 8, 2, 4, 5, 3,
+            3, 8, 2, 4, 5, 6, 9, 7, 1,
+            6, 1, 7, 3, 2, 5, 8, 9, 4,
+            9, 3, 5, 8, 7, 4, 1, 2, 6,
             2, 4, 8, 1, 6, 9, 5, 3, 7,
           ];
 
         let initial_position = SudokuEntry::create_from_values(&PARTIAL);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution)
-        );
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
         assert_none!(iterator.next());
     }
 
@@ -395,16 +390,13 @@ mod tests {
         let initial_position = SudokuEntry::create_from_values(&problem);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution)
-        );
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
         assert_none!(iterator.next());
     }
 
     #[test]
     fn solves_demanding_problem() {
-      #[rustfmt::skip]
+        #[rustfmt::skip]
       let problem : [u8; 81] = [
         2, 0, 0, 0, 0, 9, 0, 0, 1,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -416,7 +408,7 @@ mod tests {
         0, 0, 0, 8, 0, 0, 0, 6, 0,
         0, 0, 0, 4, 7, 0, 8, 0, 0
       ];
-      #[rustfmt::skip]
+        #[rustfmt::skip]
       let expected_solution : [u8; 81] = [
           2, 3, 4, 5, 8, 9, 6, 7, 1,
           7, 6, 5, 3, 1, 4, 9, 8, 2,
@@ -429,11 +421,11 @@ mod tests {
           6, 1, 2, 4, 7, 3, 8, 9, 5
        ];
 
-      let initial_position = SudokuEntry::create_from_values(&problem);
-      let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let initial_position = SudokuEntry::create_from_values(&problem);
+        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-      assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-      assert_none!(iterator.next());
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
+        assert_none!(iterator.next());
     }
 
     #[test]
@@ -466,10 +458,7 @@ mod tests {
         let initial_position = SudokuEntry::create_from_values(&problem);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution)
-        );
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
         assert_none!(iterator.next());
     }
 
@@ -499,16 +488,13 @@ mod tests {
         2, 7, 6, 1, 5, 3, 4, 8, 9,
         6, 5, 9, 8, 4, 7, 2, 1, 3,
         4, 2, 1, 9, 3, 6, 5, 7, 8,
-        7, 8, 3, 5, 2, 1, 9, 4, 6 
+        7, 8, 3, 5, 2, 1, 9, 4, 6
        ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution)
-        );
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
         assert_none!(iterator.next());
     }
 
@@ -555,14 +541,8 @@ mod tests {
         let initial_position = SudokuEntry::create_from_values(&problem);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution1)
-        );
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution2)
-        );
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution1));
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution2));
         assert_none!(iterator.next());
     }
 
@@ -598,10 +578,7 @@ mod tests {
         let initial_position = SudokuEntry::create_from_values(&problem);
         let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
 
-        assert_some_eq!(
-            iterator.next(),
-            create_solution(&expected_solution)
-        );
+        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
         assert_none!(iterator.next());
     }
 }
