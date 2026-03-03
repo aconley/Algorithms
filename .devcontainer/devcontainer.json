@@ -1,5 +1,5 @@
 {
-  "name": "Rust TAOCP"
+  "name": "Rust TAOCP",
   "build": {
     "dockerfile": "Dockerfile"
   },
@@ -24,7 +24,7 @@
     }
   },
 
-  "postCreateCommand": "rustc --version && cargo --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml",
+  "postCreateCommand": "rustc --version && cargo --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml && printf '{\"hasCompletedOnboarding\":true,\"installMethod\":\"npm\",\"autoUpdates\":false}' > ~/.claude.json",
 
   "remoteUser": "vscode",
 

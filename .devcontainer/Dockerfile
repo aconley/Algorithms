@@ -84,3 +84,10 @@ RUN mkdir -p /home/$USERNAME/.config/fish && \
 
 # Add cargo bin to PATH
 ENV PATH="/home/$USERNAME/.cargo/bin:${PATH}"
+
+# Install jj (Jujutsu VCS) - git-compatible version control
+RUN cargo install jj-cli
+
+# Generate jj fish shell completions
+RUN mkdir -p /home/$USERNAME/.config/fish/completions && \
+  jj util completion fish > /home/$USERNAME/.config/fish/completions/jj.fish
