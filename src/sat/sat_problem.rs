@@ -75,7 +75,7 @@ impl fmt::Display for SatProblemError {
 fn literal_display_str(lit: u32) -> String {
     let var = lit / 2;
     let var_str = var.to_string();
-    if lit % 2 == 0 {
+    if lit.is_multiple_of(2) {
         var_str
     } else {
         // Append U+0305 COMBINING OVERLINE after each digit
@@ -87,7 +87,7 @@ fn literal_display_str(lit: u32) -> String {
 /// Positive: `x_{var}`, Negative: `{\bar x}_{var}`.
 fn literal_latex_str(lit: u32) -> String {
     let var = lit / 2;
-    if lit % 2 == 0 {
+    if lit.is_multiple_of(2) {
         format!("x_{{{}}}", var)
     } else {
         format!("{{\\bar x}}_{{{}}}", var)
@@ -177,18 +177,47 @@ pub struct SatProblem {
 }
 
 impl SatProblem {
-    /// Constructs a SAT problem from a slice of already-constructed clauses.
-    pub fn from_clauses(clauses: &[Clause]) -> Self {
-        SatProblem {
-            clauses: clauses.to_vec(),
+    /// Constructs a SAT problem taking ownership of the provided clauses.
+    ///
+    /// If any clause is empty the problem is immediately unsatisfiable, so only
+    /// a single empty clause is stored and the rest are discarded.
+    pub fn new(clauses: Vec<Clause>) -> Self {
+        if clauses.iter().any(|c| c.is_empty()) {
+            SatProblem {
+                clauses: vec![Clause::new(&[]).expect("empty clause is always valid")],
+            }
+        } else {
+            SatProblem { clauses }
         }
     }
 
+    /// Constructs a SAT problem from a slice of already-constructed clauses.
+    ///
+    /// If any clause is empty the problem is immediately unsatisfiable, so only
+    /// a single empty clause is stored and the rest are discarded.
+    pub fn from_clauses(clauses: &[Clause]) -> Self {
+        let mut result = Vec::with_capacity(clauses.len());
+        for clause in clauses {
+            if clause.is_empty() {
+                return SatProblem { clauses: vec![clause.clone()] };
+            }
+            result.push(clause.clone());
+        }
+        SatProblem { clauses: result }
+    }
+
     /// Constructs a SAT problem from a slice of literal vecs, building each clause.
+    ///
+    /// If any clause is empty the problem is immediately unsatisfiable, so only
+    /// a single empty clause is stored and the rest are discarded.
     pub fn from_literals(clauses: &[Vec<u32>]) -> Result<Self, SatProblemError> {
         let mut result = Vec::with_capacity(clauses.len());
         for lits in clauses {
-            result.push(Clause::new(lits)?);
+            let clause = Clause::new(lits)?;
+            if clause.is_empty() {
+                return Ok(SatProblem { clauses: vec![clause] });
+            }
+            result.push(clause);
         }
         Ok(SatProblem { clauses: result })
     }
@@ -204,7 +233,10 @@ impl SatProblem {
     /// Returns a LaTeX string for the problem.
     pub fn display_latex(&self) -> String {
         if self.clauses.is_empty() {
-            return "$$".to_string();
+            return r"$\emptyset$".to_string();
+        }
+        if self.clauses.len() == 1 && self.clauses[0].is_empty() {
+            return r"$\bot$".to_string();
         }
         let clause_strs: Vec<String> = self
             .clauses
@@ -404,6 +436,31 @@ mod tests {
     }
 
     #[test]
+    fn test_sat_problem_new_empty_clause_collapses() {
+        let empty = assert_ok!(Clause::new(&[]));
+        let other = assert_ok!(Clause::new(&[2, 3]));
+        let p = SatProblem::new(vec![other, empty]);
+        assert_eq!(p.clause_count(), 1);
+        assert!(p.clauses()[0].is_empty());
+    }
+
+    #[test]
+    fn test_sat_problem_from_clauses_empty_clause_collapses() {
+        let empty = assert_ok!(Clause::new(&[]));
+        let other = assert_ok!(Clause::new(&[2, 3]));
+        let p = SatProblem::from_clauses(&[other, empty]);
+        assert_eq!(p.clause_count(), 1);
+        assert!(p.clauses()[0].is_empty());
+    }
+
+    #[test]
+    fn test_sat_problem_from_literals_empty_clause_collapses() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3], vec![]]));
+        assert_eq!(p.clause_count(), 1);
+        assert!(p.clauses()[0].is_empty());
+    }
+
+    #[test]
     fn test_sat_problem_from_clauses() {
         let c1 = assert_ok!(Clause::new(&[2, 3]));
         let c2 = assert_ok!(Clause::new(&[4, 5]));
@@ -453,7 +510,13 @@ mod tests {
     #[test]
     fn test_display_latex_empty() {
         let p = SatProblem::from_clauses(&[]);
-        assert_eq!(p.display_latex(), "$$");
+        assert_eq!(p.display_latex(), r"$\emptyset$");
+    }
+
+    #[test]
+    fn test_display_latex_unsat() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![]]));
+        assert_eq!(p.display_latex(), r"$\bot$");
     }
 
     #[test]
