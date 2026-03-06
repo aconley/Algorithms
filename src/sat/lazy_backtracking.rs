@@ -2,6 +2,15 @@
 
 use super::SatProblem;
 
+// Algorithm B move codes (TAOCP 4B §7.2.2.2):
+// 0: trying x_d = 1 first
+// 1: trying x_d = 0 first
+// 2: trying x_d = 1 after x_d = 0 failed
+// 3: trying x_d = 0 after x_d = 1 failed
+const MOVE_TRY_TRUE_FIRST: u8 = 0;
+const MOVE_TRY_FALSE_FIRST: u8 = 1;
+const MOVE_TRY_TRUE_SECOND: u8 = 2;
+
 /// Attempts to solve the specified SAT problem using lazy backtracking.
 ///
 /// If a solution is found, returns an assignment (as a Vec<bool>) that
@@ -67,6 +76,10 @@ impl LazyBacktracking {
             pos -= clauses[j - 1].len();
             start[j] = pos as u32;
 
+            // Store clause literals in reverse sorted order so the watched
+            // literal starts at start[j]. This preserves Algorithm B
+            // invariants; the exact `l`/`w` layout differs from the prose
+            // example that assumes forward literal order.
             for (offset, &lit) in clauses[j - 1].literals().iter().rev().enumerate() {
                 l[pos + offset] = lit;
             }
@@ -116,11 +129,12 @@ impl LazyBacktrackingData {
             let mut moved = false;
             for k in i + 1..i_prime {
                 let lit = self.l[k];
+                let lit_idx = lit as usize;
                 if !Self::literal_is_false(lit, d, moves) {
                     self.l[i] = lit;
                     self.l[k] = false_lit;
-                    self.link[clause] = self.w[lit as usize];
-                    self.w[lit as usize] = j;
+                    self.link[clause] = self.w[lit_idx];
+                    self.w[lit_idx] = j;
                     j = next_j;
                     moved = true;
                     break;
@@ -153,7 +167,11 @@ impl LazyBacktrackingData {
 
             let pos = 2 * d;
             let neg = pos + 1;
-            moves[d] = u8::from(self.w[pos] == 0 || self.w[neg] != 0);
+            moves[d] = if self.w[pos] == 0 || self.w[neg] != 0 {
+                MOVE_TRY_FALSE_FIRST
+            } else {
+                MOVE_TRY_TRUE_FIRST
+            };
 
             let mut lit = (2 * d) as u32 + moves[d] as u32;
 
@@ -163,7 +181,7 @@ impl LazyBacktrackingData {
                     continue 'choose;
                 }
 
-                if moves[d] < 2 {
+                if moves[d] < MOVE_TRY_TRUE_SECOND {
                     moves[d] = 3 - moves[d];
                     lit = (2 * d) as u32 + (moves[d] & 1) as u32;
                     continue;
@@ -175,7 +193,7 @@ impl LazyBacktrackingData {
                     }
 
                     d -= 1;
-                    if moves[d] < 2 {
+                    if moves[d] < MOVE_TRY_TRUE_SECOND {
                         moves[d] = 3 - moves[d];
                         lit = (2 * d) as u32 + (moves[d] & 1) as u32;
                         break;
