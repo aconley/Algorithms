@@ -19,9 +19,10 @@
         "rust-lang.rust-analyzer",
         "vadimcn.vscode-lldb",
         "tamasfe.even-better-toml",
-        "anthropics.claude-code",
         "google.geminicodeassist",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "anthropic.claude-code",
+        "google.gemini-cli-vscode-ide-companion"
       ]
     }
   },
