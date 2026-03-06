@@ -21,6 +21,9 @@ RUN apt-get update && apt-get install -y \
   build-essential \
   nodejs \
   vim \
+  ripgrep \
+  jq \
+  fd-find \
   && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user with sudo privileges
@@ -87,6 +90,9 @@ ENV PATH="/home/$USERNAME/.cargo/bin:${PATH}"
 
 # Install jj (Jujutsu VCS) - git-compatible version control
 RUN cargo install jj-cli
+
+# Install cargo-nextest (faster test runner)
+RUN cargo install --locked cargo-nextest
 
 # Generate jj fish shell completions
 RUN mkdir -p /home/$USERNAME/.config/fish/completions && \

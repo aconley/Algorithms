@@ -18,8 +18,11 @@
       "extensions": [
         "rust-lang.rust-analyzer",
         "vadimcn.vscode-lldb",
-        "serayuzgur.crates",
-        "tamasfe.even-better-toml"
+        "tamasfe.even-better-toml",
+        "google.geminicodeassist",
+        "openai.chatgpt",
+        "anthropic.claude-code",
+        "google.gemini-cli-vscode-ide-companion"
       ]
     }
   },

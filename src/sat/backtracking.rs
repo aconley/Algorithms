@@ -13,7 +13,7 @@ use super::SatProblem;
 /// x_{i+1}.  Variables not constrained by the active search (depth < n) are
 /// set to `false`.
 pub fn solve_via_backtracking(problem: &SatProblem) -> Option<Vec<bool>> {
-    BasicBackTracking::new(problem).solve()
+    BasicBacktracking::new(problem).solve()
 }
 
 // ---------------------------------------------------------------------------
@@ -334,7 +334,7 @@ mod tests {
     #[test]
     fn test_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(BasicBacktracking::new(&p).is_trivial());
+        assert!(matches!(BasicBacktracking::new(&p), BasicBacktracking::Trivial));
     }
 
     #[test]
@@ -343,7 +343,7 @@ mod tests {
         use super::super::Clause;
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(BasicBacktracking::new(&p).is_unsatisfiable());
+        assert!(matches!(BasicBacktracking::new(&p), BasicBacktracking::Unsatisfiable));
     }
 
     #[test]
@@ -439,8 +439,8 @@ mod tests {
     #[test]
     fn test_initial_active_clauses_and_depth() {
         let data = spec_example_data();
-        assert_eq!(data.active_clauses(), 7);
-        assert_eq!(data.depth(), 0);
+        assert_eq!(data.a, 7);
+        assert_eq!(data.d, 0);
     }
 
     #[test]
@@ -505,8 +505,8 @@ mod tests {
         let mut data = spec_example_data();
         data.deactivate_literal(2);
 
-        assert_eq!(data.active_clauses(), 5, "a");
-        assert_eq!(data.depth(), 0, "d unchanged by deactivate_literal");
+        assert_eq!(data.a, 5, "a");
+        assert_eq!(data.d, 0, "d unchanged by deactivate_literal");
         assert_eq!(data.c[4], 2, "c[4] (x_2)");
         assert_eq!(data.c[6], 2, "c[6] (x_3)");
         assert_eq!(data.c[7], 2, "c[7] (¬x_3)");
@@ -534,7 +534,7 @@ mod tests {
         data.deactivate_literal(2);
         data.reactivate_literal(2);
 
-        assert_eq!(data.active_clauses(), original.active_clauses(), "a");
+        assert_eq!(data.a, original.a, "a");
         assert_eq!(data.c[4], original.c[4], "c[4]");
         assert_eq!(data.c[6], original.c[6], "c[6]");
         assert_eq!(data.c[7], original.c[7], "c[7]");

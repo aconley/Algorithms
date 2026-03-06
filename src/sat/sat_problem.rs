@@ -146,6 +146,23 @@ impl Clause {
     pub fn literals(&self) -> &[u32] {
         &self.literals
     }
+
+    /// Returns true if this clause is satisfied by `assignment`.
+    ///
+    /// `assignment[i]` corresponds to variable `x_{i+1}`.
+    /// If `assignment` is too short for a literal's variable index, that
+    /// literal is treated as not satisfied.
+    pub fn is_satisfied(&self, assignment: &[bool]) -> bool {
+        self.literals.iter().any(|&lit| {
+            let var = (lit / 2) as usize;
+            if var == 0 || var > assignment.len() {
+                return false;
+            }
+
+            let value = assignment[var - 1];
+            if lit.is_multiple_of(2) { value } else { !value }
+        })
+    }
 }
 
 impl fmt::Display for Clause {
@@ -228,6 +245,17 @@ impl SatProblem {
 
     pub fn clauses(&self) -> &[Clause] {
         &self.clauses
+    }
+
+    /// Returns true if `assignment` satisfies every clause in this problem.
+    ///
+    /// `assignment[i]` corresponds to variable `x_{i+1}`.
+    /// If `assignment` is too short for a literal's variable index, that
+    /// literal is treated as not satisfied.
+    pub fn is_satisfied(&self, assignment: &[bool]) -> bool {
+        self.clauses
+            .iter()
+            .all(|clause| clause.is_satisfied(assignment))
     }
 
     /// Returns a LaTeX string for the problem.
@@ -427,6 +455,26 @@ mod tests {
         assert_eq!(format!("{:?}", c), format!("{}", c));
     }
 
+    // --- Clause::is_satisfied ---
+
+    #[test]
+    fn test_clause_is_satisfied_true() {
+        let c = assert_ok!(Clause::new(&[2, 5])); // x1 ∨ ¬x2
+        assert!(c.is_satisfied(&[true, true]));
+    }
+
+    #[test]
+    fn test_clause_is_satisfied_false() {
+        let c = assert_ok!(Clause::new(&[2, 5])); // x1 ∨ ¬x2
+        assert!(!c.is_satisfied(&[false, true]));
+    }
+
+    #[test]
+    fn test_clause_is_satisfied_short_assignment() {
+        let c = assert_ok!(Clause::new(&[6])); // x3
+        assert!(!c.is_satisfied(&[true, true]));
+    }
+
     // --- SatProblem constructors ---
 
     #[test]
@@ -503,6 +551,38 @@ mod tests {
     fn test_sat_problem_display_two_clauses() {
         let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![4]]));
         assert_eq!(format!("{}", p), "{1} {2}");
+    }
+
+    // --- is_satisfied ---
+
+    #[test]
+    fn test_is_satisfied_true() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3], vec![4]]));
+        assert!(p.is_satisfied(&[true, true]));
+    }
+
+    #[test]
+    fn test_is_satisfied_false() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![5]]));
+        assert!(!p.is_satisfied(&[false, true]));
+    }
+
+    #[test]
+    fn test_is_satisfied_empty_problem() {
+        let p = SatProblem::from_clauses(&[]);
+        assert!(p.is_satisfied(&[]));
+    }
+
+    #[test]
+    fn test_is_satisfied_empty_clause_problem() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![]]));
+        assert!(!p.is_satisfied(&[]));
+    }
+
+    #[test]
+    fn test_is_satisfied_short_assignment() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![6]])); // x_3
+        assert!(!p.is_satisfied(&[true, true]));
     }
 
     // --- display_latex ---
