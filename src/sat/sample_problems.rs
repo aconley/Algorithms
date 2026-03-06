@@ -112,9 +112,7 @@ pub fn waerden(j: u8, k: u8, n: u8) -> Result<SatProblem, SampleProblemError> {
                 break;
             }
             for i in 1..=(n_u16 - span) {
-                let lits: Vec<u32> = (0..j_u16)
-                    .map(|t| 2 * (i + t * d) as u32)
-                    .collect();
+                let lits: Vec<u32> = (0..j_u16).map(|t| 2 * (i + t * d) as u32).collect();
                 clauses.push(Clause::new(&lits)?);
             }
         }
@@ -132,9 +130,7 @@ pub fn waerden(j: u8, k: u8, n: u8) -> Result<SatProblem, SampleProblemError> {
                 break;
             }
             for i in 1..=(n_u16 - span) {
-                let lits: Vec<u32> = (0..k_u16)
-                    .map(|t| 2 * (i + t * d) as u32 + 1)
-                    .collect();
+                let lits: Vec<u32> = (0..k_u16).map(|t| 2 * (i + t * d) as u32 + 1).collect();
                 clauses.push(Clause::new(&lits)?);
             }
         }

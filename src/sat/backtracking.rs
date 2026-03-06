@@ -334,7 +334,10 @@ mod tests {
     #[test]
     fn test_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(matches!(BasicBacktracking::new(&p), BasicBacktracking::Trivial));
+        assert!(matches!(
+            BasicBacktracking::new(&p),
+            BasicBacktracking::Trivial
+        ));
     }
 
     #[test]
@@ -343,7 +346,10 @@ mod tests {
         use super::super::Clause;
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(matches!(BasicBacktracking::new(&p), BasicBacktracking::Unsatisfiable));
+        assert!(matches!(
+            BasicBacktracking::new(&p),
+            BasicBacktracking::Unsatisfiable
+        ));
     }
 
     #[test]
