@@ -146,6 +146,23 @@ impl Clause {
     pub fn literals(&self) -> &[u32] {
         &self.literals
     }
+
+    /// Returns true if this clause is satisfied by `assignment`.
+    ///
+    /// `assignment[i]` corresponds to variable `x_{i+1}`.
+    /// If `assignment` is too short for a literal's variable index, that
+    /// literal is treated as not satisfied.
+    pub fn is_satisfied(&self, assignment: &[bool]) -> bool {
+        self.literals.iter().any(|&lit| {
+            let var = (lit / 2) as usize;
+            if var == 0 || var > assignment.len() {
+                return false;
+            }
+
+            let value = assignment[var - 1];
+            if lit.is_multiple_of(2) { value } else { !value }
+        })
+    }
 }
 
 impl fmt::Display for Clause {
@@ -236,17 +253,9 @@ impl SatProblem {
     /// If `assignment` is too short for a literal's variable index, that
     /// literal is treated as not satisfied.
     pub fn is_satisfied(&self, assignment: &[bool]) -> bool {
-        self.clauses.iter().all(|clause| {
-            clause.literals().iter().any(|&lit| {
-                let var = (lit / 2) as usize;
-                if var == 0 || var > assignment.len() {
-                    return false;
-                }
-
-                let value = assignment[var - 1];
-                if lit.is_multiple_of(2) { value } else { !value }
-            })
-        })
+        self.clauses
+            .iter()
+            .all(|clause| clause.is_satisfied(assignment))
     }
 
     /// Returns a LaTeX string for the problem.
@@ -444,6 +453,26 @@ mod tests {
     fn test_clause_debug_equals_display() {
         let c = assert_ok!(Clause::new(&[3, 4, 6]));
         assert_eq!(format!("{:?}", c), format!("{}", c));
+    }
+
+    // --- Clause::is_satisfied ---
+
+    #[test]
+    fn test_clause_is_satisfied_true() {
+        let c = assert_ok!(Clause::new(&[2, 5])); // x1 ∨ ¬x2
+        assert!(c.is_satisfied(&[true, true]));
+    }
+
+    #[test]
+    fn test_clause_is_satisfied_false() {
+        let c = assert_ok!(Clause::new(&[2, 5])); // x1 ∨ ¬x2
+        assert!(!c.is_satisfied(&[false, true]));
+    }
+
+    #[test]
+    fn test_clause_is_satisfied_short_assignment() {
+        let c = assert_ok!(Clause::new(&[6])); // x3
+        assert!(!c.is_satisfied(&[true, true]));
     }
 
     // --- SatProblem constructors ---
