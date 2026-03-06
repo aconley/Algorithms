@@ -160,7 +160,11 @@ impl Clause {
             }
 
             let value = assignment[var - 1];
-            if lit.is_multiple_of(2) { value } else { !value }
+            if lit.is_multiple_of(2) {
+                value
+            } else {
+                !value
+            }
         })
     }
 }
@@ -216,7 +220,9 @@ impl SatProblem {
         let mut result = Vec::with_capacity(clauses.len());
         for clause in clauses {
             if clause.is_empty() {
-                return SatProblem { clauses: vec![clause.clone()] };
+                return SatProblem {
+                    clauses: vec![clause.clone()],
+                };
             }
             result.push(clause.clone());
         }
@@ -232,7 +238,9 @@ impl SatProblem {
         for lits in clauses {
             let clause = Clause::new(lits)?;
             if clause.is_empty() {
-                return Ok(SatProblem { clauses: vec![clause] });
+                return Ok(SatProblem {
+                    clauses: vec![clause],
+                });
             }
             result.push(clause);
         }
