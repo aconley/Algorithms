@@ -230,6 +230,25 @@ impl SatProblem {
         &self.clauses
     }
 
+    /// Returns true if `assignment` satisfies every clause in this problem.
+    ///
+    /// `assignment[i]` corresponds to variable `x_{i+1}`.
+    /// If `assignment` is too short for a literal's variable index, that
+    /// literal is treated as not satisfied.
+    pub fn is_satisfied(&self, assignment: &[bool]) -> bool {
+        self.clauses.iter().all(|clause| {
+            clause.literals().iter().any(|&lit| {
+                let var = (lit / 2) as usize;
+                if var == 0 || var > assignment.len() {
+                    return false;
+                }
+
+                let value = assignment[var - 1];
+                if lit.is_multiple_of(2) { value } else { !value }
+            })
+        })
+    }
+
     /// Returns a LaTeX string for the problem.
     pub fn display_latex(&self) -> String {
         if self.clauses.is_empty() {
@@ -503,6 +522,38 @@ mod tests {
     fn test_sat_problem_display_two_clauses() {
         let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![4]]));
         assert_eq!(format!("{}", p), "{1} {2}");
+    }
+
+    // --- is_satisfied ---
+
+    #[test]
+    fn test_is_satisfied_true() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3], vec![4]]));
+        assert!(p.is_satisfied(&[true, true]));
+    }
+
+    #[test]
+    fn test_is_satisfied_false() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![5]]));
+        assert!(!p.is_satisfied(&[false, true]));
+    }
+
+    #[test]
+    fn test_is_satisfied_empty_problem() {
+        let p = SatProblem::from_clauses(&[]);
+        assert!(p.is_satisfied(&[]));
+    }
+
+    #[test]
+    fn test_is_satisfied_empty_clause_problem() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![]]));
+        assert!(!p.is_satisfied(&[]));
+    }
+
+    #[test]
+    fn test_is_satisfied_short_assignment() {
+        let p = assert_ok!(SatProblem::from_literals(&[vec![6]])); // x_3
+        assert!(!p.is_satisfied(&[true, true]));
     }
 
     // --- display_latex ---
