@@ -375,7 +375,7 @@ impl DpllCodexData {
         var: usize,
         mv: u8,
     ) -> bool {
-        if *t == var {
+        if next[var] == var {
             trail.push(Undo::T(*t));
             *t = 0;
         } else {
@@ -621,6 +621,26 @@ mod tests {
         let assignment = solve_via_dpll_codex(&p).expect("expected satisfiable");
         assert!(assignment[0]);
         assert!(p.is_satisfied(&assignment));
+    }
+
+    #[test]
+    fn test_apply_move_keeps_ring_when_removing_tail() {
+        let mut data = match DpllCodex::new(&r_prime()) {
+            DpllCodex::Active(data) => data,
+            _ => panic!("expected active"),
+        };
+
+        let mut x = vec![-1i8; data.n + 1];
+        let (mut next, mut t) = data.init_active_ring();
+        let mut trail = Vec::new();
+
+        assert_eq!(t, 4);
+        assert_eq!(next[4], 3);
+        assert_eq!(next[3], 4);
+
+        assert!(data.apply_move(&mut x, &mut next, &mut t, &mut trail, 3, 4, MOVE_TRY_TRUE_FIRST));
+        assert_eq!(t, 3);
+        assert_eq!(next[3], 3);
     }
 
     // W(3,3) = 9: waerden(3,3,n) is SAT for n < 9, UNSAT for n >= 9.
