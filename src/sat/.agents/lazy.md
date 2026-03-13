@@ -43,7 +43,8 @@ link array provides the rest of the watchees.
 
 # Initializing the data structure
 
-The purpose of the `new` procedure is to 
+The purpose of the `new` procedure is to set up the data structures for
+a particular SAT problem.
 
 Consider the following SAT problem:
 
