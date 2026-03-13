@@ -1,4 +1,5 @@
 pub mod backtracking;
+pub mod dpll_alternatives;
 pub mod lazy_backtracking;
 pub mod sample_problems;
 pub mod sat_problem;

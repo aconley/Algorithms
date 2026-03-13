@@ -38,3 +38,7 @@ harness = false
 [[bench]]
 name = "dancing_benchmark"
 harness = false
+
+[[bench]]
+name = "dpll_benchmark"
+harness = false
