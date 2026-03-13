@@ -8,6 +8,7 @@
 //! Solvers:
 //!   backtracking
 //!   lazy_backtracking
+//!   dpll
 //!
 //! Problems:
 //!   langford <n>
@@ -23,13 +24,14 @@ use std::process;
 
 use taocp::sat::{
     langford, langford_solution_arrangement, solve_via_backtracking, solve_via_lazy_backtracking,
-    waerden, waerden_solution_string, SampleProblemError, SatProblem,
+    solve_via_dpll, waerden, waerden_solution_string, SampleProblemError, SatProblem,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Solver {
     Backtracking,
     LazyBacktracking,
+    Dpll,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,7 +40,7 @@ enum Problem {
     Waerden { j: u8, k: u8, n: u8 },
 }
 
-const USAGE: &str = "Usage:\n  sat_solve <solver> <problem> <problem-params>\n\nSolvers:\n  backtracking\n  lazy_backtracking\n\nProblems:\n  langford <n>\n  waerden <j> <k> <n>";
+const USAGE: &str = "Usage:\n  sat_solve <solver> <problem> <problem-params>\n\nSolvers:\n  backtracking\n  lazy_backtracking\n  dpll\n\nProblems:\n  langford <n>\n  waerden <j> <k> <n>";
 
 fn is_help_flag(arg: &str) -> bool {
     matches!(arg, "-h" | "--help")
@@ -54,6 +56,7 @@ fn parse_solver(raw: &str) -> Result<Solver, String> {
     match raw {
         "backtracking" => Ok(Solver::Backtracking),
         "lazy_backtracking" => Ok(Solver::LazyBacktracking),
+        "dpll" => Ok(Solver::Dpll),
         _ => Err(format!("unknown solver: '{raw}'")),
     }
 }
@@ -101,6 +104,7 @@ fn solve(problem: &SatProblem, solver: Solver) -> Option<Vec<bool>> {
     match solver {
         Solver::Backtracking => solve_via_backtracking(problem),
         Solver::LazyBacktracking => solve_via_lazy_backtracking(problem),
+        Solver::Dpll => solve_via_dpll(problem),
     }
 }
 
@@ -160,6 +164,7 @@ impl fmt::Display for Solver {
         match self {
             Solver::Backtracking => write!(f, "backtracking"),
             Solver::LazyBacktracking => write!(f, "lazy_backtracking"),
+            Solver::Dpll => write!(f, "dpll"),
         }
     }
 }
