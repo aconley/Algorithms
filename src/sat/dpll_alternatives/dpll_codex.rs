@@ -646,4 +646,27 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn test_solve_langford_sat() {
+        use crate::sat::sample_problems::langford;
+        for n in [3, 4, 7] {
+            let p = langford(n).unwrap();
+            let res = solve_via_dpll_codex(&p);
+            assert!(res.is_some(), "langford({n}) should be satisfiable");
+            if let Some(ref assignment) = res {
+                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_solve_langford_unsat() {
+        use crate::sat::sample_problems::langford;
+        for n in [1, 2, 5, 6] {
+            let p = langford(n).unwrap();
+            let res = solve_via_dpll_codex(&p);
+            assert!(res.is_none(), "langford({n}) should be unsatisfiable");
+        }
+    }
 }

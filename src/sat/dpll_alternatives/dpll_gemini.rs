@@ -269,6 +269,7 @@ impl DpllData {
                 Err(k_conflict) => {
                     // D7. [Backtrack.]
                     self.t = k_conflict as u32;
+                    self.h = self.next[self.t as usize];
                     while d > 0 && m[d] >= 2 {
                         let prev_k = h_hist[d];
                         self.x[prev_k] = None;
@@ -377,25 +378,35 @@ mod tests {
             let res = solve_via_dpll(&p);
             if let Some(ref assignment) = res {
                 println!("n={} assignment: {:?}", n, assignment);
-                for (idx, clause) in p.clauses().iter().enumerate() {
-                    let mut sat = false;
-                    for lit in clause.literals() {
-                        let var = lit / 2;
-                        let val = if lit % 2 == 0 { true } else { false };
-                        if assignment[var as usize - 1] == val {
-                            sat = true;
-                            break;
-                        }
-                    }
-                    if !sat {
-                        println!("Clause {} is unsatisfied: {:?}", idx, clause);
-                    }
-                }
+                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
             }
             assert!(
                 res.is_none(),
                 "waerden(3,3,{n}) should be unsatisfiable"
             );
+        }
+    }
+
+    #[test]
+    fn test_solve_langford_sat() {
+        use crate::sat::sample_problems::langford;
+        for n in [3, 4, 7] {
+            let p = langford(n).unwrap();
+            let res = solve_via_dpll(&p);
+            assert!(res.is_some(), "langford({n}) should be satisfiable");
+            if let Some(ref assignment) = res {
+                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_solve_langford_unsat() {
+        use crate::sat::sample_problems::langford;
+        for n in [1, 2, 5, 6] {
+            let p = langford(n).unwrap();
+            let res = solve_via_dpll(&p);
+            assert!(res.is_none(), "langford({n}) should be unsatisfiable");
         }
     }
 }
