@@ -16,8 +16,9 @@
 //! Keeping "gave up" in [`Error`] rather than folding it into `Ok(None)` is what
 //! lets `Ok(None)` mean something strong.
 //!
-//! See `.agents/overview.md` in this directory for the design decisions behind
-//! the representations used here, and for the constraints that must not be
+//! See `AGENTS.md` in this directory for the conventions this code is written
+//! to; `.agents/overview.md` for the design decisions behind the
+//! representations used here, and for the constraints that must not be
 //! relitigated; `.agents/algorithm.md` for Knuth's Algorithm C; and
 //! `.agents/plan.md` for the phase-by-phase work order.
 
@@ -81,7 +82,9 @@ impl From<SegmentError> for Error {
 ///
 /// Returns the cycle as a closed [`Segment`] in canonical orientation, or
 /// `Ok(None)` if the graph has no Hamiltonian cycle.
-pub fn find_hamiltonian_cycle(_graph: &UnGraph<(), ()>) -> Result<Option<Segment>, Error> {
+pub fn find_hamiltonian_cycle(
+    _graph: &UnGraph<(), ()>,
+) -> Result<Option<Segment>, Error> {
     todo!("run a CegarSearch to completion")
 }
 

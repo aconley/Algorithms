@@ -98,6 +98,19 @@ lives in-crate".
 
 ---
 
+## Conventions for every phase
+
+See **`../AGENTS.md`** — test organisation, rustfmt, assertions, warnings.  It is
+short, it applies to every phase below, and no phase is complete until it is
+satisfied.  It is kept separate from this file so that it still applies once the
+phases are done.
+
+Note in particular that it is *authoritative for this directory*: the rest of
+`src/` is an accumulation of separate exercises, so do not copy conventions from
+neighbouring modules.
+
+---
+
 ## Phase 0 — Correct the skeleton's doc comments
 
 Most of this phase is **already done**, before you start:
@@ -109,9 +122,8 @@ Most of this phase is **already done**, before you start:
   doc's three-mode table, and the `endpoints` parameter on
   `find_hamiltonian_path`.  `CycleInstance::new` now takes only the graph.
   `cargo build` succeeds in this state.
-- `mod.rs`'s dangling reference to a nonexistent `AGENTS.md` now points at
-  `.agents/overview.md`.  (References to `src/sat/AGENTS.md` elsewhere are fine;
-  that one exists.)
+- `AGENTS.md` now exists in this directory and holds the working conventions;
+  `mod.rs` points at it and at the three `.agents/` files.
 
 What is left is two doc comments in `driver.rs`, both describing the abandoned
 one-variable-per-edge design:
@@ -427,9 +439,18 @@ pub(super) struct Config {
 2. `full_solution()`, then `CycleCover::from_model` (C4).
 3. If `t == 1` (C5) return `Step::Found` with the canonicalized cycle.
 4. Otherwise `refinement::cut_clauses` (C8).  `Cut::NoCycle` → `Step::NoCycle`.
-   Add the clauses, update `Stats`, return `Step::Spurious(decomposition)` —
-   **having already added them**, so a caller that ignores the decomposition
-   still makes progress.
+   Add the clauses, update `Stats`, retain the cover on `self`, and return
+   `Step::Spurious { cycles: t }` — **having already added the clauses**, so a
+   caller that ignores the round still makes progress.
+
+   Note what does *not* happen here: no `Decomposition` is built.  The loop is a
+   transcription of Algorithm C and runs on `SUCC`/`PRED`/`CID` throughout;
+   `cycles` is Knuth's `t`, which is free, and `Stats::segments_per_round` takes
+   the same number.  `CegarSearch::decomposition()` derives the ordered-segment
+   view from the retained cover when a renderer or a test asks for one, and
+   returns `None` before the first `step`.  This is not an optimisation — the
+   cost either way is negligible against a SAT solve — it is about keeping the
+   core loop free of presentation concerns.
 5. Check `max_rounds` and return `Step::LimitReached` if exceeded.
 
 `run` loops `step` until it returns something other than `Spurious`.
@@ -478,7 +499,7 @@ Write that validator once as a test helper; phases 8–11 all reuse it.
 - Remove `#![allow(dead_code)]`, and fix whatever warnings that surfaces.
 
 **Tests:** integration-level, using `claim::{assert_ok, assert_err}` per
-`src/sat/AGENTS.md`.  A path graph has a Hamiltonian path but no cycle — assert
+`../AGENTS.md`.  A path graph has a Hamiltonian path but no cycle — assert
 both entry points on the same graph and get different answers.  A 5×5 knight's
 graph has an open tour but no closed one: same pair of assertions, at real size.
 Assert `n == 0` and `n == 1` for both entry points.
@@ -511,10 +532,12 @@ Two facts that make the design sound, so you do not have to rederive them:
   merged cycle is a union of whole model cycles, so no model arc crosses it, so
   the model violates the cut clause.  Progress is still guaranteed.
 
-`Step::Spurious` carries the **post-merge** decomposition, since that is what
-refinement acts on and what the round-by-round renderer should show.  Record both
-counts in `Stats`: add `segments_before_merge_per_round` alongside the existing
-`segments_per_round`.
+`Step::Spurious { cycles }` reports the **post-merge** `t`, and
+`CegarSearch::decomposition()` likewise derives from the post-merge cover, since
+that is what refinement acts on and what the round-by-round renderer should show.
+Record both counts in `Stats`: capture `t` before calling `merge` into a new
+`segments_before_merge_per_round`, alongside the existing `segments_per_round`.
+Both are plain integer reads; neither requires building a `Decomposition`.
 
 **Tests:**
 

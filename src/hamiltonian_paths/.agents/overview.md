@@ -465,8 +465,28 @@ This is deliberate and load-bearing:
   counterexamples, so the round-by-round visualisation comes free.
 - Validation is one function: segments disjoint, every consecutive pair a real
   edge, then the Hamiltonicity predicate on top.
-- The refinement step consumes this same type, so the thing that is rendered
-  and the thing that is refined on cannot drift apart.
+### What `Decomposition` is *not*
+
+It is not the CEGAR loop's working data structure.  An earlier draft of this file
+claimed "the refinement step consumes this same type, so the thing that is
+rendered and the thing that is refined on cannot drift apart".  That was written
+before the algorithm was known, and it is false: refinement consumes
+`CycleCover` — Knuth's `SUCC`/`PRED`/`CID`/`CYC`/`CLOC`/`HEAD` arrays — because
+step C8 needs `CID` lookups and `SUCC` walks that a `Vec<Segment>` cannot
+provide.
+
+The whole loop runs on those arrays.  C4 decodes the model straight into them,
+C5 and C7 test `t == 1`, C6 merges by rewriting them in place, and C8 walks them.
+`Segment` and `Decomposition` are the **ordered-sequence view** of that state,
+derived from it, and they exist for four consumers: the answer handed back to
+the caller, the renderers, per-round observation, and test assertions.
+
+Consequently a `Decomposition` is materialised **on request, not on every
+round** — `CegarSearch::decomposition()`.  The cost is small (an O(*n*) walk plus
+a sort, against a SAT solve), so this is not an optimisation; it is about keeping
+the core loop a transcription of Algorithm C rather than something that pauses
+each round to build a presentation object.  `Stats` gets its per-round segment
+count from `t` directly, which is free.
 
 One consequence of the cycle-cover encoding: **every segment a model decodes to
 is closed**.  `Decomposition`'s open case is unreachable from this abstraction,
@@ -544,13 +564,12 @@ generate, and costs only a round number in the filename.
 
 ## Testing conventions
 
-Follow the conventions already established in `src/sat/AGENTS.md`:
+Mechanics — test submodules, `claim`, rustfmt — are in `../AGENTS.md`, which is
+authoritative for this directory.  Work red/green, as the DPLL work in this repo
+did.
 
-- Use `claim::{assert_ok, assert_err}` for `Result`-returning constructors.
-- Red/green TDD, as was used for the DPLL work in this repo.
-
-This directory additionally needs canonical test instances, analogous to the
-"R'" problem in `src/sat/`:
+What follows is not mechanics but the *instances*: this directory needs canonical
+test graphs, playing the role that the "R'" problem plays in `src/sat/`.
 
 - **5×5 knight's graph** — the smallest square board admitting an *open* knight's
   tour.  Use it for the path entry point only: 5×5 has **no closed tour** (25

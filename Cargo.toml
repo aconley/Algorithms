@@ -6,6 +6,9 @@ authors = ["Alex Conley <alexanderconley@gmail.com>"]
 
 [dependencies]
 lazy_static = "1.4.0"
+petgraph = "0.8.3"
+rustsat = "0.7.5"
+rustsat-cadical = "0.7.5"
 
 [dev-dependencies]
 criterion = "0.4"
