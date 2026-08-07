@@ -25,18 +25,18 @@ use std::io::{self, Write};
 /// Deliberately does not build a dense `ADJ` matrix, unlike `algorithm.md`'s
 /// Knuth transcription: `graph.find_edge` is O(deg) and already reports "not
 /// adjacent" as `None`, which is everything a dense matrix would buy here.
-pub(super) struct ArcVars<'g> {
+pub(crate) struct ArcVars<'g> {
     graph: &'g UnGraph<(), ()>,
 }
 
 impl<'g> ArcVars<'g> {
-    pub(super) fn new(graph: &'g UnGraph<(), ()>) -> Self {
+    pub(crate) fn new(graph: &'g UnGraph<(), ()>) -> Self {
         ArcVars { graph }
     }
 
     /// The SAT variable for the arc `from -> to`, or `None` if `from` and
     /// `to` are not adjacent in the graph.
-    pub(super) fn var(&self, from: NodeIndex, to: NodeIndex) -> Option<u32> {
+    pub(crate) fn var(&self, from: NodeIndex, to: NodeIndex) -> Option<u32> {
         let edge = self.graph.find_edge(from, to)?;
         let (a, _b) = self
             .graph
@@ -56,7 +56,7 @@ impl<'g> ArcVars<'g> {
     /// variable this module hands out satisfies `var < n_vars()`, so a
     /// caller that only ever passes back values it received from `var` or
     /// from a solved model cannot trigger this.
-    pub(super) fn arc(&self, var: u32) -> (NodeIndex, NodeIndex) {
+    pub(crate) fn arc(&self, var: u32) -> (NodeIndex, NodeIndex) {
         let edge = EdgeIndex::new((var / 2) as usize);
         let (a, b) = self
             .graph
@@ -70,7 +70,7 @@ impl<'g> ArcVars<'g> {
     }
 
     /// Number of arc variables, `2 * m`.
-    pub(super) fn n_vars(&self) -> u32 {
+    pub(crate) fn n_vars(&self) -> u32 {
         2 * self.graph.edge_count() as u32
     }
 }
@@ -88,7 +88,7 @@ impl<'g> ArcVars<'g> {
 ///    way.
 ///
 /// Total clause count is `m + 2n + 2 * sum_v C(d_v, 2)`.
-pub(super) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf {
+pub(crate) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf {
     let vars = ArcVars::new(graph);
     let mut cnf = Cnf::new();
 
@@ -143,7 +143,7 @@ pub(super) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf {
 /// solver on a dumped round separates "the encoding is wrong" from "the
 /// refinement is wrong".  There is no DIMACS *input* path, and none should be
 /// added.
-pub(super) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()> {
+pub(crate) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()> {
     let n_vars = cnf
         .iter()
         .flat_map(|clause| clause.iter())

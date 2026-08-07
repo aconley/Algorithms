@@ -9,7 +9,7 @@
 //! It is `#[cfg(test)]`, so none of this costs anything in a release build.
 //!
 //! It lives here in the module tree rather than in `tests/common/` because
-//! these fixtures traffic in `pub(super)` types — `ArcVars`, `CycleCover` —
+//! these fixtures traffic in `pub(crate)` types — `ArcVars`, `CycleCover` —
 //! that an integration-test crate, compiled outside the crate, cannot reach.
 
 use super::cycles::CycleCover;
@@ -18,12 +18,12 @@ use claim::assert_ok;
 use petgraph::graph::{NodeIndex, UnGraph};
 use rustsat::types::{Assignment, Lit};
 
-pub(super) fn v(i: usize) -> NodeIndex {
+pub(crate) fn v(i: usize) -> NodeIndex {
     NodeIndex::new(i)
 }
 
 /// Builds an undirected graph with `order` vertices and the given edges.
-pub(super) fn graph_of(order: usize, edges: &[(usize, usize)]) -> UnGraph<(), ()> {
+pub(crate) fn graph_of(order: usize, edges: &[(usize, usize)]) -> UnGraph<(), ()> {
     let mut graph = UnGraph::new_undirected();
     for _ in 0..order {
         graph.add_node(());
@@ -37,7 +37,7 @@ pub(super) fn graph_of(order: usize, edges: &[(usize, usize)]) -> UnGraph<(), ()
 /// Marks each `(from, to)` pair as a true arc variable, leaving every other
 /// variable at its default (`TernaryVal::DontCare`, which `from_model` treats
 /// as false).
-pub(super) fn model_of(graph: &UnGraph<(), ()>, arcs: &[(usize, usize)]) -> Assignment {
+pub(crate) fn model_of(graph: &UnGraph<(), ()>, arcs: &[(usize, usize)]) -> Assignment {
     let vars = ArcVars::new(graph);
     let mut model = Assignment::default();
     for &(from, to) in arcs {
@@ -58,7 +58,7 @@ pub(super) fn model_of(graph: &UnGraph<(), ()>, arcs: &[(usize, usize)]) -> Assi
 /// `plan.md` gives for the merge example (a subset of this graph's edges),
 /// and confirmed vertex-by-vertex in conversation for the rest: C-D, D's
 /// third neighbour G, E's fourth neighbour H, and H-K.
-pub(super) fn knuth_graph() -> UnGraph<(), ()> {
+pub(crate) fn knuth_graph() -> UnGraph<(), ()> {
     graph_of(
         13,
         &[
@@ -90,7 +90,7 @@ pub(super) fn knuth_graph() -> UnGraph<(), ()> {
 /// The three cycles making up the book's cover: A-C-G-D (0-2-6-3),
 /// B-L-J-E-I (1-11-9-4-8), F-K-M-H (5-10-12-7).  Directed according to the
 /// book's SUCC array, so only these 13 arcs are true.
-pub(super) fn knuth_cover_arcs() -> Vec<(usize, usize)> {
+pub(crate) fn knuth_cover_arcs() -> Vec<(usize, usize)> {
     vec![
         (0, 2),
         (2, 6),
@@ -108,7 +108,7 @@ pub(super) fn knuth_cover_arcs() -> Vec<(usize, usize)> {
     ]
 }
 
-pub(super) fn knuth_cover() -> CycleCover {
+pub(crate) fn knuth_cover() -> CycleCover {
     let graph = knuth_graph();
     let vars = ArcVars::new(&graph);
     let model = model_of(&graph, &knuth_cover_arcs());

@@ -33,7 +33,7 @@ use std::time::Duration;
 
 /// Knobs on a single search.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(super) struct Config {
+pub(crate) struct Config {
     /// Give up after this many refinement rounds, if set.
     pub max_rounds: Option<usize>,
     /// Give up after this many solver conflicts in total, if set.
@@ -48,7 +48,7 @@ impl Default for Config {
 
 /// What one refinement round did.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(super) enum Step {
+pub(crate) enum Step {
     /// The abstraction admitted a model that is not a single spanning cycle.
     /// Clauses ruling it out have already been added; call `step` again.
     ///
@@ -72,7 +72,7 @@ pub(super) enum Step {
 /// what show whether one refinement rule beats another, which is the substance
 /// of the exercise; treat them as part of the result.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub(super) struct Stats {
+pub(crate) struct Stats {
     /// Refinement rounds completed, not counting the round that settled it.
     pub rounds: usize,
     /// Clauses in the initial encoding of the abstraction.
@@ -92,7 +92,7 @@ pub(super) struct Stats {
 }
 
 /// A Hamiltonian cycle search in progress.
-pub(super) struct CegarSearch<'g> {
+pub(crate) struct CegarSearch<'g> {
     graph: &'g UnGraph<(), ()>,
     solver: CaDiCaL<'static, 'static>,
     /// Next unused SAT variable index.  Edge variables occupy `0..edge_count`,
@@ -115,7 +115,7 @@ impl<'g> CegarSearch<'g> {
     /// every refinement round.  Since refinement clauses are built from edge
     /// variables, freezing them up front is cheap insurance, and omitting it is
     /// the likeliest cause of unexplained slowness.
-    pub(super) fn new(
+    pub(crate) fn new(
         _graph: &'g UnGraph<(), ()>,
         _config: Config,
     ) -> Result<Self, super::Error> {
@@ -126,7 +126,7 @@ impl<'g> CegarSearch<'g> {
     ///
     /// Returns [`Step::Spurious`] having *already* added the refinement clauses,
     /// so a caller that ignores the round still makes progress.
-    pub(super) fn step(&mut self) -> Result<Step, super::Error> {
+    pub(crate) fn step(&mut self) -> Result<Step, super::Error> {
         todo!("solve, decode, check, refine")
     }
 
@@ -139,27 +139,27 @@ impl<'g> CegarSearch<'g> {
     /// `None` before the first [`step`](Self::step).  The inner `Result` fails
     /// only if the cover is malformed, which would mean the encoding and the
     /// decoder disagree.
-    pub(super) fn decomposition(
+    pub(crate) fn decomposition(
         &self,
     ) -> Option<Result<Decomposition, super::SegmentError>> {
         todo!("derive from the retained cycle cover")
     }
 
     /// Steps until the search settles or hits a limit.
-    pub(super) fn run(&mut self) -> Result<Step, super::Error> {
+    pub(crate) fn run(&mut self) -> Result<Step, super::Error> {
         todo!("loop over step until it is not Spurious")
     }
 
     /// Allocates a fresh auxiliary SAT variable.
-    pub(super) fn fresh_var(&mut self) -> u32 {
+    pub(crate) fn fresh_var(&mut self) -> u32 {
         todo!("hand out next_var and bump")
     }
 
-    pub(super) fn graph(&self) -> &'g UnGraph<(), ()> {
+    pub(crate) fn graph(&self) -> &'g UnGraph<(), ()> {
         self.graph
     }
 
-    pub(super) fn stats(&self) -> &Stats {
+    pub(crate) fn stats(&self) -> &Stats {
         &self.stats
     }
 }

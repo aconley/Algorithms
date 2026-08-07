@@ -75,13 +75,13 @@ impl std::error::Error for CoverError {}
 /// are bookkeeping for C6's merge, which lives in this file, and `CYC` in
 /// particular must be read through [`active`](Self::active).
 #[derive(Debug)]
-pub(super) struct CycleCover {
-    pub(super) succ: Vec<NodeIndex>, // SUCC
+pub(crate) struct CycleCover {
+    pub(crate) succ: Vec<NodeIndex>, // SUCC
     pred: Vec<NodeIndex>,            // PRED
-    pub(super) cid: Vec<usize>,      // CID, 1-based cycle ids; 0 means unassigned
+    pub(crate) cid: Vec<usize>,      // CID, 1-based cycle ids; 0 means unassigned
     cyc: Vec<usize>,                 // CYC, the sparse set of active cycles
     cloc: Vec<usize>,                // CLOC, location of cycle c in CYC
-    pub(super) head: Vec<NodeIndex>, // HEAD, an arbitrary vertex of each cycle
+    pub(crate) head: Vec<NodeIndex>, // HEAD, an arbitrary vertex of each cycle
     t: usize,                        // number of active cycles
 }
 
@@ -91,7 +91,7 @@ impl CycleCover {
     ///
     /// Malformed models are reported as a [`CoverError`] rather than repaired;
     /// see that type for why none of its cases can arise from a genuine model.
-    pub(super) fn from_model(
+    pub(crate) fn from_model(
         graph: &UnGraph<(), ()>,
         vars: &ArcVars,
         model: &Assignment,
@@ -170,7 +170,7 @@ impl CycleCover {
 
     /// Number of active cycles, Knuth's `t`.  `t == 1` means `succ` defines a
     /// single spanning cycle: a genuine Hamiltonian cycle.
-    pub(super) fn t(&self) -> usize {
+    pub(crate) fn t(&self) -> usize {
         self.t
     }
 
@@ -181,7 +181,7 @@ impl CycleCover {
     /// Knuth's `CYC` is a fixed-size array whose entries past `t` are stale
     /// rather than removed, so iterating the whole vector would walk cycles
     /// that no longer exist.
-    pub(super) fn active(&self) -> &[usize] {
+    pub(crate) fn active(&self) -> &[usize] {
         &self.cyc[..self.t]
     }
 
@@ -196,7 +196,7 @@ impl CycleCover {
     /// which surfaces here as `SegmentError::ClosedTooShort` rather than in
     /// `from_model`: a 2-cycle is a perfectly well-formed arc permutation, so
     /// only walking it reveals how short it is.
-    pub(super) fn to_decomposition(&self) -> Result<Decomposition, SegmentError> {
+    pub(crate) fn to_decomposition(&self) -> Result<Decomposition, SegmentError> {
         let mut segments = Vec::with_capacity(self.t);
         for &c in self.active() {
             let start = self.head[c];

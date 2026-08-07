@@ -73,7 +73,7 @@ impl std::error::Error for ReductionError {}
 /// Owns the reduced graph *G′* and remembers where the apex went, so that a
 /// cycle found in *G′* can be translated back into a path in *G*.
 #[derive(Debug, Clone)]
-pub(super) struct CycleInstance {
+pub(crate) struct CycleInstance {
     graph: UnGraph<(), ()>,
     apex: NodeIndex,
     original_order: usize,
@@ -89,7 +89,7 @@ impl CycleInstance {
     /// This function is deliberately independent of the solver: it can and
     /// should be tested on its own.  Reductions with an off-by-one fail far
     /// downstream, where the symptom is an answer that merely looks wrong.
-    pub(super) fn new(graph: &UnGraph<(), ()>) -> Result<Self, ReductionError> {
+    pub(crate) fn new(graph: &UnGraph<(), ()>) -> Result<Self, ReductionError> {
         let original_order = graph.node_count();
         if original_order < 2 {
             return Err(ReductionError::GraphTooSmall(original_order));
@@ -112,17 +112,17 @@ impl CycleInstance {
     }
 
     /// The reduced graph, the one actually handed to the CEGAR engine.
-    pub(super) fn graph(&self) -> &UnGraph<(), ()> {
+    pub(crate) fn graph(&self) -> &UnGraph<(), ()> {
         &self.graph
     }
 
     /// The apex vertex of the reduced graph.
-    pub(super) fn apex(&self) -> NodeIndex {
+    pub(crate) fn apex(&self) -> NodeIndex {
         self.apex
     }
 
     /// Number of vertices in the original graph.
-    pub(super) fn original_order(&self) -> usize {
+    pub(crate) fn original_order(&self) -> usize {
         self.original_order
     }
 
@@ -132,7 +132,7 @@ impl CycleInstance {
     /// Rotate the cycle so the apex comes first, drop it, and what remains is an
     /// open segment over the original vertices in their original indices.  The
     /// result is returned canonicalised.
-    pub(super) fn path_from_cycle(
+    pub(crate) fn path_from_cycle(
         &self,
         cycle: &Segment,
     ) -> Result<Segment, ReductionError> {

@@ -28,7 +28,7 @@ use std::collections::HashSet;
 /// A structural reason no Hamiltonian cycle can exist, found before the SAT
 /// loop starts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum Obstruction {
+pub(crate) enum Obstruction {
     /// The graph has no vertices.
     Empty,
     /// An edge from a vertex to itself; breaks the arc-variable mapping.
@@ -58,7 +58,7 @@ pub(super) enum Obstruction {
 ///
 /// Returns the first obstruction found, or `None` if the graph clears every
 /// check.
-pub(super) fn check_preconditions(graph: &UnGraph<(), ()>) -> Option<Obstruction> {
+pub(crate) fn check_preconditions(graph: &UnGraph<(), ()>) -> Option<Obstruction> {
     if graph.node_count() == 0 {
         return Some(Obstruction::Empty);
     }

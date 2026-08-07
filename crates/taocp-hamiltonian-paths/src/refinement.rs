@@ -23,7 +23,7 @@ use rustsat::types::{Clause, Lit};
 
 /// The result of step C8.
 #[derive(Debug)]
-pub(super) enum Cut {
+pub(crate) enum Cut {
     /// The cut clauses to add to the solver, two per active cycle (one per
     /// cycle when `t == 2`, since the second cycle's pair would duplicate
     /// the first's).
@@ -50,7 +50,7 @@ pub(super) enum Cut {
 /// immediately: a cycle that cannot both leave and re-enter its complement
 /// proves no Hamiltonian cycle exists, and that is not a case to be smoothed
 /// into a unit clause.
-pub(super) fn cut_clauses(
+pub(crate) fn cut_clauses(
     graph: &UnGraph<(), ()>,
     vars: &ArcVars,
     cover: &CycleCover,
