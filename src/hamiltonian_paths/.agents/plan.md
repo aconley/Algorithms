@@ -338,11 +338,24 @@ pub(super) struct CycleCover {
 
 impl CycleCover {
     pub(super) fn from_model(graph, vars: &ArcVars, model: &Assignment)
-        -> Result<Self, SegmentError>;
+        -> Result<Self, CoverError>;
     pub(super) fn t(&self) -> usize;
     pub(super) fn to_decomposition(&self) -> Result<Decomposition, SegmentError>;
 }
 ```
+
+The two error types are deliberately different.  `CoverError` — `NoOutArc`,
+`NoInArc`, `DuplicateOutArc`, `DuplicateInArc`, each carrying a `NodeIndex` —
+describes a broken *arc permutation*, which is a different kind of malformedness
+from a bad vertex sequence.  Reusing `SegmentError` would report a vertex with no
+out-arc as `RepeatedVertex`, which renders as "vertex 0 appears more than once in
+a segment" — the opposite of what happened.  `CoverError` is `pub` and
+re-exported from `mod.rs`.
+
+Which failure surfaces where is not arbitrary: `from_model` can only see the
+arcs, so it catches missing and duplicated ones; a too-short cycle is a perfectly
+well-formed arc permutation and only walking it reveals the length, so it
+surfaces from `to_decomposition` as `SegmentError::ClosedTooShort`.
 
 `from_model` is step C4: for each true arc variable `uv`, set `SUCC[u] = v` and
 `PRED[v] = u`; then set `CID[v] = 0` for all `v`, `t = v = 0`, and walk as
@@ -353,7 +366,7 @@ least error-prone way to do this in Rust.
 
 The encoding guarantees exactly one out-arc and one in-arc per vertex, so a
 missing or duplicated arc means the encoding and the decoder disagree — return
-`SegmentError`, which `Error::Malformed` wraps.  Do not silently repair it.
+`CoverError`, which `Error::MalformedCover` wraps.  Do not silently repair it.
 
 `to_decomposition` walks each active cycle from its `HEAD` and builds a closed
 `Segment`.  **Every segment from a cycle cover is closed**; the open case of

@@ -69,15 +69,20 @@ impl std::error::Error for CoverError {}
 /// indexed by 1-based cycle id and sized `n + 1`, leaving slot `0` unused —
 /// the least error-prone way to carry Knuth's 1-based `CLOC`/`HEAD` indexing
 /// into Rust without an off-by-one at every access.
+/// The arrays a sibling module walks — `SUCC`, `CID`, `HEAD` — are readable
+/// throughout this directory, so a transcription of Algorithm C can use
+/// Knuth's names directly.  The rest stay private: `PRED`, `CYC` and `CLOC`
+/// are bookkeeping for C6's merge, which lives in this file, and `CYC` in
+/// particular must be read through [`active`](Self::active).
 #[derive(Debug)]
 pub(super) struct CycleCover {
-    succ: Vec<NodeIndex>, // SUCC
-    pred: Vec<NodeIndex>, // PRED
-    cid: Vec<usize>,      // CID, 1-based cycle ids; 0 means unassigned
-    cyc: Vec<usize>,      // CYC, the sparse set of active cycles
-    cloc: Vec<usize>,     // CLOC, location of cycle c in CYC
-    head: Vec<NodeIndex>, // HEAD, an arbitrary vertex of each cycle
-    t: usize,             // number of active cycles
+    pub(super) succ: Vec<NodeIndex>, // SUCC
+    pred: Vec<NodeIndex>,            // PRED
+    pub(super) cid: Vec<usize>,      // CID, 1-based cycle ids; 0 means unassigned
+    cyc: Vec<usize>,                 // CYC, the sparse set of active cycles
+    cloc: Vec<usize>,                // CLOC, location of cycle c in CYC
+    pub(super) head: Vec<NodeIndex>, // HEAD, an arbitrary vertex of each cycle
+    t: usize,                        // number of active cycles
 }
 
 impl CycleCover {
@@ -169,6 +174,17 @@ impl CycleCover {
         self.t
     }
 
+    /// The active cycle ids, Knuth's `CYC[0..t]`.
+    ///
+    /// The only way to see `CYC` from outside this file, deliberately:
+    /// merging (phase 9) reduces `t` by absorbing one cycle into another, and
+    /// Knuth's `CYC` is a fixed-size array whose entries past `t` are stale
+    /// rather than removed, so iterating the whole vector would walk cycles
+    /// that no longer exist.
+    pub(super) fn active(&self) -> &[usize] {
+        &self.cyc[..self.t]
+    }
+
     /// Walks each active cycle from its `HEAD` and builds the ordered-segment
     /// view of this cover.
     ///
@@ -182,7 +198,7 @@ impl CycleCover {
     /// only walking it reveals how short it is.
     pub(super) fn to_decomposition(&self) -> Result<Decomposition, SegmentError> {
         let mut segments = Vec::with_capacity(self.t);
-        for &c in &self.cyc {
+        for &c in self.active() {
             let start = self.head[c];
             let mut vertices = vec![start];
             let mut v = self.succ[start.index()];

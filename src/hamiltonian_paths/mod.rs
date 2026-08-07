@@ -31,6 +31,7 @@ mod driver;
 mod encoding;
 mod precheck;
 mod reduction;
+mod refinement;
 mod segment;
 #[cfg(test)]
 mod testing;

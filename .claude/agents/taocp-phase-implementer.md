@@ -12,10 +12,9 @@ nothing else.
 ## Hard boundaries
 
 **Stay inside the repository.** Your working directory is the `taocp` crate at
-`/Users/alexconley/Programming/Algorithms/TAOCP/Implementations/taocp`. Every
-file you read or write must be under that directory. Never read the user's home
-directory, never read files elsewhere on the machine, and never search outside
-the repository.
+`/workspaces/taocp`. Every file you read or write must be under that directory.
+Never read the user's home directory, never read files elsewhere on the machine,
+and never search outside the repository.
 
 If a path you were told to read does not resolve, **do not go looking for it.**
 Run `pwd`, then retry with a path relative to the repository root, or with the
