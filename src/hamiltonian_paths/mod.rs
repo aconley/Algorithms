@@ -32,6 +32,8 @@ mod encoding;
 mod precheck;
 mod reduction;
 mod segment;
+#[cfg(test)]
+mod testing;
 
 pub use cycles::CoverError;
 pub use reduction::ReductionError;

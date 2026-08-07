@@ -165,23 +165,8 @@ pub(super) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hamiltonian_paths::testing::{graph_of, knuth_graph, v};
     use std::collections::HashSet;
-
-    fn v(i: usize) -> NodeIndex {
-        NodeIndex::new(i)
-    }
-
-    /// Builds an undirected graph with `order` vertices and the given edges.
-    fn graph_of(order: usize, edges: &[(usize, usize)]) -> UnGraph<(), ()> {
-        let mut graph = UnGraph::new_undirected();
-        for _ in 0..order {
-            graph.add_node(());
-        }
-        for &(a, b) in edges {
-            graph.add_edge(v(a), v(b), ());
-        }
-        graph
-    }
 
     /// A clause as a sorted vector of signed integers (positive for a
     /// positive literal, negative for a negated one, 1-based variable
@@ -327,57 +312,16 @@ mod tests {
     mod knuth_thirteen_vertex_example {
         use super::*;
 
-        /// Knuth's own worked example, pictured in `.agents/algorithm.md`
-        /// and reused as the merge fixture in `plan.md`'s phase 9: 13
-        /// vertices named A through M, 21 edges.  Node indices follow the
-        /// same A=0..M=12 mapping phase 9 uses, so this fixture is meant to
-        /// be shared with it.
-        ///
-        /// The edge list was reconstructed from the book's stated
-        /// at-least-one clauses for A, B and M, cross-checked against the
-        /// three cycles `plan.md` gives for the merge example (a subset of
-        /// this graph's edges), and confirmed vertex-by-vertex in
-        /// conversation for the rest: C-D, D's third neighbour G, E's
-        /// fourth neighbour H, and H-K.
-        fn graph() -> UnGraph<(), ()> {
-            graph_of(
-                13,
-                &[
-                    (0, 1),
-                    (0, 2),
-                    (0, 3),
-                    (0, 4),
-                    (0, 5), // A: B C D E F
-                    (1, 8),
-                    (1, 11), // B: I L
-                    (2, 3),
-                    (2, 6),
-                    (2, 8), // C: D G I
-                    (3, 6), // D: G
-                    (4, 7),
-                    (4, 8),
-                    (4, 9), // E: H I J
-                    (5, 7),
-                    (5, 10),  // F: H K
-                    (7, 10),  // H: K
-                    (7, 12),  // H: M
-                    (9, 11),  // J: L
-                    (10, 12), // K: M
-                    (11, 12), // L: M
-                ],
-            )
-        }
-
         #[test]
         fn has_the_stated_order_and_size() {
-            let graph = graph();
+            let graph = knuth_graph();
             assert_eq!(graph.node_count(), 13);
             assert_eq!(graph.edge_count(), 21);
         }
 
         #[test]
         fn clause_count_matches_the_books_breakdown() {
-            let cnf = cycle_cover_cnf(&graph());
+            let cnf = cycle_cover_cnf(&knuth_graph());
             // 21 asymmetry (one per edge) + 26 at-least-one (2 per vertex)
             // + sum_v d_v(d_v - 1) at-most-one, exactly as the book states.
             // Degrees: A5 B3 C4 D3 E4 F3 G2 H4 I3 J2 K3 L3 M3, so
@@ -387,7 +331,7 @@ mod tests {
 
         #[test]
         fn contains_the_at_least_one_clauses_quoted_in_the_book() {
-            let graph = graph();
+            let graph = knuth_graph();
             let cnf = cycle_cover_cnf(&graph);
             let clauses = clause_set(&cnf);
             let vars = ArcVars::new(&graph);

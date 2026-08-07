@@ -163,23 +163,8 @@ impl CycleInstance {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hamiltonian_paths::testing::{graph_of, v};
     use claim::{assert_err, assert_ok};
-
-    fn v(i: usize) -> NodeIndex {
-        NodeIndex::new(i)
-    }
-
-    /// Builds an undirected graph with `order` vertices and the given edges.
-    fn graph_of(order: usize, edges: &[(usize, usize)]) -> UnGraph<(), ()> {
-        let mut graph = UnGraph::new_undirected();
-        for _ in 0..order {
-            graph.add_node(());
-        }
-        for &(a, b) in edges {
-            graph.add_edge(v(a), v(b), ());
-        }
-        graph
-    }
 
     /// Whether every edge a segment traverses is a real edge of the graph.
     fn traversable(graph: &UnGraph<(), ()>, segment: &Segment) -> bool {

@@ -97,6 +97,26 @@ hamiltonian_paths::segment::tests::decomposition::new_rejects_overlapping_segmen
 
 The grouping is what makes `cargo test segment::tests::canonicalize` useful.
 
+## Shared test fixtures
+
+A few helpers — `v`, `graph_of`, and the 13-vertex Knuth example
+(`knuth_graph`, `knuth_cover_arcs`, `knuth_cover`) — are needed by the test
+modules of more than one file.  These live in `testing.rs`, declared in
+`mod.rs` as `#[cfg(test)] mod testing;`, with every item `pub(super)` so
+sibling modules' `mod tests` can reach them via
+`use crate::hamiltonian_paths::testing::{...};`.
+
+`tests/common/` (the usual place for cross-module test helpers in a Cargo
+crate) does not work here: these fixtures traffic in `pub(super)` types —
+`ArcVars`, `CycleCover` — and an integration-test crate, compiled outside
+`taocp`, cannot see anything less than `pub`.  `testing.rs` lives inside the
+module tree instead, specifically so it can reach those types.
+
+A helper used by only one module's tests still belongs in that module's own
+`mod tests`, per "Test organisation" above.  `testing.rs` is only for
+fixtures that are genuinely shared *between* modules — do not move a
+single-use helper there, and do not add a fixture nothing uses yet.
+
 ## Assertions
 
 Use `claim::{assert_ok, assert_err}` for constructors and other functions
