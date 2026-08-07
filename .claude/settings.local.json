@@ -5,7 +5,9 @@
       "Bash(git log:*)",
       "Bash(cargo run:*)",
       "Bash(cargo build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(jj st *)",
+      "Bash(jj diff *)"
     ],
     "deny": [],
     "ask": []
