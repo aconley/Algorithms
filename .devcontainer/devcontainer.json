@@ -7,6 +7,20 @@
      "--env-file",
      "${localWorkspaceFolder}/.env-secrets"
   ],
+
+  // Claude Code stores its OAuth credentials in ~/.claude/.credentials.json and
+  // its account/trust state in .claude.json, which normally sits outside that
+  // directory. CLAUDE_CONFIG_DIR relocates .claude.json into ~/.claude so the
+  // named volume below captures both: sign in once and stay signed in across
+  // rebuilds. The volume is shared by every devcontainer that mounts this name;
+  // use claude-code-config-${devcontainerId} instead to isolate per project.
+  "mounts": [
+    "source=claude-code-config,target=/home/vscode/.claude,type=volume"
+  ],
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
   "customizations": {
     "vscode": {
       "settings": {
@@ -25,7 +39,9 @@
     }
   },
 
-  "postCreateCommand": "rustc --version && cargo --version && claude --version && agy --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml && { [ -f ~/.claude.json ] || echo '{}' > ~/.claude.json; } && jq '.hasCompletedOnboarding = true' ~/.claude.json > ~/.claude.json.tmp && mv ~/.claude.json.tmp ~/.claude.json",
+  // A freshly-created named volume can land root-owned, so fix ownership before
+  // touching anything inside it. .claude.json now lives in CLAUDE_CONFIG_DIR.
+  "postCreateCommand": "sudo chown -R vscode:vscode \"$CLAUDE_CONFIG_DIR\" && rustc --version && cargo --version && claude --version && agy --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml && { [ -f \"$CLAUDE_CONFIG_DIR/.claude.json\" ] || echo '{}' > \"$CLAUDE_CONFIG_DIR/.claude.json\"; } && jq '.hasCompletedOnboarding = true' \"$CLAUDE_CONFIG_DIR/.claude.json\" > \"$CLAUDE_CONFIG_DIR/.claude.json.tmp\" && mv \"$CLAUDE_CONFIG_DIR/.claude.json.tmp\" \"$CLAUDE_CONFIG_DIR/.claude.json\"",
 
   "remoteUser": "vscode",
 

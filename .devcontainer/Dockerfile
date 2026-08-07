@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
   gnupg2 \
   curl \
   build-essential \
+  libclang-dev \
   nodejs \
   vim \
   ripgrep \
