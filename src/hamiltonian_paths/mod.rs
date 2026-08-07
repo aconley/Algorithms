@@ -28,6 +28,7 @@
 
 mod driver;
 mod encoding;
+mod precheck;
 mod reduction;
 mod segment;
 

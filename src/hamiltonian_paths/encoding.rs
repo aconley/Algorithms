@@ -343,17 +343,27 @@ mod tests {
             graph_of(
                 13,
                 &[
-                    (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), // A: B C D E F
-                    (1, 8), (1, 11),                        // B: I L
-                    (2, 3), (2, 6), (2, 8),                 // C: D G I
-                    (3, 6),                                 // D: G
-                    (4, 7), (4, 8), (4, 9),                 // E: H I J
-                    (5, 7), (5, 10),                        // F: H K
-                    (7, 10),                                // H: K
-                    (7, 12),                                // H: M
-                    (9, 11),                                // J: L
-                    (10, 12),                                // K: M
-                    (11, 12),                                // L: M
+                    (0, 1),
+                    (0, 2),
+                    (0, 3),
+                    (0, 4),
+                    (0, 5), // A: B C D E F
+                    (1, 8),
+                    (1, 11), // B: I L
+                    (2, 3),
+                    (2, 6),
+                    (2, 8), // C: D G I
+                    (3, 6), // D: G
+                    (4, 7),
+                    (4, 8),
+                    (4, 9), // E: H I J
+                    (5, 7),
+                    (5, 10),  // F: H K
+                    (7, 10),  // H: K
+                    (7, 12),  // H: M
+                    (9, 11),  // J: L
+                    (10, 12), // K: M
+                    (11, 12), // L: M
                 ],
             )
         }
@@ -385,15 +395,29 @@ mod tests {
             let lit_set = |pairs: &[(usize, usize)]| -> Vec<i64> {
                 let mut lits: Vec<i64> = pairs
                     .iter()
-                    .map(|&(from, to)| vars.var(v(from), v(to)).expect("edge exists") as i64 + 1)
+                    .map(|&(from, to)| {
+                        vars.var(v(from), v(to)).expect("edge exists") as i64 + 1
+                    })
                     .collect();
                 lits.sort_unstable();
                 lits
             };
 
             // (AB ∨ AC ∨ AD ∨ AE ∨ AF) ∧ (BA ∨ CA ∨ DA ∨ EA ∨ FA)
-            assert!(clauses.contains(&lit_set(&[(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)])));
-            assert!(clauses.contains(&lit_set(&[(1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])));
+            assert!(clauses.contains(&lit_set(&[
+                (0, 1),
+                (0, 2),
+                (0, 3),
+                (0, 4),
+                (0, 5)
+            ])));
+            assert!(clauses.contains(&lit_set(&[
+                (1, 0),
+                (2, 0),
+                (3, 0),
+                (4, 0),
+                (5, 0)
+            ])));
 
             // (BA ∨ BI ∨ BL) ∧ (AB ∨ IB ∨ LB)
             assert!(clauses.contains(&lit_set(&[(1, 0), (1, 8), (1, 11)])));

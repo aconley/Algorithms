@@ -288,8 +288,11 @@ pub(super) enum Obstruction {
     ArticulationPoint(NodeIndex),
 }
 
-pub(super) fn obstruction(graph: &UnGraph<(), ()>) -> Option<Obstruction>;
+pub(super) fn check_preconditions(graph: &UnGraph<(), ()>) -> Option<Obstruction>;
 ```
+
+(Named `check_preconditions` rather than `obstruction` — the latter reads as a
+noun where a verb was wanted; `Obstruction` stays the type name.)
 
 Each of these genuinely precludes a Hamiltonian cycle, so `Some(_)` means the
 driver returns `Ok(None)`.  Record the variant in `Stats` so a run can report
@@ -430,7 +433,7 @@ pub(super) struct Config {
 
 `CegarSearch::new`:
 
-1. Run `precheck::obstruction` unless `skip_preconditions`.  If it fires, record
+1. Run `precheck::check_preconditions` unless `skip_preconditions`.  If it fires, record
    it in `Stats` and put the search into a state where the first `step` returns
    `Step::NoCycle`.
 2. Create `CaDiCaL::default()`, `reserve` up to `2m`, and **`freeze_var` every
