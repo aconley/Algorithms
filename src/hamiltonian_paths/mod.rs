@@ -26,12 +26,14 @@
 // otherwise bury real warnings.
 #![allow(dead_code)]
 
+mod cycles;
 mod driver;
 mod encoding;
 mod precheck;
 mod reduction;
 mod segment;
 
+pub use cycles::CoverError;
 pub use reduction::ReductionError;
 pub use segment::{Segment, SegmentError};
 
@@ -54,6 +56,9 @@ pub enum Error {
     /// A model decoded to something that is not a valid vertex sequence, which
     /// means the encoding and the decoder disagree.
     Malformed(SegmentError),
+    /// A model decoded to something that is not a cycle cover, which likewise
+    /// means the encoding and the decoder disagree.
+    MalformedCover(CoverError),
 }
 
 impl fmt::Display for Error {
@@ -73,6 +78,12 @@ impl From<ReductionError> for Error {
 impl From<SegmentError> for Error {
     fn from(err: SegmentError) -> Self {
         Error::Malformed(err)
+    }
+}
+
+impl From<CoverError> for Error {
+    fn from(err: CoverError) -> Self {
+        Error::MalformedCover(err)
     }
 }
 
