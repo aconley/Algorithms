@@ -21,7 +21,8 @@ the phase-by-phase work order is in plan.md.
 ## Status
 
 A skeleton exists: every type, signature and doc comment is in place, and every
-body is `todo!()`.  The module is registered in `src/lib.rs`.
+body is `todo!()`.  This is the `taocp-hamiltonian-paths` member of the
+workspace; its crate root is `src/lib.rs`.
 
 The job is to fill in the bodies — not to redesign the interfaces, which were
 settled deliberately and are documented here and in the doc comments.
@@ -31,14 +32,14 @@ each a commit with its own tests, with the fixtures and expected values spelled
 out, plus a deferred phase 12 for benchmarking.  This file explains *why* the
 design is what it is; plan.md says what to do.
 
-`mod.rs` carries a crate-level `#![allow(dead_code)]` so the unfinished skeleton
-does not bury real warnings.  **Remove it once the module is implemented.**
+`lib.rs` carries a crate-level `#![allow(dead_code)]` so the unfinished skeleton
+does not bury real warnings.  **Remove it once the crate is implemented.**
 
 ### Where the skeleton is known to be wrong
 
 The skeleton was written before Knuth's algorithm was transcribed, so parts of it
 described a design that did not survive contact with it.  The `Endpoints` enum
-has already been removed from `reduction.rs` and `mod.rs`.  What is left for
+has already been removed from `reduction.rs` and `lib.rs`.  What is left for
 phase 0 of plan.md, and should not be trusted until then:
 
 - `driver.rs`, on `next_var`: it says edge variables occupy `0..edge_count`.
@@ -56,7 +57,7 @@ Each was considered and rejected for a stated reason.
 | Do **not** | Why |
 |---|---|
 | Substitute **kissat** for CaDiCaL | kissat is non-incremental by design.  CEGAR depends on carrying learned clauses across rounds; using kissat silently discards the entire point of the exercise. |
-| Reuse the DPLL solver in `src/sat/` as the backend | It is not a CDCL solver, so there are no learned clauses to preserve between rounds.  It may optionally be used as a slow cross-check oracle on tiny instances, but never as the CEGAR engine. |
+| Reuse the DPLL solver in the `taocp-sat` crate as the backend | It is not a CDCL solver, so there are no learned clauses to preserve between rounds.  It may optionally be used as a slow cross-check oracle on tiny instances, but never as the CEGAR engine. |
 | Give the graph node or edge weights | All per-problem data lives in side tables (see below).  The graph type is `Graph<(), ()>`. |
 | Add a DOT/GraphML/graph6 **parser** | Instances are constructed programmatically in Rust.  Output only.  No import path is needed and none should be added. |
 | Read a DIMACS *graph* file | Same reason.  (DIMACS **CNF** *output* is a separate and permitted debugging aid — see below.) |
@@ -96,14 +97,14 @@ investigation is needed.
 
 | File | Visibility | Contents |
 |---|---|---|
-| `mod.rs` | public surface | the two entry points, `Error`, re-exports |
+| `lib.rs` | public surface | the two entry points, `Error`, re-exports |
 | `segment.rs` | `pub` types, re-exported | `Segment`, `Decomposition`, `SegmentError` |
 | `reduction.rs` | private module | `CycleInstance`, `ReductionError` |
 | `encoding.rs` | private module | arc variable map, cycle-cover CNF (Algorithm C steps C1–C2), DIMACS dump |
 | `precheck.rs` | private module | connectivity, degree, bridge and articulation checks |
 | `cycles.rs` | private module | `CycleCover`: Knuth's SUCC/PRED/CID/CYC/CLOC/HEAD, decoding (C4) and merging (C6) |
 | `refinement.rs` | private module | cut clauses (C8) |
-| `driver.rs` | private module | `CegarSearch`, `Step`, `Stats`, `Config` — all `pub(super)` |
+| `driver.rs` | private module | `CegarSearch`, `Step`, `Stats`, `Config` — all `pub(crate)` |
 | `generators.rs` | **`pub`** | knight, grid, random, Petersen, each with its side table |
 | `render.rs` | **`pub`** | ASCII board, DOT, SVG |
 
@@ -568,8 +569,8 @@ Mechanics — test submodules, `claim`, rustfmt — are in `../AGENTS.md`, which
 authoritative for this directory.  Work red/green, as the DPLL work in this repo
 did.
 
-What follows is not mechanics but the *instances*: this directory needs canonical
-test graphs, playing the role that the "R'" problem plays in `src/sat/`.
+What follows is not mechanics but the *instances*: this crate needs canonical
+test graphs, playing the role that the "R'" problem plays in `taocp-sat`.
 
 - **5×5 knight's graph** — the smallest square board admitting an *open* knight's
   tour.  Use it for the path entry point only: 5×5 has **no closed tour** (25
@@ -609,14 +610,16 @@ subpath-reversal branch at C6.8, so it needs a companion case that does.
 
 Deliberately left open; do not resolve these unilaterally:
 
-- **How the benchmark reaches `Stats`.**  A bench is a separate crate and cannot
-  see `pub(super)` items, so phase 12 needs either a public entry point returning
-  statistics alongside the segment, or the bench moved in-crate.  Decide when
-  there is something to measure.
 - Whether an SVG helper crate is worth a dependency, or hand-formatted output
   suffices.
 
 Resolved since this file was first written:
+
+- **How the benchmark reaches `Stats`:** a `pub` entry point returning `Stats`
+  alongside the segment.  A bench is a separate crate and still cannot see
+  `pub(crate)` items, but since the workspace split `pub` widens only this
+  solver crate rather than the whole repository, which makes it the cheap
+  answer rather than a trade-off.  plan.md phase 12 records it.
 
 - **The algorithm** is Knuth's Algorithm C, transcribed in algorithm.md.
 - **Refinement strategy comparison** is cycle merging on versus off
