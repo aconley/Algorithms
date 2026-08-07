@@ -25,7 +25,7 @@ The variable index for literal `l` is `l / 2`.
 
 ## Core types (`sat_problem.rs`)
 
-All types are re-exported from `mod.rs`, so consumers just `use super::SatProblem` etc.
+All types are re-exported from `lib.rs`, so consumers just `use super::SatProblem` etc.
 
 ### `Clause`
 
@@ -135,9 +135,9 @@ pub fn solve_via_my_algorithm(problem: &SatProblem) -> Option<Vec<bool>> {
 }
 ```
 
-### 6. Register the module in `mod.rs`
+### 6. Register the module in `lib.rs`
 
-Add to `src/sat/mod.rs`:
+Add to `crates/taocp-sat/src/lib.rs`:
 
 ```rust
 pub mod my_algorithm;

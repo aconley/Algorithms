@@ -80,21 +80,25 @@ the owner:
 
 | File | Visibility | Phase | Contents |
 |---|---|---|---|
-| `mod.rs` | public surface | 8 | the two entry points, `Error` |
-| `segment.rs` | `pub` types | 1 | `Segment`, `Decomposition`, `SegmentError` |
-| `reduction.rs` | private | 2 | `CycleInstance`, `ReductionError` |
-| `encoding.rs` | private | 3 | arc variable map, C1/C2 clause generation, DIMACS dump |
-| `precheck.rs` | private | 4 | connectivity, degree, bridge and articulation checks |
-| `cycles.rs` | private | 5, 9 | `CycleCover`: C4 decode, C6 merge |
-| `refinement.rs` | private | 6 | C8 cut clauses |
-| `driver.rs` | private | 7 | `CegarSearch`, `Step`, `Stats`, `Config` |
-| `generators.rs` | **`pub`** | 10 | knight, grid, random, Petersen, with side tables |
-| `render.rs` | **`pub`** | 11 | ASCII board, DOT, SVG |
+| `src/lib.rs` | public surface | 8 | the two entry points, `Error` |
+| `src/segment.rs` | `pub` types | 1 | `Segment`, `Decomposition`, `SegmentError` |
+| `src/reduction.rs` | private | 2 | `CycleInstance`, `ReductionError` |
+| `src/encoding.rs` | private | 3 | arc variable map, C1/C2 clause generation, DIMACS dump |
+| `src/precheck.rs` | private | 4 | connectivity, degree, bridge and articulation checks |
+| `src/cycles.rs` | private | 5, 9 | `CycleCover`: C4 decode, C6 merge |
+| `src/refinement.rs` | private | 6 | C8 cut clauses |
+| `src/driver.rs` | private | 7 | `CegarSearch`, `Step`, `Stats`, `Config` |
+| `src/generators.rs` | **`pub`** | 10 | knight, grid, random, Petersen, with side tables |
+| `src/render.rs` | **`pub`** | 11 | ASCII board, DOT, SVG |
 
 `generators` and `render` are public because a `[[bin]]` or a bench is a separate
-crate and cannot reach `pub(crate)` items.  This does not widen the *solver*
-surface, which stays private — consistent with `overview.md`'s "visualisation
-lives in-crate".
+crate and cannot reach `pub(crate)` items — still true after the workspace split,
+since a bench in this crate's `benches/` links it externally like any other
+dependent.  What the split changes is the price: `pub` now widens one focused
+solver crate rather than the whole `taocp` grab-bag, so the two modules are
+reachable by this crate's own benches and binaries and by nothing else.  It does
+not widen the *solver* surface, which stays private — consistent with
+`overview.md`'s "visualisation lives in-crate".
 
 ---
 
@@ -105,9 +109,9 @@ short, it applies to every phase below, and no phase is complete until it is
 satisfied.  It is kept separate from this file so that it still applies once the
 phases are done.
 
-Note in particular that it is *authoritative for this directory*: the rest of
-`src/` is an accumulation of separate exercises, so do not copy conventions from
-neighbouring modules.
+Note in particular that it is *authoritative for this crate*: the other crates in
+the workspace are an accumulation of separate exercises, so do not copy
+conventions from them.
 
 ---
 
@@ -117,13 +121,13 @@ Most of this phase is **already done**, before you start:
 
 - `overview.md` and `algorithm.md` have been brought into line with this plan.
   Do not re-edit them; they are the current design, not stale prose.
-- The `Endpoints` enum is **gone** from `reduction.rs` and `mod.rs`, along with
+- The `Endpoints` enum is **gone** from `reduction.rs` and `lib.rs`, along with
   the `EndpointNotInGraph` and `DegenerateEndpoints` error variants, the module
   doc's three-mode table, and the `endpoints` parameter on
   `find_hamiltonian_path`.  `CycleInstance::new` now takes only the graph.
   `cargo build` succeeds in this state.
 - `AGENTS.md` now exists in this directory and holds the working conventions;
-  `mod.rs` points at it and at the three `.agents/` files.
+  `lib.rs` points at it and at the three `.agents/` files.
 
 What is left is two doc comments in `driver.rs`, both describing the abandoned
 one-variable-per-edge design:
@@ -227,7 +231,7 @@ Steps C1 and C2.  Generates CNF; does **not** talk to a solver, so it is testabl
 by asserting on clause sets.
 
 ```rust
-pub(super) struct ArcVars<'g> { graph: &'g UnGraph<(), ()> }
+pub(crate) struct ArcVars<'g> { graph: &'g UnGraph<(), ()> }
 
 impl ArcVars<'_> {
     fn var(&self, from: NodeIndex, to: NodeIndex) -> Option<u32>;  // None if not adjacent
@@ -235,8 +239,8 @@ impl ArcVars<'_> {
     fn n_vars(&self) -> u32;                                       // 2 * m
 }
 
-pub(super) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf;
-pub(super) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()>;
+pub(crate) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf;
+pub(crate) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()>;
 ```
 
 `cycle_cover_cnf` emits, in this order:
@@ -278,7 +282,7 @@ refinement is wrong".  There is no DIMACS *input* path and none should be added.
 ## Phase 4 — `precheck.rs`
 
 ```rust
-pub(super) enum Obstruction {
+pub(crate) enum Obstruction {
     Empty,
     SelfLoop(EdgeIndex),
     ParallelEdges(NodeIndex, NodeIndex),
@@ -288,7 +292,7 @@ pub(super) enum Obstruction {
     ArticulationPoint(NodeIndex),
 }
 
-pub(super) fn check_preconditions(graph: &UnGraph<(), ()>) -> Option<Obstruction>;
+pub(crate) fn check_preconditions(graph: &UnGraph<(), ()>) -> Option<Obstruction>;
 ```
 
 (Named `check_preconditions` rather than `obstruction` — the latter reads as a
@@ -326,7 +330,7 @@ The state Knuth's algorithm carries between C4, C6 and C8.  Transcribe the array
 names, so the code can be read against the book.
 
 ```rust
-pub(super) struct CycleCover {
+pub(crate) struct CycleCover {
     succ: Vec<NodeIndex>,   // SUCC
     pred: Vec<NodeIndex>,   // PRED
     cid:  Vec<usize>,       // CID, 1-based cycle ids; 0 means unassigned
@@ -337,10 +341,10 @@ pub(super) struct CycleCover {
 }
 
 impl CycleCover {
-    pub(super) fn from_model(graph, vars: &ArcVars, model: &Assignment)
+    pub(crate) fn from_model(graph, vars: &ArcVars, model: &Assignment)
         -> Result<Self, CoverError>;
-    pub(super) fn t(&self) -> usize;
-    pub(super) fn to_decomposition(&self) -> Result<Decomposition, SegmentError>;
+    pub(crate) fn t(&self) -> usize;
+    pub(crate) fn to_decomposition(&self) -> Result<Decomposition, SegmentError>;
 }
 ```
 
@@ -350,7 +354,7 @@ describes a broken *arc permutation*, which is a different kind of malformedness
 from a bad vertex sequence.  Reusing `SegmentError` would report a vertex with no
 out-arc as `RepeatedVertex`, which renders as "vertex 0 appears more than once in
 a segment" — the opposite of what happened.  `CoverError` is `pub` and
-re-exported from `mod.rs`.
+re-exported from `lib.rs`.
 
 Which failure surfaces where is not arbitrary: `from_model` can only see the
 arcs, so it catches missing and duplicated ones; a too-short cycle is a perfectly
@@ -387,13 +391,13 @@ fixture in either document; build it once here and reuse it in phase 9.
 ## Phase 6 — `refinement.rs` (step C8)
 
 ```rust
-pub(super) enum Cut {
+pub(crate) enum Cut {
     Clauses(Vec<Clause>),
     /// Fewer than two edges cross some cut, so no Hamiltonian cycle exists.
     NoCycle,
 }
 
-pub(super) fn cut_clauses(graph, vars: &ArcVars, cover: &CycleCover) -> Cut;
+pub(crate) fn cut_clauses(graph, vars: &ArcVars, cover: &CycleCover) -> Cut;
 ```
 
 For each active cycle `c = CYC[j]`, walk `v` from `HEAD[c]` around the cycle via
@@ -434,7 +438,7 @@ Wire it together.  No merging yet.
 `Config` gains two fields beyond the existing `max_rounds` and `max_conflicts`:
 
 ```rust
-pub(super) struct Config {
+pub(crate) struct Config {
     pub max_rounds: Option<usize>,
     pub max_conflicts: Option<usize>,
     pub skip_preconditions: bool,   // phase 7
@@ -512,7 +516,7 @@ Write that validator once as a test helper; phases 8–11 all reuse it.
 
 ---
 
-## Phase 8 — `mod.rs`
+## Phase 8 — `lib.rs`
 
 - Implement `Display for Error`.
 - `find_hamiltonian_cycle(graph)` — return `Ok(None)` for `n < 3` (no simple
@@ -656,5 +660,9 @@ family, plus a stats report.  Out of scope for this task; the `Stats` plumbing
 from phase 7 is what makes it a small job later.
 
 Note for whoever picks it up: a bench is a separate crate, so it cannot reach
-`pub(super)` items.  It will need either a `pub` entry point returning `Stats`
-alongside the segment, or the bench moved in-crate.  Decide then, not now.
+`pub(crate)` items.  **The answer is a `pub` entry point returning `Stats`
+alongside the segment**, not an in-crate bench.  That was left open while `pub`
+here meant "visible from the whole `taocp` grab-bag"; after the workspace split
+it means "visible from `taocp-hamiltonian-paths`", which is a narrow enough
+claim that the ordinary Criterion layout — `benches/` beside `src/` — is worth
+more than the visibility it costs.
