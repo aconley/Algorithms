@@ -173,10 +173,14 @@ covers-too-few cases.
 
 ## Phase 2 — `reduction.rs`
 
-The `Endpoints` enum is already gone (see phase 0); `ReductionError`'s remaining
-variants are `GraphTooSmall`, `ApexNotInCycle` and `CycleNotSpanning`, and the
-signatures below are the ones already in the file.  This phase fills in the two
-`todo!()` bodies and implements `Display for ReductionError`.
+The `Endpoints` enum is already gone (see phase 0); `ReductionError`'s variants
+are `GraphTooSmall`, `CycleNotClosed`, `ApexNotInCycle` and `CycleNotSpanning`,
+and the signatures below are the ones already in the file.  This phase fills in
+the two `todo!()` bodies and implements `Display for ReductionError`.
+
+(`CycleNotClosed` was added during phase 2.  Without it, an *open* segment of the
+right length containing the apex translates successfully and returns a
+plausible-looking path — a silent wrong answer rather than an error.)
 
 - `CycleInstance::new(graph) -> Result<Self, ReductionError>` — clone the graph,
   then add the apex vertex, then add an edge from the apex to every original
@@ -184,10 +188,11 @@ signatures below are the ones already in the file.  This phase fills in the two
   so `NodeIndex` `0..n` are unchanged and the apex is index `n`, and original
   `EdgeIndex` values are unchanged.  Reject `n < 2` with `GraphTooSmall(n)`;
   callers special-case `n <= 1` before reaching here.
-- `path_from_cycle(cycle)` — reject a cycle that does not contain the apex
-  (`ApexNotInCycle`) or does not have `n + 1` vertices (`CycleNotSpanning`).
-  Otherwise rotate so the apex is first, drop it, build an open `Segment` over
-  the remaining vertices, and return it canonicalized.
+- `path_from_cycle(cycle)` — reject an open segment (`CycleNotClosed`), a cycle
+  that does not contain the apex (`ApexNotInCycle`), and one that does not have
+  `n + 1` vertices (`CycleNotSpanning`).  Otherwise rotate so the apex is first,
+  drop it, build an open `Segment` over the remaining vertices, and return it
+  canonicalized.
 
 **Tests** (these are the cases that break reductions):
 
@@ -200,8 +205,14 @@ signatures below are the ones already in the file.  This phase fills in the two
   path graph `0-1-2-3`.  This is the test that proves the reduction does anything
   at all: G has no cycle, G′ does.
 - `path_from_cycle` round-trips: build a cycle through the apex by hand, translate
-  it, check the vertex order and that the result is open.
-- `path_from_cycle` rejects a cycle without the apex and a short cycle.
+  it, check the vertex order and that the result is open.  Do this twice, with the
+  apex first in the sequence and with it in the middle, so the rotation is
+  actually exercised.
+- `path_from_cycle` rejects an open segment, a cycle without the apex, and a
+  short cycle.
+- Assert that a witness cycle is genuinely traversable in G′, and that a
+  translated path is genuinely traversable in G.  A test that only checks vertex
+  *sequences* will pass on a sequence that corresponds to no real walk.
 
 **Done when:** `reduction.rs` has no `todo!()`, no reference to `Endpoints`
 remains anywhere, and its tests pass.
