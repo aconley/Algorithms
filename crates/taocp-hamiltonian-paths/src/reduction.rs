@@ -117,11 +117,13 @@ impl CycleInstance {
     }
 
     /// The apex vertex of the reduced graph.
+    #[allow(dead_code)] // used by this module's own tests today; may be used by renderers
     pub(crate) fn apex(&self) -> NodeIndex {
         self.apex
     }
 
     /// Number of vertices in the original graph.
+    #[allow(dead_code)] // used by this module's own tests today; may be used by renderers
     pub(crate) fn original_order(&self) -> usize {
         self.original_order
     }

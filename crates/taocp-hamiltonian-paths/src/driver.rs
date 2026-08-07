@@ -118,6 +118,8 @@ pub(crate) struct CegarSearch<'g> {
     /// Next unused SAT variable index. Arc variables occupy `0..2*edge_count`;
     /// auxiliary variables introduced by cardinality encodings are handed out
     /// from here.
+    #[allow(dead_code)]
+    // read by fresh_var, itself unused until an am1 variant exists
     next_var: u32,
     config: Config,
     stats: Stats,
@@ -368,6 +370,7 @@ impl<'g> CegarSearch<'g> {
     /// `None` before the first [`step`](Self::step).  The inner `Result` fails
     /// only if the cover is malformed, which would mean the encoding and the
     /// decoder disagree.
+    #[allow(dead_code)] // used by the renderers, phase 11
     pub(crate) fn decomposition(
         &self,
     ) -> Option<Result<Decomposition, super::SegmentError>> {
@@ -385,16 +388,19 @@ impl<'g> CegarSearch<'g> {
     }
 
     /// Allocates a fresh auxiliary SAT variable.
+    #[allow(dead_code)] // used by an am1 cardinality variant, if one is added
     pub(crate) fn fresh_var(&mut self) -> u32 {
         let var = self.next_var;
         self.next_var += 1;
         var
     }
 
+    #[allow(dead_code)] // used by the renderers, phase 11
     pub(crate) fn graph(&self) -> &'g UnGraph<(), ()> {
         self.graph
     }
 
+    #[allow(dead_code)] // used by the pub bench entry point, phase 12
     pub(crate) fn stats(&self) -> &Stats {
         &self.stats
     }

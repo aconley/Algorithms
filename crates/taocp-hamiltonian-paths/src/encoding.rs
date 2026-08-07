@@ -143,6 +143,7 @@ pub(crate) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf {
 /// solver on a dumped round separates "the encoding is wrong" from "the
 /// refinement is wrong".  There is no DIMACS *input* path, and none should be
 /// added.
+#[allow(dead_code)] // invoked ad hoc while debugging, not from any committed phase
 pub(crate) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()> {
     let n_vars = cnf
         .iter()

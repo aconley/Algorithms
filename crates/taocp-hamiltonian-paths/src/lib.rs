@@ -22,10 +22,6 @@
 //! relitigated; `.agents/algorithm.md` for Knuth's Algorithm C; and
 //! `.agents/plan.md` for the phase-by-phase work order.
 
-// TODO: remove once the module is implemented; the skeleton's unused items would
-// otherwise bury real warnings.
-#![allow(dead_code)]
-
 mod cycles;
 mod driver;
 mod encoding;
@@ -65,8 +61,16 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!("Error display")
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Solver(msg) => write!(f, "solver error: {}", msg),
+            Error::LimitExceeded => write!(f, "resource limit exceeded"),
+            Error::Reduction(err) => write!(f, "reduction error: {}", err),
+            Error::Malformed(err) => write!(f, "malformed segment: {}", err),
+            Error::MalformedCover(err) => {
+                write!(f, "malformed cycle cover: {}", err)
+            }
+        }
     }
 }
 
@@ -98,10 +102,26 @@ impl From<CoverError> for Error {
 ///
 /// Returns the cycle as a closed [`Segment`] in canonical orientation, or
 /// `Ok(None)` if the graph has no Hamiltonian cycle.
-pub fn find_hamiltonian_cycle(
-    _graph: &UnGraph<(), ()>,
-) -> Result<Option<Segment>, Error> {
-    todo!("run a CegarSearch to completion")
+pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>) -> Result<Option<Segment>, Error> {
+    // No simple graph on fewer than 3 vertices has a cycle.
+    if graph.node_count() < 3 {
+        return Ok(None);
+    }
+
+    let mut search = driver::CegarSearch::new(graph, driver::Config::default())?;
+    let result = search.run()?;
+
+    match result {
+        driver::Step::Found(segment) => Ok(Some(segment)),
+        driver::Step::NoCycle => Ok(None),
+        driver::Step::LimitReached => Err(Error::LimitExceeded),
+        driver::Step::Spurious { .. } => {
+            // The run() loop consumes all Spurious steps and only returns
+            // when settled, so Spurious should never surface here. If it
+            // does, that is a broken invariant.
+            panic!("run() returned Spurious, which should not happen")
+        }
+    }
 }
 
 /// Searches for a Hamiltonian path, with both endpoints unconstrained.
@@ -115,6 +135,241 @@ pub fn find_hamiltonian_cycle(
 /// "any path" is the question CEGAR answers.  See the `reduction` module.
 ///
 /// Returns `Ok(None)` if no Hamiltonian path exists.
-pub fn find_hamiltonian_path(_graph: &UnGraph<(), ()>) -> Result<Option<Segment>, Error> {
-    todo!("reduce, search for a cycle, translate back")
+pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>) -> Result<Option<Segment>, Error> {
+    match graph.node_count() {
+        0 => return Ok(None),
+        1 => {
+            // A single vertex is a trivial open path.
+            let vertex = graph.node_indices().next().unwrap();
+            let segment = Segment::new_open(vec![vertex])
+                .expect("a single vertex is a valid open segment");
+            return Ok(Some(segment));
+        }
+        _ => {
+            // n >= 2: reduce to a cycle query.
+        }
+    }
+
+    // Build the reduced graph with the apex.
+    let instance = reduction::CycleInstance::new(graph)?;
+
+    // Search for a Hamiltonian cycle in the reduced graph.
+    let mut search =
+        driver::CegarSearch::new(instance.graph(), driver::Config::default())?;
+    let result = search.run()?;
+
+    // Translate the result back to a path in the original graph.
+    match result {
+        driver::Step::Found(cycle) => {
+            let path = instance.path_from_cycle(&cycle)?;
+            Ok(Some(path))
+        }
+        driver::Step::NoCycle => Ok(None),
+        driver::Step::LimitReached => Err(Error::LimitExceeded),
+        driver::Step::Spurious { .. } => {
+            panic!("run() returned Spurious, which should not happen")
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testing::graph_of;
+    use claim::assert_ok;
+
+    /// Helper to check that a segment is a valid walk in the given graph.
+    fn traversable(graph: &UnGraph<(), ()>, segment: &Segment) -> bool {
+        segment
+            .edges()
+            .iter()
+            .all(|&(a, b)| graph.find_edge(a, b).is_some())
+    }
+
+    /// Build a 5×5 knight's graph by hand.
+    fn knight_graph_5x5() -> UnGraph<(), ()> {
+        let mut graph = UnGraph::new_undirected();
+        for _ in 0..25 {
+            graph.add_node(());
+        }
+
+        let knight_moves = [
+            (-2, -1),
+            (-2, 1),
+            (-1, -2),
+            (-1, 2),
+            (1, -2),
+            (1, 2),
+            (2, -1),
+            (2, 1),
+        ];
+
+        for row in 0..5 {
+            for col in 0..5 {
+                let v1 = (row * 5 + col) as i32;
+                for &(dr, dc) in &knight_moves {
+                    let new_row = row as i32 + dr;
+                    let new_col = col as i32 + dc;
+                    if new_row >= 0 && new_row < 5 && new_col >= 0 && new_col < 5 {
+                        let v2 = (new_row * 5 + new_col) as usize;
+                        if (v1 as usize) < v2 {
+                            graph.add_edge(
+                                petgraph::graph::NodeIndex::new(v1 as usize),
+                                petgraph::graph::NodeIndex::new(v2),
+                                (),
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        graph
+    }
+
+    mod basic_entry_points {
+        use super::*;
+
+        #[test]
+        fn path_graph_has_path_but_no_cycle() {
+            // The path graph 0-1-2-3: a Hamiltonian path but no cycle.
+            let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
+
+            // Path should succeed.
+            let path_result = assert_ok!(find_hamiltonian_path(&graph));
+            let path = path_result.expect("path graph has a Hamiltonian path");
+            assert!(!path.is_closed());
+            assert_eq!(path.len(), 4);
+            assert!(traversable(&graph, &path));
+
+            // Cycle should fail (conclusively).
+            let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
+            assert!(cycle_result.is_none());
+        }
+
+        #[test]
+        fn knight_5x5_has_path_but_no_cycle() {
+            let graph = knight_graph_5x5();
+
+            // Path should succeed.
+            let path_result = assert_ok!(find_hamiltonian_path(&graph));
+            let path = path_result.expect("5x5 knight's graph has an open tour");
+            assert!(!path.is_closed());
+            assert_eq!(path.len(), 25);
+            assert!(traversable(&graph, &path));
+
+            // Cycle should fail.
+            let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
+            assert!(cycle_result.is_none());
+        }
+
+        #[test]
+        fn triangle_has_cycle() {
+            let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
+
+            let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let cycle = cycle_result.expect("triangle has a Hamiltonian cycle");
+            assert!(cycle.is_closed());
+            assert_eq!(cycle.len(), 3);
+            assert!(traversable(&graph, &cycle));
+        }
+    }
+
+    mod edge_cases {
+        use super::*;
+
+        #[test]
+        fn cycle_empty_graph() {
+            let graph = graph_of(0, &[]);
+            let result = assert_ok!(find_hamiltonian_cycle(&graph));
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn cycle_single_vertex() {
+            let graph = graph_of(1, &[]);
+            let result = assert_ok!(find_hamiltonian_cycle(&graph));
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn cycle_two_vertices() {
+            let graph = graph_of(2, &[(0, 1)]);
+            let result = assert_ok!(find_hamiltonian_cycle(&graph));
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn path_empty_graph() {
+            let graph = graph_of(0, &[]);
+            let result = assert_ok!(find_hamiltonian_path(&graph));
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn path_single_vertex() {
+            let graph = graph_of(1, &[]);
+            let result = assert_ok!(find_hamiltonian_path(&graph));
+            let path = result.expect("a single vertex is a trivial open path");
+            assert!(!path.is_closed());
+            assert_eq!(path.len(), 1);
+        }
+
+        #[test]
+        fn path_two_vertices() {
+            let graph = graph_of(2, &[(0, 1)]);
+            let result = assert_ok!(find_hamiltonian_path(&graph));
+            let path = result.expect("two connected vertices form a trivial open path");
+            assert!(!path.is_closed());
+            assert_eq!(path.len(), 2);
+            assert!(traversable(&graph, &path));
+        }
+    }
+
+    mod error_display {
+        use super::*;
+
+        #[test]
+        fn display_solver_error() {
+            let err = Error::Solver("test message".to_string());
+            let display = err.to_string();
+            assert!(!display.is_empty());
+            assert!(display.contains("solver error"));
+            assert!(display.contains("test message"));
+        }
+
+        #[test]
+        fn display_limit_exceeded() {
+            let err = Error::LimitExceeded;
+            let display = err.to_string();
+            assert!(!display.is_empty());
+            assert!(display.contains("limit"));
+        }
+
+        #[test]
+        fn display_reduction_error() {
+            let err = Error::Reduction(ReductionError::GraphTooSmall(0));
+            let display = err.to_string();
+            assert!(!display.is_empty());
+            assert!(display.contains("reduction"));
+        }
+
+        #[test]
+        fn display_malformed_error() {
+            let err = Error::Malformed(SegmentError::Empty);
+            let display = err.to_string();
+            assert!(!display.is_empty());
+            assert!(display.contains("malformed"));
+        }
+
+        #[test]
+        fn display_malformed_cover_error() {
+            let err = Error::MalformedCover(CoverError::NoOutArc(
+                petgraph::graph::NodeIndex::new(0),
+            ));
+            let display = err.to_string();
+            assert!(!display.is_empty());
+            assert!(display.contains("cover"));
+        }
+    }
 }

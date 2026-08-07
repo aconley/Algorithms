@@ -77,10 +77,12 @@ impl std::error::Error for CoverError {}
 #[derive(Debug)]
 pub(crate) struct CycleCover {
     pub(crate) succ: Vec<NodeIndex>, // SUCC
-    pred: Vec<NodeIndex>,            // PRED
+    #[allow(dead_code)] // read by C6 merging, phase 9
+    pred: Vec<NodeIndex>, // PRED
     pub(crate) cid: Vec<usize>,      // CID, 1-based cycle ids; 0 means unassigned
     cyc: Vec<usize>,                 // CYC, the sparse set of active cycles
-    cloc: Vec<usize>,                // CLOC, location of cycle c in CYC
+    #[allow(dead_code)] // read by C6 merging, phase 9
+    cloc: Vec<usize>, // CLOC, location of cycle c in CYC
     pub(crate) head: Vec<NodeIndex>, // HEAD, an arbitrary vertex of each cycle
     t: usize,                        // number of active cycles
 }
