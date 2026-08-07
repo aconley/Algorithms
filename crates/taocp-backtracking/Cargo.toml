@@ -1,0 +1,28 @@
+[package]
+name = "taocp-backtracking"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+lazy_static.workspace = true
+
+[dev-dependencies]
+claim.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "dancing_benchmark"
+harness = false
+
+[[bench]]
+name = "langford_benchmark"
+harness = false
+
+[[bench]]
+name = "nqueens_benchmark"
+harness = false
+
+[[bench]]
+name = "sudoku_benchmark"
+harness = false

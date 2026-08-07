@@ -1,0 +1,13 @@
+[package]
+name = "taocp-hamiltonian-paths"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+petgraph.workspace = true
+rustsat.workspace = true
+rustsat-cadical.workspace = true
+
+[dev-dependencies]
+claim.workspace = true

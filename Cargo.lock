@@ -813,15 +813,37 @@ dependencies = [
 ]
 
 [[package]]
-name = "taocp"
+name = "taocp-backtracking"
 version = "0.1.0"
 dependencies = [
  "claim",
  "criterion",
  "lazy_static",
+]
+
+[[package]]
+name = "taocp-basic-combinations"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+]
+
+[[package]]
+name = "taocp-hamiltonian-paths"
+version = "0.1.0"
+dependencies = [
+ "claim",
  "petgraph",
  "rustsat",
  "rustsat-cadical",
+]
+
+[[package]]
+name = "taocp-sat"
+version = "0.1.0"
+dependencies = [
+ "claim",
+ "criterion",
 ]
 
 [[package]]
