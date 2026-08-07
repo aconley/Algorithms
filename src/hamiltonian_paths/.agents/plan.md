@@ -142,10 +142,12 @@ changes.
 
 Pure data.  No graph, no solver.  Fill in every `todo!()`.
 
-- `Segment::new(vertices, closed)` — reject empty (`Empty`), a repeated vertex
-  (`RepeatedVertex`), and a closed segment shorter than 3 (`ClosedTooShort`).
-  For a closed segment the wrap-around edge is implied; the first vertex must
-  **not** be repeated at the end.
+- `Segment::new_open(vertices)` / `Segment::new_closed(vertices)` — reject empty
+  (`Empty`), a repeated vertex (`RepeatedVertex`), and a closed segment shorter
+  than 3 (`ClosedTooShort`).  For a closed segment the wrap-around edge is
+  implied; the first vertex must **not** be repeated at the end.  Both delegate
+  to a private `new_inner(vertices, closed)` to keep the validation in one
+  place.
 - `Segment::endpoints` — `Some((first, last))` when open, `None` when closed.  A
   one-vertex open segment reports that vertex twice.
 - `Segment::edges` — consecutive pairs, plus `(last, first)` when closed.

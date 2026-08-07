@@ -153,7 +153,7 @@ impl CycleInstance {
 
         // The cycle's own construction already guarantees distinct vertices,
         // and `original_order >= 2`, so this cannot fail.
-        let mut path = Segment::new(path_vertices, false)
+        let mut path = Segment::new_open(path_vertices)
             .expect("dropping the apex leaves a non-empty set of distinct vertices");
         path.canonicalize();
         Ok(path)
@@ -314,7 +314,7 @@ mod tests {
             let apex = instance.apex();
 
             // G′ does: apex → 0 → 1 → 2 → 3 → apex.
-            let cycle = Segment::new(vec![apex, v(0), v(1), v(2), v(3)], true).unwrap();
+            let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
             assert!(
                 traversable(instance.graph(), &cycle),
                 "the witness cycle uses an edge G′ does not have"
@@ -338,7 +338,7 @@ mod tests {
         fn round_trips_with_apex_first() {
             let instance = instance();
             let apex = instance.apex();
-            let cycle = Segment::new(vec![apex, v(0), v(1), v(2), v(3)], true).unwrap();
+            let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
 
             let path = assert_ok!(instance.path_from_cycle(&cycle));
             assert!(!path.is_closed());
@@ -351,7 +351,7 @@ mod tests {
             let apex = instance.apex();
             // 1-0-apex-3-2-1 is the same cycle traversed from a different
             // start, so it must translate to the same canonical path.
-            let cycle = Segment::new(vec![v(1), v(0), apex, v(3), v(2)], true).unwrap();
+            let cycle = Segment::new_closed(vec![v(1), v(0), apex, v(3), v(2)]).unwrap();
             assert!(traversable(instance.graph(), &cycle));
 
             let path = assert_ok!(instance.path_from_cycle(&cycle));
@@ -364,7 +364,7 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
             let instance = CycleInstance::new(&graph).unwrap();
             let apex = instance.apex();
-            let cycle = Segment::new(vec![apex, v(0), v(1), v(2), v(3)], true).unwrap();
+            let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
 
             let path = instance.path_from_cycle(&cycle).unwrap();
             assert!(
@@ -381,7 +381,7 @@ mod tests {
         fn rejects_an_open_segment() {
             let instance = instance();
             let apex = instance.apex();
-            let open = Segment::new(vec![apex, v(0), v(1), v(2), v(3)], false).unwrap();
+            let open = Segment::new_open(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
             assert_eq!(open.len(), instance.original_order() + 1);
 
             let err = assert_err!(instance.path_from_cycle(&open));
@@ -391,7 +391,7 @@ mod tests {
         #[test]
         fn rejects_cycle_without_the_apex() {
             let instance = instance();
-            let cycle = Segment::new(vec![v(0), v(1), v(2)], true).unwrap();
+            let cycle = Segment::new_closed(vec![v(0), v(1), v(2)]).unwrap();
             let err = assert_err!(instance.path_from_cycle(&cycle));
             assert_eq!(err, ReductionError::ApexNotInCycle);
         }
@@ -401,7 +401,7 @@ mod tests {
             let instance = instance();
             let apex = instance.apex();
             // Contains the apex, but only 3 of the 5 vertices of G′.
-            let cycle = Segment::new(vec![apex, v(0), v(1)], true).unwrap();
+            let cycle = Segment::new_closed(vec![apex, v(0), v(1)]).unwrap();
             let err = assert_err!(instance.path_from_cycle(&cycle));
             assert_eq!(err, ReductionError::CycleNotSpanning);
         }

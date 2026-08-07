@@ -71,13 +71,24 @@ pub struct Segment {
 }
 
 impl Segment {
-    /// Builds a segment from a vertex sequence.
+    /// Builds an open segment (a path) from a vertex sequence.
     ///
-    /// Rejects an empty sequence, a repeated vertex, and a closed segment of
-    /// length less than three.  For a closed segment the wrap-around edge from
-    /// the last vertex back to the first is implied and must *not* be encoded by
-    /// repeating the first vertex at the end.
-    pub fn new(vertices: Vec<NodeIndex>, closed: bool) -> Result<Self, SegmentError> {
+    /// Rejects an empty sequence and a repeated vertex.
+    pub fn new_open(vertices: Vec<NodeIndex>) -> Result<Self, SegmentError> {
+        Self::new_inner(vertices, false)
+    }
+
+    /// Builds a closed segment (a cycle) from a vertex sequence.
+    ///
+    /// Rejects an empty sequence, a repeated vertex, and a sequence of length
+    /// less than three.  The wrap-around edge from the last vertex back to the
+    /// first is implied and must *not* be encoded by repeating the first vertex
+    /// at the end.
+    pub fn new_closed(vertices: Vec<NodeIndex>) -> Result<Self, SegmentError> {
+        Self::new_inner(vertices, true)
+    }
+
+    fn new_inner(vertices: Vec<NodeIndex>, closed: bool) -> Result<Self, SegmentError> {
         if vertices.is_empty() {
             return Err(SegmentError::Empty);
         }
@@ -276,75 +287,75 @@ mod tests {
 
         #[test]
         fn new_rejects_empty() {
-            let err = assert_err!(Segment::new(vec![], false));
+            let err = assert_err!(Segment::new_open(vec![]));
             assert_eq!(err, SegmentError::Empty);
 
-            let err = assert_err!(Segment::new(vec![], true));
+            let err = assert_err!(Segment::new_closed(vec![]));
             assert_eq!(err, SegmentError::Empty);
         }
 
         #[test]
         fn new_rejects_repeated_vertex_open() {
-            let err = assert_err!(Segment::new(vs(&[0, 1, 0]), false));
+            let err = assert_err!(Segment::new_open(vs(&[0, 1, 0])));
             assert_eq!(err, SegmentError::RepeatedVertex(v(0)));
         }
 
         #[test]
         fn new_rejects_repeated_vertex_closed() {
-            let err = assert_err!(Segment::new(vs(&[0, 1, 2, 1]), true));
+            let err = assert_err!(Segment::new_closed(vs(&[0, 1, 2, 1])));
             assert_eq!(err, SegmentError::RepeatedVertex(v(1)));
         }
 
         #[test]
         fn new_rejects_closed_too_short() {
-            let err = assert_err!(Segment::new(vs(&[0]), true));
+            let err = assert_err!(Segment::new_closed(vs(&[0])));
             assert_eq!(err, SegmentError::ClosedTooShort(1));
 
-            let err = assert_err!(Segment::new(vs(&[0, 1]), true));
+            let err = assert_err!(Segment::new_closed(vs(&[0, 1])));
             assert_eq!(err, SegmentError::ClosedTooShort(2));
         }
 
         #[test]
         fn new_accepts_minimal_closed_triangle() {
-            let seg = assert_ok!(Segment::new(vs(&[0, 1, 2]), true));
+            let seg = assert_ok!(Segment::new_closed(vs(&[0, 1, 2])));
             assert!(seg.is_closed());
             assert_eq!(seg.len(), 3);
         }
 
         #[test]
         fn new_accepts_single_vertex_open() {
-            let seg = assert_ok!(Segment::new(vs(&[0]), false));
+            let seg = assert_ok!(Segment::new_open(vs(&[0])));
             assert!(!seg.is_closed());
             assert_eq!(seg.len(), 1);
         }
 
         #[test]
         fn endpoints_open_reports_first_and_last() {
-            let seg = Segment::new(vs(&[0, 3, 5]), false).unwrap();
+            let seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             assert_eq!(seg.endpoints(), Some((v(0), v(5))));
         }
 
         #[test]
         fn endpoints_single_vertex_open_reports_it_twice() {
-            let seg = Segment::new(vs(&[7]), false).unwrap();
+            let seg = Segment::new_open(vs(&[7])).unwrap();
             assert_eq!(seg.endpoints(), Some((v(7), v(7))));
         }
 
         #[test]
         fn endpoints_closed_is_none() {
-            let seg = Segment::new(vs(&[0, 1, 2]), true).unwrap();
+            let seg = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             assert_eq!(seg.endpoints(), None);
         }
 
         #[test]
         fn edges_open_are_consecutive_pairs() {
-            let seg = Segment::new(vs(&[0, 3, 5]), false).unwrap();
+            let seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             assert_eq!(seg.edges(), vec![(v(0), v(3)), (v(3), v(5))]);
         }
 
         #[test]
         fn edges_closed_include_wrap_around() {
-            let seg = Segment::new(vs(&[0, 3, 5]), true).unwrap();
+            let seg = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
             assert_eq!(seg.edges(), vec![(v(0), v(3)), (v(3), v(5)), (v(5), v(0))]);
         }
     }
@@ -357,21 +368,21 @@ mod tests {
 
         #[test]
         fn open_reorients_toward_lower_endpoint() {
-            let mut seg = Segment::new(vs(&[5, 3, 0]), false).unwrap();
+            let mut seg = Segment::new_open(vs(&[5, 3, 0])).unwrap();
             seg.canonicalize();
             assert_eq!(seg.vertices(), &vs(&[0, 3, 5]));
         }
 
         #[test]
         fn open_leaves_already_oriented_segment() {
-            let mut seg = Segment::new(vs(&[0, 3, 5]), false).unwrap();
+            let mut seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             seg.canonicalize();
             assert_eq!(seg.vertices(), &vs(&[0, 3, 5]));
         }
 
         #[test]
         fn closed_rotates_and_orients() {
-            let mut seg = Segment::new(vs(&[3, 5, 0]), true).unwrap();
+            let mut seg = Segment::new_closed(vs(&[3, 5, 0])).unwrap();
             seg.canonicalize();
             assert_eq!(seg.vertices(), &vs(&[0, 3, 5]));
         }
@@ -380,7 +391,7 @@ mod tests {
         fn maps_every_rotation_to_same_form() {
             let base = vs(&[0, 3, 5, 9]);
             let expected = {
-                let mut seg = Segment::new(base.clone(), true).unwrap();
+                let mut seg = Segment::new_closed(base.clone()).unwrap();
                 seg.canonicalize();
                 seg
             };
@@ -388,7 +399,7 @@ mod tests {
             for start in 0..base.len() {
                 let mut rotated = base.clone();
                 rotated.rotate_left(start);
-                let mut seg = Segment::new(rotated, true).unwrap();
+                let mut seg = Segment::new_closed(rotated).unwrap();
                 seg.canonicalize();
                 assert_eq!(
                     seg, expected,
@@ -399,12 +410,12 @@ mod tests {
 
         #[test]
         fn maps_reversal_to_same_form() {
-            let mut forward = Segment::new(vs(&[0, 3, 5, 9]), true).unwrap();
+            let mut forward = Segment::new_closed(vs(&[0, 3, 5, 9])).unwrap();
             forward.canonicalize();
 
             let mut reversed_vertices = vs(&[0, 3, 5, 9]);
             reversed_vertices.reverse();
-            let mut backward = Segment::new(reversed_vertices, true).unwrap();
+            let mut backward = Segment::new_closed(reversed_vertices).unwrap();
             backward.canonicalize();
 
             assert_eq!(forward, backward);
@@ -418,7 +429,7 @@ mod tests {
         fn maps_whole_dihedral_orbit_to_same_form() {
             let base = vs(&[4, 1, 7, 2, 6]);
             let expected = {
-                let mut seg = Segment::new(base.clone(), true).unwrap();
+                let mut seg = Segment::new_closed(base.clone()).unwrap();
                 seg.canonicalize();
                 seg
             };
@@ -431,7 +442,7 @@ mod tests {
                 for start in 0..oriented.len() {
                     let mut rotated = oriented.clone();
                     rotated.rotate_left(start);
-                    let mut seg = Segment::new(rotated, true).unwrap();
+                    let mut seg = Segment::new_closed(rotated).unwrap();
                     seg.canonicalize();
                     assert_eq!(
                         seg, expected,
@@ -444,14 +455,14 @@ mod tests {
         #[test]
         fn is_idempotent() {
             for verts in [vs(&[3, 5, 0, 9]), vs(&[9, 0, 5, 3])] {
-                let mut seg = Segment::new(verts, true).unwrap();
+                let mut seg = Segment::new_closed(verts).unwrap();
                 seg.canonicalize();
                 let once = seg.clone();
                 seg.canonicalize();
                 assert_eq!(seg, once);
             }
 
-            let mut open = Segment::new(vs(&[5, 0, 3]), false).unwrap();
+            let mut open = Segment::new_open(vs(&[5, 0, 3])).unwrap();
             open.canonicalize();
             let once = open.clone();
             open.canonicalize();
@@ -465,13 +476,13 @@ mod tests {
 
         #[test]
         fn open_segment() {
-            let seg = Segment::new(vs(&[0, 3, 5]), false).unwrap();
+            let seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             assert_eq!(seg.to_string(), "0 \u{2192} 3 \u{2192} 5");
         }
 
         #[test]
         fn closed_segment() {
-            let seg = Segment::new(vs(&[0, 3, 5]), true).unwrap();
+            let seg = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
             assert_eq!(seg.to_string(), "0 \u{2192} 3 \u{2192} 5 \u{2192} 0");
         }
 
@@ -495,8 +506,8 @@ mod tests {
 
         #[test]
         fn new_rejects_overlapping_segments() {
-            let a = Segment::new(vs(&[0, 1, 2]), true).unwrap();
-            let b = Segment::new(vs(&[2, 3, 4]), true).unwrap();
+            let a = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
+            let b = Segment::new_closed(vs(&[2, 3, 4])).unwrap();
             let err = assert_err!(Decomposition::new(vec![a, b]));
             assert_eq!(err, SegmentError::OverlappingSegments(v(2)));
         }
@@ -505,8 +516,8 @@ mod tests {
         fn new_rejects_overlap_between_open_segments() {
             // A single segment cannot itself contain a repeat; verify decomposition
             // catches overlap across otherwise-valid segments sharing a vertex.
-            let a = Segment::new(vs(&[0, 1]), false).unwrap();
-            let b = Segment::new(vs(&[1, 2]), false).unwrap();
+            let a = Segment::new_open(vs(&[0, 1])).unwrap();
+            let b = Segment::new_open(vs(&[1, 2])).unwrap();
             let err = assert_err!(Decomposition::new(vec![a, b]));
             assert_eq!(err, SegmentError::OverlappingSegments(v(1)));
         }
@@ -516,8 +527,8 @@ mod tests {
             // Second segment's first vertex (5) is lower than the first segment's
             // once canonicalized (6), and each segment is given in a non-canonical
             // orientation, so `new` must fix both before sorting.
-            let a = Segment::new(vs(&[8, 6]), false).unwrap(); // canonicalizes to 6 -> 8
-            let b = Segment::new(vs(&[7, 5]), false).unwrap(); // canonicalizes to 5 -> 7
+            let a = Segment::new_open(vs(&[8, 6])).unwrap(); // canonicalizes to 6 -> 8
+            let b = Segment::new_open(vs(&[7, 5])).unwrap(); // canonicalizes to 5 -> 7
             let decomposition = assert_ok!(Decomposition::new(vec![a, b]));
 
             assert_eq!(decomposition.len(), 2);
@@ -527,15 +538,15 @@ mod tests {
 
         #[test]
         fn covered_vertices_sums_segment_lengths() {
-            let a = Segment::new(vs(&[0, 1, 2]), true).unwrap();
-            let b = Segment::new(vs(&[3, 4]), false).unwrap();
+            let a = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
+            let b = Segment::new_open(vs(&[3, 4])).unwrap();
             let decomposition = Decomposition::new(vec![a, b]).unwrap();
             assert_eq!(decomposition.covered_vertices(), 5);
         }
 
         #[test]
         fn as_hamiltonian_cycle_accepts_single_closed_covering_segment() {
-            let seg = Segment::new(vs(&[0, 1, 2, 3]), true).unwrap();
+            let seg = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
             let cycle = decomposition.as_hamiltonian_cycle(4);
             assert!(cycle.is_some());
@@ -544,22 +555,22 @@ mod tests {
 
         #[test]
         fn as_hamiltonian_cycle_rejects_single_open_segment() {
-            let seg = Segment::new(vs(&[0, 1, 2, 3]), false).unwrap();
+            let seg = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
             assert_eq!(decomposition.as_hamiltonian_cycle(4), None);
         }
 
         #[test]
         fn as_hamiltonian_cycle_rejects_two_segments() {
-            let a = Segment::new(vs(&[0, 1, 2]), true).unwrap();
-            let b = Segment::new(vs(&[3, 4, 5]), true).unwrap();
+            let a = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
+            let b = Segment::new_closed(vs(&[3, 4, 5])).unwrap();
             let decomposition = Decomposition::new(vec![a, b]).unwrap();
             assert_eq!(decomposition.as_hamiltonian_cycle(6), None);
         }
 
         #[test]
         fn as_hamiltonian_cycle_rejects_covers_too_few() {
-            let seg = Segment::new(vs(&[0, 1, 2]), true).unwrap();
+            let seg = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
             assert_eq!(decomposition.as_hamiltonian_cycle(4), None);
         }
