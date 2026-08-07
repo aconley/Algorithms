@@ -317,6 +317,11 @@ impl<'g> CegarSearch<'g> {
                 .expect("a single cycle-cover cycle spans every vertex");
             let mut answer = cycle.clone();
             answer.canonicalize();
+            debug_assert!(
+                answer.is_hamiltonian_cycle(self.graph),
+                "step() is about to return an answer that is not actually a \
+                 Hamiltonian cycle of the searched graph: {answer}"
+            );
             self.outcome = Some(Step::Found(answer.clone()));
             return Ok(Step::Found(answer));
         }
@@ -411,38 +416,6 @@ mod tests {
     use super::*;
     use crate::testing::{graph_of, v};
 
-    /// Validates that a cycle covers all n vertices, contains no repeats, and
-    /// every consecutive pair (including wrap-around) is a real edge.
-    fn validate_cycle(segment: &Segment, graph: &UnGraph<(), ()>, order: usize) {
-        assert!(segment.is_closed(), "answer should be a closed cycle");
-        assert_eq!(
-            segment.len(),
-            order,
-            "cycle should cover all {} vertices",
-            order
-        );
-
-        let vertices = segment.vertices();
-        let mut seen = std::collections::HashSet::new();
-        for &v in vertices {
-            assert!(
-                seen.insert(v),
-                "vertex {} appears more than once",
-                v.index()
-            );
-        }
-
-        for edge in segment.edges() {
-            let (u, v) = edge;
-            assert!(
-                graph.find_edge(u, v).is_some(),
-                "edge {} -> {} is not in the graph",
-                u.index(),
-                v.index()
-            );
-        }
-    }
-
     mod path_abc {
         use super::*;
 
@@ -495,7 +468,10 @@ mod tests {
                         0,
                         "triangle should be found with no refinement"
                     );
-                    validate_cycle(&segment, &graph, 3);
+                    assert!(
+                        segment.is_hamiltonian_cycle(&graph),
+                        "not a Hamiltonian cycle of the graph: {segment}"
+                    );
                 }
                 other => panic!("expected Found, got {:?}", other),
             }
@@ -523,7 +499,10 @@ mod tests {
                         0,
                         "K4 should be found with no refinement"
                     );
-                    validate_cycle(&segment, &graph, 4);
+                    assert!(
+                        segment.is_hamiltonian_cycle(&graph),
+                        "not a Hamiltonian cycle of the graph: {segment}"
+                    );
                 }
                 other => panic!("expected Found, got {:?}", other),
             }
@@ -630,7 +609,10 @@ mod tests {
                 Step::Found(segment) => {
                     // Assert that the answer is correct, not the round count
                     // (which depends on which spurious cover CaDiCaL finds first).
-                    validate_cycle(&segment, &graph, 6);
+                    assert!(
+                        segment.is_hamiltonian_cycle(&graph),
+                        "not a Hamiltonian cycle of the graph: {segment}"
+                    );
                 }
                 other => panic!("expected Found, got {:?}", other),
             }
@@ -687,7 +669,10 @@ mod tests {
 
             match result {
                 Step::Found(segment) => {
-                    validate_cycle(&segment, &graph, 36);
+                    assert!(
+                        segment.is_hamiltonian_cycle(&graph),
+                        "not a Hamiltonian cycle of the graph: {segment}"
+                    );
                 }
                 other => panic!("expected Found, got {:?}", other),
             }

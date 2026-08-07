@@ -162,6 +162,11 @@ pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>) -> Result<Option<Segment>,
     match result {
         driver::Step::Found(cycle) => {
             let path = instance.path_from_cycle(&cycle)?;
+            debug_assert!(
+                path.is_hamiltonian_path(graph),
+                "find_hamiltonian_path is about to return an answer that is \
+                 not actually a Hamiltonian path of the original graph: {path}"
+            );
             Ok(Some(path))
         }
         driver::Step::NoCycle => Ok(None),
@@ -177,14 +182,6 @@ mod tests {
     use super::*;
     use crate::testing::graph_of;
     use claim::assert_ok;
-
-    /// Helper to check that a segment is a valid walk in the given graph.
-    fn traversable(graph: &UnGraph<(), ()>, segment: &Segment) -> bool {
-        segment
-            .edges()
-            .iter()
-            .all(|&(a, b)| graph.find_edge(a, b).is_some())
-    }
 
     /// Build a 5×5 knight's graph by hand.
     fn knight_graph_5x5() -> UnGraph<(), ()> {
@@ -238,9 +235,10 @@ mod tests {
             // Path should succeed.
             let path_result = assert_ok!(find_hamiltonian_path(&graph));
             let path = path_result.expect("path graph has a Hamiltonian path");
-            assert!(!path.is_closed());
-            assert_eq!(path.len(), 4);
-            assert!(traversable(&graph, &path));
+            assert!(
+                path.is_hamiltonian_path(&graph),
+                "not a Hamiltonian path: {path}"
+            );
 
             // Cycle should fail (conclusively).
             let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
@@ -254,9 +252,10 @@ mod tests {
             // Path should succeed.
             let path_result = assert_ok!(find_hamiltonian_path(&graph));
             let path = path_result.expect("5x5 knight's graph has an open tour");
-            assert!(!path.is_closed());
-            assert_eq!(path.len(), 25);
-            assert!(traversable(&graph, &path));
+            assert!(
+                path.is_hamiltonian_path(&graph),
+                "not a Hamiltonian path: {path}"
+            );
 
             // Cycle should fail.
             let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
@@ -269,9 +268,10 @@ mod tests {
 
             let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
             let cycle = cycle_result.expect("triangle has a Hamiltonian cycle");
-            assert!(cycle.is_closed());
-            assert_eq!(cycle.len(), 3);
-            assert!(traversable(&graph, &cycle));
+            assert!(
+                cycle.is_hamiltonian_cycle(&graph),
+                "not a Hamiltonian cycle: {cycle}"
+            );
         }
     }
 
@@ -320,9 +320,10 @@ mod tests {
             let graph = graph_of(2, &[(0, 1)]);
             let result = assert_ok!(find_hamiltonian_path(&graph));
             let path = result.expect("two connected vertices form a trivial open path");
-            assert!(!path.is_closed());
-            assert_eq!(path.len(), 2);
-            assert!(traversable(&graph, &path));
+            assert!(
+                path.is_hamiltonian_path(&graph),
+                "not a Hamiltonian path: {path}"
+            );
         }
     }
 

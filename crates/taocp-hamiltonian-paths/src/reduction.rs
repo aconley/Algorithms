@@ -171,14 +171,6 @@ mod tests {
     use crate::testing::{graph_of, v};
     use claim::{assert_err, assert_ok};
 
-    /// Whether every edge a segment traverses is a real edge of the graph.
-    fn traversable(graph: &UnGraph<(), ()>, segment: &Segment) -> bool {
-        segment
-            .edges()
-            .iter()
-            .all(|&(a, b)| graph.find_edge(a, b).is_some())
-    }
-
     /// Building the reduced graph, and the index-preservation invariant that
     /// the SAT encoding downstream depends on.
     mod new {
@@ -306,10 +298,9 @@ mod tests {
             // G′ does: apex → 0 → 1 → 2 → 3 → apex.
             let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
             assert!(
-                traversable(instance.graph(), &cycle),
-                "the witness cycle uses an edge G′ does not have"
+                cycle.is_hamiltonian_cycle(instance.graph()),
+                "not a Hamiltonian cycle of the reduced graph: {cycle}"
             );
-            assert_eq!(cycle.len(), instance.original_order() + 1);
         }
     }
 
@@ -342,7 +333,10 @@ mod tests {
             // 1-0-apex-3-2-1 is the same cycle traversed from a different
             // start, so it must translate to the same canonical path.
             let cycle = Segment::new_closed(vec![v(1), v(0), apex, v(3), v(2)]).unwrap();
-            assert!(traversable(instance.graph(), &cycle));
+            assert!(
+                cycle.is_hamiltonian_cycle(instance.graph()),
+                "not a Hamiltonian cycle: {cycle}"
+            );
 
             let path = assert_ok!(instance.path_from_cycle(&cycle));
             assert!(!path.is_closed());
@@ -358,10 +352,9 @@ mod tests {
 
             let path = instance.path_from_cycle(&cycle).unwrap();
             assert!(
-                traversable(&graph, &path),
-                "translated path uses an edge the original graph does not have"
+                path.is_hamiltonian_path(&graph),
+                "not a Hamiltonian path of the original graph: {path}"
             );
-            assert_eq!(path.len(), instance.original_order());
         }
 
         /// An open segment of the right length containing the apex would

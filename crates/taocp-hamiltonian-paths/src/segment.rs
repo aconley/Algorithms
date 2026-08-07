@@ -16,7 +16,7 @@
 //! `Decomposition` is derived from it on request; see
 //! `.agents/overview.md`, "What `Decomposition` is *not*".
 
-use petgraph::graph::NodeIndex;
+use petgraph::graph::{NodeIndex, UnGraph};
 use std::collections::HashSet;
 use std::fmt;
 
@@ -190,6 +190,45 @@ impl Segment {
                 self.vertices.reverse();
             }
         }
+    }
+
+    /// Whether this segment covers every vertex of `graph` exactly once, by
+    /// real edges of `graph`.
+    ///
+    /// Construction already guarantees no vertex repeats within a segment, so
+    /// a length match against `graph.node_count()` plus "every consecutive
+    /// pair — including the wrap-around for a closed segment — is a real
+    /// edge" together are sufficient; no separate vertex-set-equality check
+    /// is needed.
+    ///
+    /// Built only from `graph.find_edge` and `graph.node_count`, both of
+    /// which are panic-safe on out-of-range or foreign `NodeIndex` values, so
+    /// this is safe to call with a segment built for a different or
+    /// incompatible graph — it returns `false` rather than panicking.
+    fn spans_by_real_edges(&self, graph: &UnGraph<(), ()>) -> bool {
+        self.len() == graph.node_count()
+            && self
+                .edges()
+                .iter()
+                .all(|&(a, b)| graph.find_edge(a, b).is_some())
+    }
+
+    /// Whether this segment is a genuine Hamiltonian cycle of `graph`: closed,
+    /// and visiting every vertex exactly once by real edges of `graph`.
+    ///
+    /// Safe to call with a segment built for a different or incompatible
+    /// graph; see [`Segment::spans_by_real_edges`].
+    pub fn is_hamiltonian_cycle(&self, graph: &UnGraph<(), ()>) -> bool {
+        self.is_closed() && self.spans_by_real_edges(graph)
+    }
+
+    /// Whether this segment is a genuine Hamiltonian path of `graph`: open,
+    /// and visiting every vertex exactly once by real edges of `graph`.
+    ///
+    /// Safe to call with a segment built for a different or incompatible
+    /// graph; see [`Segment::spans_by_real_edges`].
+    pub fn is_hamiltonian_path(&self, graph: &UnGraph<(), ()>) -> bool {
+        !self.is_closed() && self.spans_by_real_edges(graph)
     }
 }
 
@@ -577,6 +616,91 @@ mod tests {
             let seg = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
             assert_eq!(decomposition.as_hamiltonian_cycle(4), None);
+        }
+    }
+
+    /// `is_hamiltonian_cycle` and `is_hamiltonian_path`: the public
+    /// re-verification API, including the robustness requirement that a
+    /// segment built for a foreign or incompatible graph must report `false`
+    /// rather than panic.
+    mod hamiltonian_checks {
+        use super::*;
+        use crate::testing::graph_of;
+
+        #[test]
+        fn cycle_recognizes_genuine_cycle() {
+            let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
+            let seg = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(seg.is_hamiltonian_cycle(&graph));
+            assert!(!seg.is_hamiltonian_path(&graph));
+        }
+
+        #[test]
+        fn path_recognizes_genuine_path() {
+            let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
+            let seg = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(seg.is_hamiltonian_path(&graph));
+            assert!(!seg.is_hamiltonian_cycle(&graph));
+        }
+
+        #[test]
+        fn rejects_too_few_vertices() {
+            // Graph has 5 vertices; the segments below cover only 4 and 3.
+            let graph = graph_of(5, &[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]);
+
+            let cycle = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(!cycle.is_hamiltonian_cycle(&graph));
+
+            let path = Segment::new_open(vs(&[0, 1, 2])).unwrap();
+            assert!(!path.is_hamiltonian_path(&graph));
+        }
+
+        #[test]
+        fn rejects_too_many_vertices() {
+            // Graph has only 3 vertices; the segments below cover 4.
+            let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
+
+            let cycle = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(!cycle.is_hamiltonian_cycle(&graph));
+
+            let path = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(!path.is_hamiltonian_path(&graph));
+        }
+
+        #[test]
+        fn cycle_rejects_missing_wrap_around_edge() {
+            // Every non-wrap-around edge (0-1, 1-2, 2-3) is real; the closing
+            // edge 3-0 is not.
+            let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
+            let cycle = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(!cycle.is_hamiltonian_cycle(&graph));
+        }
+
+        #[test]
+        fn path_rejects_missing_edge() {
+            // Edge 2-3 is missing.
+            let graph = graph_of(4, &[(0, 1), (1, 2)]);
+            let path = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
+            assert!(!path.is_hamiltonian_path(&graph));
+        }
+
+        /// A segment holding vertex indices foreign to the graph being
+        /// checked must report `false`, not panic.  The indices below are
+        /// out of range for a 3-vertex graph, but the segment's own length
+        /// still matches `graph.node_count()`, so `find_edge` is actually
+        /// exercised with out-of-range endpoints rather than short-circuited
+        /// by the length check.
+        #[test]
+        fn foreign_indices_do_not_panic() {
+            let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
+
+            let cycle = Segment::new_closed(vs(&[10, 11, 12])).unwrap();
+            assert!(!cycle.is_hamiltonian_cycle(&graph));
+            assert!(!cycle.is_hamiltonian_path(&graph));
+
+            let path = Segment::new_open(vs(&[10, 11, 12])).unwrap();
+            assert!(!path.is_hamiltonian_path(&graph));
+            assert!(!path.is_hamiltonian_cycle(&graph));
         }
     }
 }
