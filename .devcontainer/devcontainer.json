@@ -19,15 +19,13 @@
         "rust-lang.rust-analyzer",
         "vadimcn.vscode-lldb",
         "tamasfe.even-better-toml",
-        "google.geminicodeassist",
         "openai.chatgpt",
-        "anthropic.claude-code",
-        "google.gemini-cli-vscode-ide-companion"
+        "anthropic.claude-code"
       ]
     }
   },
 
-  "postCreateCommand": "rustc --version && cargo --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml && printf '{\"hasCompletedOnboarding\":true,\"installMethod\":\"npm\",\"autoUpdates\":false}' > ~/.claude.json",
+  "postCreateCommand": "rustc --version && cargo --version && claude --version && agy --version && mkdir -p ~/.codex && echo 'sandbox_mode = \"danger-full-access\"' > ~/.codex/config.toml && { [ -f ~/.claude.json ] || echo '{}' > ~/.claude.json; } && jq '.hasCompletedOnboarding = true' ~/.claude.json > ~/.claude.json.tmp && mv ~/.claude.json.tmp ~/.claude.json",
 
   "remoteUser": "vscode",
 
