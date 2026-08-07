@@ -27,6 +27,7 @@
 #![allow(dead_code)]
 
 mod driver;
+mod encoding;
 mod reduction;
 mod segment;
 

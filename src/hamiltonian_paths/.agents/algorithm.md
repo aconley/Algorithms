@@ -68,9 +68,40 @@ edge A -> B as a pair AB.
 3. Representing the at-most is more complex.  We shall use d \choose 2
    binary clauses for each vertex (where d is the degree of the vertex) that
    forbid both of each pair of vertices.  For the above graph, only vertex B is
-   interesting, and the clauses are (not AB or not BC) for ingoing and
+   interesting, and the clauses are (not AB or not CB) for ingoing and
    (not BA or not BC) for outgoing.  Other representations of the
-   at-most-one clauses are possible, but the binary representation works well. 
+   at-most-one clauses are possible, but the binary representation works well.
+
+### The thirteen-vertex worked example
+
+The A–B–C graph above is a simple example; Fasicle 8a uses a more complex
+13-vertex 21 edge graph with the vertices named A-M:
+A-B  A-C  A-D  A-E  A-F
+B-I  B-L
+C-D  C-G  C-I
+D-G
+E-H  E-I  E-J
+F-H  F-K
+H-K  H-M
+J-L
+K-M
+L-M
+
+This has 21 edges.  Degrees: A=5, B=3, C=4, D=3, E=4, F=3, G=2, H=4, I=3, J=2, 
+K=3, L=3, M=3 (sum 42 = 2×21).
+
+This graph should have 21 asymmetry clauses (one per edge), 26
+at-least-one clauses, two per vertex — for instance vertex A's are
+`(AB ∨ AC ∨ AD ∨ AE ∨ AF)` and `(BA ∨ CA ∨ DA ∨ EA ∨ FA)`, vertex B's are
+`(BA ∨ BI ∨ BL)` and `(AB ∨ IB ∨ LB)`, vertex M's are `(MH ∨ MK ∨ ML)` and
+`(HM ∨ KM ∨ LM)` — and Σ d(d−1) = 102 at-most-one clauses (in the binary 
+encoding), for 149 total.
+
+The cycle cover in the NAME/SUCC/PRED/CID table below uses only 13 of these
+21 edges; the merge step afterward consumes two more (A–B and C–I).  The
+remaining six (A–E, A–F, C–D, E–H, H–K, L–M) never come into play in that
+particular worked example — a reminder that a cycle cover, and even a merge,
+only ever touches a subset of the graph's edges.
 
 ### Merging cycle covers
 
