@@ -23,8 +23,10 @@
 //! accumulated state" behaviour with no extra machinery.  Do not build any
 //! clause-retraction mechanism.
 //!
-//! The abstraction and the refinement rule are **not** specified here; they come
-//! from Knuth and will live in sibling modules once transcribed.
+//! The abstraction and the refinement rule are **not** specified here.  They
+//! come from Knuth and live in sibling modules: `encoding` builds the cycle
+//! cover formula (C1, C2), `cycles` decodes and merges covers (C4, C6), and
+//! `refinement` derives the cut clauses (C8).
 
 use super::cycles::CycleCover;
 use super::encoding::{cycle_cover_cnf, ArcVars};
@@ -47,8 +49,11 @@ pub(crate) struct Config {
     pub max_conflicts: Option<usize>,
     /// Skip precondition checks and drive rejected graphs through the SAT solver.
     pub skip_preconditions: bool,
-    /// Use cycle merging during refinement.  Phase 9 implements this; it is
-    /// unused and should be `false` in phase 7.
+    /// Merge adjacent cycles of a spurious cover (step C6) before refining.
+    ///
+    /// On by default.  Turning it off is what makes the merge an A/B
+    /// experiment rather than an assumption: it is an optimisation, so both
+    /// settings must reach the same answer on every graph.
     pub merge_cycles: bool,
 }
 
@@ -58,7 +63,7 @@ impl Default for Config {
             max_rounds: None,
             max_conflicts: None,
             skip_preconditions: false,
-            merge_cycles: false,
+            merge_cycles: true,
         }
     }
 }
@@ -73,6 +78,10 @@ pub(crate) enum Step {
     /// therefore free.  The loop itself never needs the ordered-segment view; a
     /// caller that does — a renderer, a test — asks for one with
     /// [`CegarSearch::decomposition`].
+    ///
+    /// This is the count *after* step C6's merging, which is the cover the cut
+    /// clauses were built from and the one `decomposition` derives from.  The
+    /// pre-merge count is in [`Stats::segments_before_merge_per_round`].
     Spurious { cycles: usize },
     /// A genuine Hamiltonian cycle.  The search is finished.
     Found(Segment),
@@ -101,7 +110,13 @@ pub(crate) struct Stats {
     /// Cycles in the cover, per round — how badly the abstraction was fragmented
     /// as refinement proceeded.  This is Knuth's `t`, read directly off the
     /// cycle cover; no `Decomposition` is built to obtain it.
+    ///
+    /// Counted *after* step C6, since that is the cover refinement acts on.
     pub segments_per_round: Vec<usize>,
+    /// Cycles in the cover before step C6 merged any, per round.  The gap
+    /// between this and `segments_per_round` is what merging bought; with
+    /// `Config::merge_cycles` off the two are equal.
+    pub segments_before_merge_per_round: Vec<usize>,
     /// Solver conflicts in total, read from the solver's own statistics.
     pub conflicts: usize,
     /// Time spent inside the solver.
@@ -296,34 +311,25 @@ impl<'g> CegarSearch<'g> {
 
         // C4: Decode the model into a cycle cover.
         let vars = ArcVars::new(self.graph);
-        let cover = CycleCover::from_model(self.graph, &vars, &model)?;
+        let mut cover = CycleCover::from_model(self.graph, &vars, &model)?;
 
+        // C5: Done?
+        if cover.t() == 1 {
+            return self.finish_found(cover);
+        }
+
+        // C6: Merge adjacent cycles, which only ever joins them along real
+        // edges of the graph.  So the merged cover is one the solver could
+        // have returned, and C7 below can accept it as an answer.
+        let cycles_before_merge = cover.t();
+        if self.config.merge_cycles {
+            cover.merge(self.graph);
+        }
         let t = cover.t();
 
-        // C5: Check if we have a single spanning cycle (Hamiltonian cycle).
-        // `from_model` assigns every one of the graph's n vertices a CID, so
-        // t == 1 always means that one cycle spans all n vertices — there is
-        // no valid way for `as_hamiltonian_cycle` to return `None` here.  If
-        // it ever did, falling through to C8 would treat a genuine
-        // Hamiltonian cycle as a spurious cover with no crossing edges and
-        // wrongly report `NoCycle`; `expect` instead so a broken invariant
-        // panics rather than silently returning the wrong answer.
+        // C7: Done?
         if t == 1 {
-            self.cover = Some(cover);
-            let cover = self.cover.as_ref().expect("just set");
-            let decomposition = cover.to_decomposition()?;
-            let cycle = decomposition
-                .as_hamiltonian_cycle(self.graph.node_count())
-                .expect("a single cycle-cover cycle spans every vertex");
-            let mut answer = cycle.clone();
-            answer.canonicalize();
-            debug_assert!(
-                answer.is_hamiltonian_cycle(self.graph),
-                "step() is about to return an answer that is not actually a \
-                 Hamiltonian cycle of the searched graph: {answer}"
-            );
-            self.outcome = Some(Step::Found(answer.clone()));
-            return Ok(Step::Found(answer));
+            return self.finish_found(cover);
         }
 
         // C8: Generate cut clauses to eliminate this spurious cover.
@@ -349,6 +355,9 @@ impl<'g> CegarSearch<'g> {
                 self.stats.refinement_clauses += clause_count;
                 self.stats.clauses_per_round.push(clause_count);
                 self.stats.segments_per_round.push(t);
+                self.stats
+                    .segments_before_merge_per_round
+                    .push(cycles_before_merge);
                 self.stats.rounds += 1;
 
                 // Retain the cover for later decomposition requests.
@@ -364,6 +373,34 @@ impl<'g> CegarSearch<'g> {
                 Ok(Step::Spurious { cycles: t })
             }
         }
+    }
+
+    /// Settles the search on the single spanning cycle `cover` describes.
+    ///
+    /// Shared by C5 and C7, which differ only in whether step C6 has run.
+    ///
+    /// Every one of the graph's `n` vertices gets a `CID` in C4, so `t == 1`
+    /// always means that one cycle spans all of them and there is no valid way
+    /// for `as_hamiltonian_cycle` to return `None` here.  If it ever did,
+    /// falling through to C8 would treat a genuine Hamiltonian cycle as a
+    /// spurious cover with no crossing edges and wrongly report `NoCycle`;
+    /// `expect` instead, so a broken invariant panics rather than silently
+    /// returning the wrong answer.
+    fn finish_found(&mut self, cover: CycleCover) -> Result<Step, super::Error> {
+        let decomposition = cover.to_decomposition()?;
+        let cycle = decomposition
+            .as_hamiltonian_cycle(self.graph.node_count())
+            .expect("a single cycle-cover cycle spans every vertex");
+        let mut answer = cycle.clone();
+        answer.canonicalize();
+        debug_assert!(
+            answer.is_hamiltonian_cycle(self.graph),
+            "step() is about to return an answer that is not actually a \
+             Hamiltonian cycle of the searched graph: {answer}"
+        );
+        self.cover = Some(cover);
+        self.outcome = Some(Step::Found(answer.clone()));
+        Ok(Step::Found(answer))
     }
 
     /// The current round's cycle cover, as an ordered [`Decomposition`].
@@ -415,6 +452,60 @@ impl<'g> CegarSearch<'g> {
 mod tests {
     use super::*;
     use crate::testing::{graph_of, v};
+
+    /// Builds the Petersen graph: 10 vertices, outer pentagon (0-1-2-3-4-0)
+    /// plus inner pentagram (5-7-9-6-8-5), with radii connecting i to (i+5).
+    fn petersen_graph() -> UnGraph<(), ()> {
+        let mut graph = graph_of(10, &[]);
+        // Outer pentagon
+        for i in 0..5 {
+            graph.add_edge(v(i), v((i + 1) % 5), ());
+        }
+        // Inner pentagram (each vertex to the one 2 steps away in the pentagon)
+        for i in 0..5 {
+            graph.add_edge(v(5 + i), v(5 + (i + 2) % 5), ());
+        }
+        // Radii connecting outer to inner
+        for i in 0..5 {
+            graph.add_edge(v(i), v(5 + i), ());
+        }
+        graph
+    }
+
+    /// Builds a 6×6 knight's graph: 36 vertices (rows 0-5, files 0-5),
+    /// edges connect squares a knight's move apart.
+    fn knight_6x6() -> UnGraph<(), ()> {
+        let mut graph = graph_of(36, &[]);
+
+        let knight_moves = [
+            (2, 1),
+            (2, -1),
+            (-2, 1),
+            (-2, -1),
+            (1, 2),
+            (1, -2),
+            (-1, 2),
+            (-1, -2),
+        ];
+
+        for r in 0..6 {
+            for f in 0..6 {
+                let from_idx = r * 6 + f;
+                for &(dr, df) in &knight_moves {
+                    let nr = r as i32 + dr;
+                    let nf = f as i32 + df;
+                    if nr >= 0 && nr < 6 && nf >= 0 && nf < 6 {
+                        let to_idx = (nr as usize) * 6 + (nf as usize);
+                        if from_idx < to_idx {
+                            graph.add_edge(v(from_idx), v(to_idx), ());
+                        }
+                    }
+                }
+            }
+        }
+
+        graph
+    }
 
     mod path_abc {
         use super::*;
@@ -512,25 +603,6 @@ mod tests {
     mod petersen {
         use super::*;
 
-        /// Builds the Petersen graph: 10 vertices, outer pentagon (0-1-2-3-4-0)
-        /// plus inner pentagram (5-7-9-6-8-5), with radii connecting i to (i+5).
-        fn petersen_graph() -> UnGraph<(), ()> {
-            let mut graph = graph_of(10, &[]);
-            // Outer pentagon
-            for i in 0..5 {
-                graph.add_edge(v(i), v((i + 1) % 5), ());
-            }
-            // Inner pentagram (each vertex to the vertex 2 steps away in the pentagon)
-            for i in 0..5 {
-                graph.add_edge(v(5 + i), v(5 + (i + 2) % 5), ());
-            }
-            // Radii connecting outer to inner
-            for i in 0..5 {
-                graph.add_edge(v(i), v(5 + i), ());
-            }
-            graph
-        }
-
         #[test]
         fn petersen_not_hamiltonian_requires_refinement() {
             // Petersen is 3-regular and 3-connected (clears preconditions),
@@ -622,41 +694,6 @@ mod tests {
     mod knight_6x6 {
         use super::*;
 
-        /// Builds a 6×6 knight's graph: 36 vertices (rows 0-5, files 0-5),
-        /// edges connect squares a knight's move apart.
-        fn knight_6x6() -> UnGraph<(), ()> {
-            let mut graph = graph_of(36, &[]);
-
-            let knight_moves = [
-                (2, 1),
-                (2, -1),
-                (-2, 1),
-                (-2, -1),
-                (1, 2),
-                (1, -2),
-                (-1, 2),
-                (-1, -2),
-            ];
-
-            for r in 0..6 {
-                for f in 0..6 {
-                    let from_idx = r * 6 + f;
-                    for &(dr, df) in &knight_moves {
-                        let nr = r as i32 + dr;
-                        let nf = f as i32 + df;
-                        if nr >= 0 && nr < 6 && nf >= 0 && nf < 6 {
-                            let to_idx = (nr as usize) * 6 + (nf as usize);
-                            if from_idx < to_idx {
-                                graph.add_edge(v(from_idx), v(to_idx), ());
-                            }
-                        }
-                    }
-                }
-            }
-
-            graph
-        }
-
         #[test]
         fn knight_6x6_has_hamiltonian_cycle() {
             let graph = knight_6x6();
@@ -679,16 +716,89 @@ mod tests {
         }
     }
 
+    mod merging {
+        use super::*;
+
+        /// Runs a graph to completion with merging off and on.
+        fn both_ways(graph: &UnGraph<(), ()>) -> (Step, Step) {
+            let mut answers = [Step::LimitReached, Step::LimitReached];
+            for (answer, merge_cycles) in answers.iter_mut().zip([false, true]) {
+                let config = Config {
+                    merge_cycles,
+                    ..Default::default()
+                };
+                let mut search =
+                    CegarSearch::new(graph, config).expect("new should succeed");
+                *answer = search.run().expect("run should succeed");
+            }
+            let [without, with] = answers;
+            (without, with)
+        }
+
+        #[test]
+        fn petersen_answers_the_same_either_way() {
+            // Merging is an optimisation, so it may change how many rounds a
+            // search takes but must never change what it decides.  Petersen
+            // is the sharper of the two cases: its answer is a *proof* of
+            // non-existence, which merging could only break by making the
+            // solver see a formula it should not have.
+            let (without, with) = both_ways(&petersen_graph());
+            assert_eq!(without, Step::NoCycle);
+            assert_eq!(with, Step::NoCycle);
+        }
+
+        #[test]
+        fn knight_6x6_answers_the_same_either_way() {
+            let graph = knight_6x6();
+            let (without, with) = both_ways(&graph);
+
+            // Not the same *cycle* — merging returns one the solver never
+            // proposed — so both answers are checked against the graph
+            // instead of against each other.
+            for answer in [without, with] {
+                match answer {
+                    Step::Found(segment) => assert!(
+                        segment.is_hamiltonian_cycle(&graph),
+                        "not a Hamiltonian cycle of the graph: {segment}"
+                    ),
+                    other => panic!("expected Found, got {other:?}"),
+                }
+            }
+        }
+
+        #[test]
+        fn merging_is_recorded_against_the_pre_merge_count() {
+            // Both per-round series are filled in on every refining round,
+            // whether or not merging is on; with it off they are equal.
+            let graph = petersen_graph();
+            let config = Config {
+                merge_cycles: false,
+                ..Default::default()
+            };
+            let mut search =
+                CegarSearch::new(&graph, config).expect("new should succeed");
+            search.run().expect("run should succeed");
+
+            let stats = search.stats();
+            assert!(stats.rounds >= 1, "Petersen must refine at least once");
+            assert_eq!(
+                stats.segments_before_merge_per_round,
+                stats.segments_per_round
+            );
+            assert_eq!(stats.segments_per_round.len(), stats.rounds);
+        }
+    }
+
     mod config_and_stats {
         use super::*;
 
         #[test]
-        fn default_config_has_no_limits() {
+        fn default_config_has_no_limits_and_merges() {
             let config = Config::default();
             assert!(config.max_rounds.is_none());
             assert!(config.max_conflicts.is_none());
             assert!(!config.skip_preconditions);
-            assert!(!config.merge_cycles);
+            assert!(config.merge_cycles);
         }
 
         #[test]

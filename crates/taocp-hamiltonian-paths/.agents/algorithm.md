@@ -293,6 +293,16 @@ Two facts that make this sound, so they do not have to be rederived:
   merged cycle is a union of whole model cycles, so no model arc crosses it, so
   the model violates the cut clause.  Progress in step C8 is still guaranteed.
 
+One correction the implementation makes to the steps as written above, because
+taking them literally corrupts SUCC.  C6.9 splices v′ … w′ in between v and w,
+which leaves SUCC[v] = v′ rather than w; C6.11 then carries on through the
+remaining neighbours of v with a w that is no longer SUCC[v].  A second merge at
+the same v splices its cycle in between v and that same stale w, so w ends up
+with two predecessors and the cycle absorbed first is orphaned.  **Set w ← v′ at
+the end of C6.9**, restoring the invariant w = SUCC[v] that C6.3 establishes and
+C6.12 maintains.  As a bonus, C6.12's walk then continues through the newly
+absorbed vertices, so they are examined for merges too.
+
 Working the example above through one merge pass gives, for j = 0, c = 1:
 v = HEAD[1] = 0 and w = SUCC[0] = 2.  Neighbours 2 and 3 of v are already in c,
 so C6.5 skips them; neighbour 1 has c′ = CID[1] = 2, and w′ = PRED[1] = 8 with

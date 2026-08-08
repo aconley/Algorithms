@@ -10,7 +10,7 @@
 //! every cycle of the model lies wholly inside `C` or wholly outside it, so
 //! no model arc crosses the cut and every literal of both clauses is false.
 //! Adding them therefore forces a genuinely different cover next round.  The
-//! same argument still holds once phase 9 merges cycles, since a merged cycle
+//! same argument covers a cover that step C6 has merged, since a merged cycle
 //! is a union of whole model cycles.
 //!
 //! See `.agents/algorithm.md`, "Step C8: Cut clauses", for Knuth's statement
@@ -57,8 +57,8 @@ pub(crate) fn cut_clauses(
 ) -> Cut {
     let active = cover.active();
     let t = active.len();
-    // Callers reach C8 only from C5 (and, in phase 9, C7), both of which
-    // return a Hamiltonian cycle when t == 1.  That matters more than it
+    // Callers reach C8 only from C5 and C7, both of which return a
+    // Hamiltonian cycle when t == 1.  That matters more than it
     // looks: a single spanning cycle has no crossing edges at all, so the
     // k < 2 test below would report `NoCycle` — a *proof* of nonexistence
     // for a graph that had just produced a cycle.

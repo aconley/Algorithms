@@ -7,9 +7,9 @@
 //! data structure; [`super::segment::Decomposition`] is the ordered-sequence
 //! *view* of it, derived on request by [`CycleCover::to_decomposition`].
 //!
-//! This part of the module (phase 5) implements only step C4, decoding a SAT
-//! model into a cycle cover.  Step C6 (merging, phase 9) adds
-//! `CycleCover::merge` later; it is not here.
+//! Two steps of Algorithm C live here: C4, which decodes a SAT model into a
+//! cycle cover ([`CycleCover::from_model`]), and C6, which merges adjacent
+//! cycles of that cover into one another ([`CycleCover::merge`]).
 
 use super::encoding::ArcVars;
 use super::segment::{Decomposition, Segment, SegmentError};
@@ -77,12 +77,10 @@ impl std::error::Error for CoverError {}
 #[derive(Debug)]
 pub(crate) struct CycleCover {
     pub(crate) succ: Vec<NodeIndex>, // SUCC
-    #[allow(dead_code)] // read by C6 merging, phase 9
-    pred: Vec<NodeIndex>, // PRED
+    pred: Vec<NodeIndex>,            // PRED
     pub(crate) cid: Vec<usize>,      // CID, 1-based cycle ids; 0 means unassigned
     cyc: Vec<usize>,                 // CYC, the sparse set of active cycles
-    #[allow(dead_code)] // read by C6 merging, phase 9
-    cloc: Vec<usize>, // CLOC, location of cycle c in CYC
+    cloc: Vec<usize>,                // CLOC, location of cycle c in CYC
     pub(crate) head: Vec<NodeIndex>, // HEAD, an arbitrary vertex of each cycle
     t: usize,                        // number of active cycles
 }
@@ -187,6 +185,135 @@ impl CycleCover {
         &self.cyc[..self.t]
     }
 
+    /// Step C6: absorbs cycles into one another, reducing `t`.
+    ///
+    /// Two cycles can be merged whenever two vertices that are adjacent *in*
+    /// one of them are adjacent *to* two vertices that are adjacent in the
+    /// other: splicing along that pair of edges joins both into a single
+    /// cycle.  Every branch below is guarded by an adjacency test, so a merged
+    /// cycle only ever uses real edges — it is a genuine cycle of the graph,
+    /// and if merging reaches `t == 1` the result is a Hamiltonian cycle even
+    /// though it is not the cover the solver returned.
+    ///
+    /// Merging cannot change the answer, only how many refinement rounds
+    /// reaching it takes.  Cut clauses built from merged cycles still exclude
+    /// the current model, because a merged cycle is a union of whole model
+    /// cycles and so no model arc crosses it.
+    ///
+    /// Transcribed from `.agents/algorithm.md`, steps C6.1 to C6.13, whose
+    /// labels appear as comments below.  Knuth's `ADJ[u][v] != 0` becomes
+    /// `graph.find_edge(u, v).is_some()`; the variable number that `ADJ`
+    /// otherwise carries is not wanted here, which is why this takes no
+    /// [`ArcVars`].
+    ///
+    /// **One correction to that transcription**, which is load-bearing.  C6.9
+    /// splices `v' .. w'` in between `v` and `w`, leaving `SUCC[v] == v'`
+    /// rather than `w`; C6.11 then continues over the remaining neighbours of
+    /// `v` with a `w` that is no longer `SUCC[v]`.  A second merge at the same
+    /// `v` would splice its cycle in between `v` and that same stale `w`,
+    /// giving `w` two predecessors and orphaning the cycle absorbed first.
+    /// Setting `w = v'` at the end of C6.9 restores the step's own invariant
+    /// that `w == SUCC[v]`, and has the further merit of extending C6.12's
+    /// walk over the newly absorbed vertices.
+    pub(crate) fn merge(&mut self, graph: &UnGraph<(), ()>) {
+        // C6.1 [Begin loop on j.]
+        let mut j = 0usize;
+
+        // C6.13's `return to C6.2 if j < t` is this loop's bound.
+        while j < self.t {
+            // C6.2 [Choose c.]  We'll try to absorb other cycles into c.
+            let c = self.cyc[j];
+
+            // C6.3 [Begin loop on v.]
+            let mut v = self.head[c];
+            let mut w = self.succ[v.index()];
+
+            loop {
+                // C6.4 [Begin loop on v'.], with C6.11 [Advance v'.] as this
+                // loop's increment.  Merging never touches the graph, so the
+                // neighbour iterator stays valid across a merge.
+                for v_prime in graph.neighbors(v) {
+                    // C6.5 [Is v' in c?]
+                    let c_prime = self.cid[v_prime.index()];
+                    if c_prime == c {
+                        continue;
+                    }
+
+                    // C6.6 [Check PRED[v'].]
+                    let mut w_prime = self.pred[v_prime.index()];
+                    if graph.find_edge(w_prime, w).is_none() {
+                        // C6.7 [Check SUCC[v'].]
+                        w_prime = self.succ[v_prime.index()];
+                        if graph.find_edge(w_prime, w).is_none() {
+                            continue;
+                        }
+
+                        // C6.8 [Reverse subpath.]  Splicing at SUCC[v']
+                        // rather than PRED[v'] means c' has to be traversed
+                        // the other way round, so reverse it.  This leaves
+                        // SUCC[w'] stale, which C6.9 immediately overwrites.
+                        let mut u = w_prime;
+                        let mut u_prime = self.succ[u.index()];
+                        while u != v_prime {
+                            let u_dprime = self.succ[u_prime.index()];
+                            self.succ[u_prime.index()] = u;
+                            self.pred[u.index()] = u_prime;
+                            u = u_prime;
+                            u_prime = u_dprime;
+                        }
+                    }
+
+                    // C6.9 [Merge.]
+                    self.succ[v.index()] = v_prime;
+                    self.succ[w_prime.index()] = w;
+                    self.pred[v_prime.index()] = v;
+                    self.pred[w.index()] = w_prime;
+                    let mut u = v_prime;
+                    while u != w {
+                        self.cid[u.index()] = c;
+                        u = self.succ[u.index()];
+                    }
+                    // Restore w == SUCC[v]; see this method's doc comment.
+                    w = v_prime;
+
+                    // C6.10 [Delete c'.]  Knuth checks t == 1 before touching
+                    // CYC and CLOC, since C7 reads its answer straight out of
+                    // SUCC and never consults them again.  Maintaining them
+                    // first instead costs nothing and leaves `active()`
+                    // naming the surviving cycle in that case too.
+                    self.t -= 1;
+                    let mut k = self.cloc[c_prime];
+                    if k > j {
+                        self.cyc[k] = self.cyc[self.t];
+                        self.cloc[self.cyc[k]] = k;
+                    } else {
+                        // CYC[j] is c and c' != c, so k != j; reaching here
+                        // means k < j, and hence that j is at least 1.
+                        j -= 1;
+                        while k < self.t {
+                            self.cyc[k] = self.cyc[k + 1];
+                            self.cloc[self.cyc[k]] = k;
+                            k += 1;
+                        }
+                    }
+                    if self.t == 1 {
+                        return;
+                    }
+                }
+
+                // C6.12 [Advance v.]
+                if w == self.head[c] {
+                    break;
+                }
+                v = w;
+                w = self.succ[w.index()];
+            }
+
+            // C6.13 [Advance j.]
+            j += 1;
+        }
+    }
+
     /// Walks each active cycle from its `HEAD` and builds the ordered-segment
     /// view of this cover.
     ///
@@ -219,6 +346,55 @@ mod tests {
     use super::*;
     use crate::testing::{graph_of, knuth_cover, model_of, v};
     use claim::{assert_err, assert_ok};
+    use std::collections::HashSet;
+
+    /// The vertices of `start`'s cycle, in `SUCC` order beginning at `start`.
+    fn walk(cover: &CycleCover, start: NodeIndex) -> Vec<NodeIndex> {
+        let mut vertices = vec![start];
+        let mut u = cover.succ[start.index()];
+        while u != start {
+            vertices.push(u);
+            u = cover.succ[u.index()];
+        }
+        vertices
+    }
+
+    /// Everything a cover must satisfy whatever has been done to it: `SUCC`
+    /// follows real edges, `PRED` inverts it, and the active cycles partition
+    /// the vertices in a way `CID` and `HEAD` agree with.
+    ///
+    /// Merging rewrites all six arrays at once, so checking them against each
+    /// other is what catches a bookkeeping slip that a single-array assertion
+    /// would let through.
+    fn assert_cover_invariants(graph: &UnGraph<(), ()>, cover: &CycleCover) {
+        for i in 0..graph.node_count() {
+            let u = v(i);
+            let next = cover.succ[i];
+            assert!(
+                graph.find_edge(u, next).is_some(),
+                "SUCC[{i}] = {} is not an edge of the graph",
+                next.index()
+            );
+            assert_eq!(
+                cover.pred[next.index()],
+                u,
+                "PRED does not invert SUCC at {i}"
+            );
+        }
+
+        let mut seen = vec![false; graph.node_count()];
+        for &c in cover.active() {
+            for u in walk(cover, cover.head[c]) {
+                assert!(!seen[u.index()], "vertex {} is on two cycles", u.index());
+                seen[u.index()] = true;
+                assert_eq!(cover.cid[u.index()], c, "CID disagrees with the walk");
+            }
+        }
+        assert!(
+            seen.iter().all(|&covered| covered),
+            "the active cycles do not cover every vertex"
+        );
+    }
 
     mod from_model {
         use super::*;
@@ -440,6 +616,257 @@ mod tests {
             let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
             let err = assert_err!(cover.to_decomposition());
             assert_eq!(err, SegmentError::ClosedTooShort(2));
+        }
+    }
+
+    mod merge {
+        use super::*;
+
+        /// The graph the book's merge example runs on: its three cycles
+        /// A-C-G-D, B-L-J-E-I and F-K-M-H, plus the two edges the merge
+        /// consumes, A-B (0-1) and C-I (2-8).
+        ///
+        /// A subset of `knuth_graph`, which is the point.  Restricting the
+        /// graph to the edges the example actually uses is what makes the
+        /// merge it finds independent of the order neighbours are visited in,
+        /// and so lets this test pin the book's stated numbers exactly.  The
+        /// cover itself is the phase 5 fixture unchanged — a `CycleCover`
+        /// holds no reference to a graph, only `SUCC` and `PRED`.
+        fn merge_example_graph() -> UnGraph<(), ()> {
+            graph_of(
+                13,
+                &[
+                    (0, 2),
+                    (2, 6),
+                    (6, 3),
+                    (3, 0), // A-C-G-D
+                    (1, 11),
+                    (11, 9),
+                    (9, 4),
+                    (4, 8),
+                    (8, 1), // B-L-J-E-I
+                    (5, 10),
+                    (10, 12),
+                    (12, 7),
+                    (7, 5), // F-K-M-H
+                    (0, 1), // A-B, the first merge edge
+                    (2, 8), // C-I, the second
+                ],
+            )
+        }
+
+        #[test]
+        fn thirteen_vertex_example_matches_the_book() {
+            let graph = merge_example_graph();
+            let mut cover = knuth_cover();
+            assert_eq!(cover.t(), 3);
+
+            cover.merge(&graph);
+
+            // The values `.agents/algorithm.md` states for this example.
+            assert_eq!(cover.succ[0], v(1));
+            assert_eq!(cover.succ[8], v(2));
+            assert_eq!(cover.pred[1], v(0));
+            assert_eq!(cover.pred[2], v(8));
+            assert_eq!(cover.t(), 2);
+            assert_eq!(cover.active(), &[1, 3]);
+            assert_eq!(cover.cloc[1], 0);
+            assert_eq!(cover.cloc[3], 1);
+
+            // Cycle 2 (B L J E I) was absorbed into cycle 1; cycle 3 is
+            // untouched.
+            assert_eq!(
+                cover.cid,
+                vec![1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 3, 1, 3],
+                "every CID of 2 should now read 1"
+            );
+
+            assert_eq!(
+                walk(&cover, v(0)),
+                vec![v(0), v(1), v(11), v(9), v(4), v(8), v(2), v(6), v(3),],
+                "the merged cycle should be 0 1 11 9 4 8 2 6 3"
+            );
+            assert_cover_invariants(&graph, &cover);
+        }
+
+        #[test]
+        fn reverses_the_subpath_when_only_succ_is_adjacent() {
+            // Triangles 0-1-2 and 3-4-5 joined by 0-3 and 1-4.  Merging at
+            // v = 0, w = 1 finds v' = 3, whose PRED is 5 — and 5-1 is not an
+            // edge, so C6.6 fails and C6.7 takes SUCC[3] = 4 instead, whose
+            // edge 4-1 is present.  Splicing there runs the second cycle the
+            // other way round, so C6.8 has to reverse it.
+            let graph = graph_of(
+                6,
+                &[
+                    (0, 1),
+                    (1, 2),
+                    (2, 0),
+                    (3, 4),
+                    (4, 5),
+                    (5, 3),
+                    (0, 3),
+                    (1, 4),
+                ],
+            );
+            let vars = ArcVars::new(&graph);
+            let model =
+                model_of(&graph, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
+            let mut cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            assert_eq!(cover.t(), 2);
+
+            cover.merge(&graph);
+
+            assert_eq!(cover.t(), 1);
+            // 3-4-5 now runs backwards: 3 -> 5 -> 4, spliced between 0 and 1.
+            assert_eq!(walk(&cover, v(0)), vec![v(0), v(3), v(5), v(4), v(1), v(2)]);
+            assert_cover_invariants(&graph, &cover);
+        }
+
+        #[test]
+        fn splices_at_most_once_per_vertex() {
+            // Triangles 0-1-2, 3-4-5 and 6-7-8.  Vertex 0 is adjacent to both
+            // of the other two cycles, and both of them have a vertex
+            // adjacent to 1 — so with w left at its stale value of 1 after
+            // the first merge, the second would splice in between 0 and 1 as
+            // well, giving 1 two predecessors and orphaning 3-4-5.
+            //
+            // Keeping w == SUCC[v] instead makes the second merge look for an
+            // edge to whichever cycle was spliced in first.  There is none
+            // either way round, so exactly one merge happens and the third
+            // triangle is left for the next pass.
+            let graph = graph_of(
+                9,
+                &[
+                    (0, 1),
+                    (1, 2),
+                    (2, 0),
+                    (3, 4),
+                    (4, 5),
+                    (5, 3),
+                    (6, 7),
+                    (7, 8),
+                    (8, 6),
+                    (0, 6),
+                    (1, 8),
+                    (0, 3),
+                    (1, 5),
+                ],
+            );
+            let vars = ArcVars::new(&graph);
+            let model = model_of(
+                &graph,
+                &[
+                    (0, 1),
+                    (1, 2),
+                    (2, 0),
+                    (3, 4),
+                    (4, 5),
+                    (5, 3),
+                    (6, 7),
+                    (7, 8),
+                    (8, 6),
+                ],
+            );
+            let mut cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            assert_eq!(cover.t(), 3);
+
+            cover.merge(&graph);
+
+            assert_eq!(cover.t(), 2);
+            assert_cover_invariants(&graph, &cover);
+            assert_eq!(walk(&cover, v(0)).len(), 6);
+        }
+
+        /// A deterministic xorshift.  A handful of small random graphs does
+        /// not justify a `rand` dependency, and a fixed seed means a failure
+        /// reproduces.
+        struct Xorshift(u32);
+
+        impl Xorshift {
+            fn next_u32(&mut self) -> u32 {
+                self.0 ^= self.0 << 13;
+                self.0 ^= self.0 >> 17;
+                self.0 ^= self.0 << 5;
+                self.0
+            }
+
+            fn below(&mut self, bound: usize) -> usize {
+                self.next_u32() as usize % bound
+            }
+        }
+
+        /// A random graph paired with a random cycle cover of it.
+        ///
+        /// Built the other way round from the solver's: a random permutation
+        /// of the vertices is cut into cycles of length >= 3, the graph is
+        /// given those edges so the cover is genuinely one of its covers, and
+        /// then extra random edges are added for merging to find.
+        fn random_cover(rng: &mut Xorshift) -> (UnGraph<(), ()>, CycleCover) {
+            let n = 6 + rng.below(8); // 6 ..= 13
+
+            let mut order: Vec<usize> = (0..n).collect();
+            for i in (1..n).rev() {
+                order.swap(i, rng.below(i + 1));
+            }
+
+            // Cut into cycles, never leaving a tail too short to be one.
+            let mut arcs = Vec::new();
+            let mut start = 0;
+            while start < n {
+                let remaining = n - start;
+                let len = if remaining < 6 {
+                    remaining
+                } else {
+                    3 + rng.below(remaining - 5)
+                };
+                for i in 0..len {
+                    arcs.push((order[start + i], order[start + (i + 1) % len]));
+                }
+                start += len;
+            }
+
+            // `present` keeps the graph simple: parallel edges and self-loops
+            // both break the arc-variable mapping, and `precheck` rejects
+            // them rather than letting them reach a cover.
+            let mut present = HashSet::new();
+            let mut edges = Vec::new();
+            let mut add = |a: usize, b: usize, edges: &mut Vec<(usize, usize)>| {
+                if a != b && present.insert((a.min(b), a.max(b))) {
+                    edges.push((a, b));
+                }
+            };
+            for &(a, b) in &arcs {
+                add(a, b, &mut edges);
+            }
+            for _ in 0..n {
+                add(rng.below(n), rng.below(n), &mut edges);
+            }
+
+            let graph = graph_of(n, &edges);
+            let vars = ArcVars::new(&graph);
+            let model = model_of(&graph, &arcs);
+            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            (graph, cover)
+        }
+
+        #[test]
+        fn random_covers_stay_well_formed() {
+            let mut rng = Xorshift(0x2545_f491);
+            for _ in 0..200 {
+                let (graph, mut cover) = random_cover(&mut rng);
+                assert_cover_invariants(&graph, &cover);
+
+                let before = cover.t();
+                cover.merge(&graph);
+
+                assert!(
+                    cover.t() <= before,
+                    "merging raised t from {before} to {}",
+                    cover.t()
+                );
+                assert_cover_invariants(&graph, &cover);
+            }
         }
     }
 }
