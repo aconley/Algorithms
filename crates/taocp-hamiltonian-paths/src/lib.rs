@@ -25,6 +25,7 @@
 mod cycles;
 mod driver;
 mod encoding;
+pub mod generators;
 mod precheck;
 mod reduction;
 mod refinement;
