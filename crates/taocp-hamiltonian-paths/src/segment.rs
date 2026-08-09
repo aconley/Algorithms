@@ -20,7 +20,7 @@ use petgraph::graph::{NodeIndex, UnGraph};
 use std::collections::HashSet;
 use std::fmt;
 
-/// Failure to construct a well-formed [`Segment`] or [`Decomposition`].
+/// Failure to construct a well-formed segment or [`Decomposition`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SegmentError {
     /// A segment was constructed with no vertices.
@@ -65,7 +65,7 @@ impl std::error::Error for SegmentError {}
 /// recoverable from the order in linear time (see [`Segment::edges`]); the
 /// order is not cheaply recoverable from the edge set.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Segment {
+pub(crate) struct Segment {
     vertices: Vec<NodeIndex>,
     closed: bool,
 }
@@ -74,7 +74,7 @@ impl Segment {
     /// Builds an open segment (a path) from a vertex sequence.
     ///
     /// Rejects an empty sequence and a repeated vertex.
-    pub fn new_open(vertices: Vec<NodeIndex>) -> Result<Self, SegmentError> {
+    pub(crate) fn new_open(vertices: Vec<NodeIndex>) -> Result<Self, SegmentError> {
         Self::new_inner(vertices, false)
     }
 
@@ -84,7 +84,7 @@ impl Segment {
     /// less than three.  The wrap-around edge from the last vertex back to the
     /// first is implied and must *not* be encoded by repeating the first vertex
     /// at the end.
-    pub fn new_closed(vertices: Vec<NodeIndex>) -> Result<Self, SegmentError> {
+    pub(crate) fn new_closed(vertices: Vec<NodeIndex>) -> Result<Self, SegmentError> {
         Self::new_inner(vertices, true)
     }
 
@@ -105,28 +105,24 @@ impl Segment {
     }
 
     /// The vertices in traversal order.
-    pub fn vertices(&self) -> &[NodeIndex] {
+    pub(crate) fn vertices(&self) -> &[NodeIndex] {
         &self.vertices
     }
 
     /// Number of vertices, which for a closed segment is also its number of edges.
-    pub fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.vertices.len()
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.vertices.is_empty()
-    }
-
     /// Whether this segment is a cycle rather than a path.
-    pub fn is_closed(&self) -> bool {
+    pub(crate) fn is_closed(&self) -> bool {
         self.closed
     }
 
     /// The two ends of an open segment, or `None` if it is closed.
     ///
     /// A single-vertex open segment reports that vertex as both ends.
-    pub fn endpoints(&self) -> Option<(NodeIndex, NodeIndex)> {
+    pub(crate) fn endpoints(&self) -> Option<(NodeIndex, NodeIndex)> {
         if self.closed {
             None
         } else {
@@ -140,7 +136,7 @@ impl Segment {
     ///
     /// Returned as a `Vec` rather than an iterator purely to keep this skeleton
     /// simple; it may become a borrowing iterator once implemented.
-    pub fn edges(&self) -> Vec<(NodeIndex, NodeIndex)> {
+    pub(crate) fn edges(&self) -> Vec<(NodeIndex, NodeIndex)> {
         let mut edges: Vec<(NodeIndex, NodeIndex)> =
             self.vertices.windows(2).map(|w| (w[0], w[1])).collect();
         if self.closed {
@@ -163,7 +159,7 @@ impl Segment {
     ///
     /// Canonicalising is what makes solutions comparable, deduplicable, and
     /// usable in test assertions.
-    pub fn canonicalize(&mut self) {
+    pub(crate) fn canonicalize(&mut self) {
         if self.closed {
             // Rotate so the lowest-indexed vertex comes first.
             let min_pos = self
@@ -218,7 +214,7 @@ impl Segment {
     ///
     /// Safe to call with a segment built for a different or incompatible
     /// graph; see [`Segment::spans_by_real_edges`].
-    pub fn is_hamiltonian_cycle(&self, graph: &UnGraph<(), ()>) -> bool {
+    pub(crate) fn is_hamiltonian_cycle(&self, graph: &UnGraph<(), ()>) -> bool {
         self.is_closed() && self.spans_by_real_edges(graph)
     }
 
@@ -227,7 +223,7 @@ impl Segment {
     ///
     /// Safe to call with a segment built for a different or incompatible
     /// graph; see [`Segment::spans_by_real_edges`].
-    pub fn is_hamiltonian_path(&self, graph: &UnGraph<(), ()>) -> bool {
+    pub(crate) fn is_hamiltonian_path(&self, graph: &UnGraph<(), ()>) -> bool {
         !self.is_closed() && self.spans_by_real_edges(graph)
     }
 }
@@ -259,7 +255,7 @@ pub struct Decomposition {
 
 impl Decomposition {
     /// Builds a decomposition, rejecting segments that share a vertex.
-    pub fn new(mut segments: Vec<Segment>) -> Result<Self, SegmentError> {
+    pub(crate) fn new(mut segments: Vec<Segment>) -> Result<Self, SegmentError> {
         let mut seen = HashSet::new();
         for segment in &segments {
             for &v in segment.vertices() {
@@ -275,7 +271,7 @@ impl Decomposition {
         Ok(Decomposition { segments })
     }
 
-    pub fn segments(&self) -> &[Segment] {
+    pub(crate) fn segments(&self) -> &[Segment] {
         &self.segments
     }
 
@@ -284,7 +280,12 @@ impl Decomposition {
         self.segments.len()
     }
 
-    #[allow(dead_code)] // paired with len() per convention; no caller yet
+    /// Whether there are no segments at all.
+    ///
+    /// Nothing in this crate calls it.  It exists because `Decomposition` is
+    /// public and has a `len()`, and the standard
+    /// `clippy::len_without_is_empty` lint expects an exported type's `len()`
+    /// to come with a companion `is_empty()`.
     pub fn is_empty(&self) -> bool {
         self.segments.is_empty()
     }
@@ -300,7 +301,7 @@ impl Decomposition {
     /// This is the abstraction check: `Some` means the model is a genuine
     /// Hamiltonian cycle and the search is done; `None` means the model is
     /// spurious and must be refined away.
-    pub fn as_hamiltonian_cycle(&self, order: usize) -> Option<&Segment> {
+    pub(crate) fn as_hamiltonian_cycle(&self, order: usize) -> Option<&Segment> {
         match self.segments.as_slice() {
             [segment] if segment.is_closed() && segment.len() == order => Some(segment),
             _ => None,

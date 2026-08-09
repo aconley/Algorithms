@@ -5,12 +5,14 @@
 //! which family it generated and there is no runtime dispatch problem to
 //! solve.
 //!
-//! All three renderers take a [`Decomposition`] rather than a bare
-//! [`Segment`].  A genuine Hamiltonian cycle is the degenerate one-segment
-//! case; a spurious intermediate model from a refinement round is the
-//! multi-segment case.  One renderer serves both, which is what makes it
-//! possible to emit one image per round and get a flipbook of the
-//! abstraction tightening — see `.agents/overview.md`, "Rendering".
+//! All three renderers accept a final answer — a [`crate::HamiltonianCycle`]
+//! or [`crate::HamiltonianPath`] — or a mid-refinement [`Decomposition`], via
+//! `impl Into<Decomposition>`.  Internally they all render a decomposition:
+//! a genuine Hamiltonian cycle is the degenerate one-segment case, and a
+//! spurious intermediate model from a refinement round is the multi-segment
+//! case.  One renderer body serves both, which is what makes it possible to
+//! emit one image per round and get a flipbook of the abstraction
+//! tightening — see `.agents/overview.md`, "Rendering".
 
 use crate::generators::Square;
 use crate::segment::Decomposition;
@@ -73,12 +75,13 @@ fn vertex_labels(decomposition: &Decomposition) -> HashMap<NodeIndex, String> {
 /// file 0 is printed first (left), then increasing file, matching
 /// [`crate::generators::knight_graph`]'s own indexing.
 pub fn board_ascii(
-    decomposition: &Decomposition,
+    decomposition: impl Into<Decomposition>,
     squares: &[Square],
     ranks: usize,
     files: usize,
 ) -> String {
-    let labels = vertex_labels(decomposition);
+    let decomposition = decomposition.into();
+    let labels = vertex_labels(&decomposition);
     let width = labels.values().map(String::len).max().unwrap_or(1);
 
     let mut index_of = HashMap::with_capacity(squares.len());
@@ -114,7 +117,8 @@ pub fn board_ascii(
 /// multi-cycle spurious cover, since it makes the disjoint cycles visually
 /// distinguishable.  Render the output with Graphviz externally; petgraph has
 /// no DOT reader and none is wanted.
-pub fn dot(graph: &UnGraph<(), ()>, decomposition: &Decomposition) -> String {
+pub fn dot(graph: &UnGraph<(), ()>, decomposition: impl Into<Decomposition>) -> String {
+    let decomposition = decomposition.into();
     let mut highlighted: HashMap<EdgeIndex, usize> = HashMap::new();
     for (segment_index, segment) in decomposition.segments().iter().enumerate() {
         for (u, v) in segment.edges() {
@@ -170,12 +174,13 @@ const SVG_MARGIN: f64 = 20.0;
 /// dominant is what matters, not the literal exclusion of every other edge.
 pub fn svg(
     graph: &UnGraph<(), ()>,
-    decomposition: &Decomposition,
+    decomposition: impl Into<Decomposition>,
     coords: &[(f64, f64)],
 ) -> String {
     if coords.is_empty() {
         return "<svg xmlns=\"http://www.w3.org/2000/svg\"></svg>\n".to_string();
     }
+    let decomposition = decomposition.into();
 
     let (mut min_x, mut max_x) = (f64::INFINITY, f64::NEG_INFINITY);
     let (mut min_y, mut max_y) = (f64::INFINITY, f64::NEG_INFINITY);
@@ -243,6 +248,7 @@ mod tests {
     use super::*;
     use crate::generators::knight_graph;
     use crate::segment::Segment;
+    use crate::solution::HamiltonianCycle;
     use claim::assert_ok;
     use petgraph::graph::NodeIndex;
 
@@ -285,6 +291,34 @@ mod tests {
 
             let decomposition = assert_ok!(Decomposition::new(vec![segment]));
             let rendered = board_ascii(&decomposition, &squares, 6, 6);
+
+            let expected = concat!(
+                " 1 30 21 18  3 16\n",
+                "28  9  2 15 22 19\n",
+                "31 36 29 20 17  4\n",
+                "10 27  8 35 14 23\n",
+                " 7 32 25 12  5 34\n",
+                "26 11  6 33 24 13\n",
+            );
+            assert_eq!(rendered, expected);
+        }
+
+        /// The same tour and golden string as above, fed through a
+        /// `HamiltonianCycle` instead of a hand-built `Decomposition`, to pin
+        /// the `impl Into<Decomposition>` plumbing: the output must be
+        /// byte-identical.
+        #[test]
+        fn single_cycle_via_hamiltonian_cycle_matches_golden_string() {
+            let (graph, squares) = knight_graph(6, 6);
+            let vertices: Vec<NodeIndex> = six_by_six_tour_vertices()
+                .into_iter()
+                .map(NodeIndex::new)
+                .collect();
+            let segment = assert_ok!(Segment::new_closed(vertices));
+            assert!(segment.is_hamiltonian_cycle(&graph));
+            let cycle = HamiltonianCycle::new(segment);
+
+            let rendered = board_ascii(&cycle, &squares, 6, 6);
 
             let expected = concat!(
                 " 1 30 21 18  3 16\n",
@@ -361,6 +395,19 @@ mod tests {
             let highlighted_count = rendered.matches("penwidth=2").count();
             assert_eq!(highlighted_count, solution_edges);
         }
+
+        /// Pins the `impl Into<Decomposition>` plumbing: a `HamiltonianCycle`
+        /// must highlight the same edges as the equivalent `Decomposition`.
+        #[test]
+        fn accepts_hamiltonian_cycle_via_into() {
+            let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
+            let segment = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2), v(3)]));
+            let cycle = HamiltonianCycle::new(segment);
+
+            let rendered = dot(&graph, &cycle);
+            let highlighted_count = rendered.matches("penwidth=2").count();
+            assert_eq!(highlighted_count, 4);
+        }
     }
 
     mod svg {
@@ -386,6 +433,20 @@ mod tests {
                 .sum();
             let highlighted_count = rendered.matches("stroke-width=\"4\"").count();
             assert_eq!(highlighted_count, solution_edges);
+        }
+
+        /// Pins the `impl Into<Decomposition>` plumbing: a `HamiltonianCycle`
+        /// must highlight the same edges as the equivalent `Decomposition`.
+        #[test]
+        fn accepts_hamiltonian_cycle_via_into() {
+            let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
+            let segment = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2), v(3)]));
+            let cycle = HamiltonianCycle::new(segment);
+            let coords = vec![(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)];
+
+            let rendered = svg(&graph, &cycle, &coords);
+            let highlighted_count = rendered.matches("stroke-width=\"4\"").count();
+            assert_eq!(highlighted_count, 4);
         }
 
         #[test]

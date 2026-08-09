@@ -661,8 +661,71 @@ from phase 7 is what makes it a small job later.
 
 Note for whoever picks it up: a bench is a separate crate, so it cannot reach
 `pub(crate)` items.  **The answer is a `pub` entry point returning `Stats`
-alongside the segment**, not an in-crate bench.  That was left open while `pub`
+alongside the answer**, not an in-crate bench.  That was left open while `pub`
 here meant "visible from the whole `taocp` grab-bag"; after the workspace split
 it means "visible from `taocp-hamiltonian-paths`", which is a narrow enough
 claim that the ordinary Criterion layout — `benches/` beside `src/` — is worth
 more than the visibility it costs.
+
+---
+
+## Phase 13 — split the public answer type: `HamiltonianPath` / `HamiltonianCycle`
+
+Both entry points return `Result<Option<Segment>, Error>`.  `Segment` is an
+ordered vertex sequence plus an open/closed flag — an accurate description of
+a run in a cycle cover, and a poor description of *the answer* handed back to
+a caller: a returned cycle carries `is_closed()` (already known), `endpoints()`
+(always `None`), `is_hamiltonian_path()` (always `false`), plus the internal
+`new_open`/`new_closed`/`canonicalize` construction machinery, all exposed
+only because the type had to be public.
+
+The internal sharing stays: `Segment` and `Decomposition` remain the
+ordered-sequence view of a `CycleCover`, and one `Decomposition` still serves
+both final answers and mid-refinement spurious covers (see "One type for
+solutions and counterexamples" in `overview.md`).  Only the *public* answer
+type splits.
+
+- **new** `src/solution.rs` — two thin newtypes, `HamiltonianCycle` and
+  `HamiltonianPath`, each wrapping a `Segment` behind a `pub(crate) fn new`
+  that `debug_assert`s the open/closed flag, with no public constructor.
+  Each exposes only what makes sense for the answer it holds: `vertices`,
+  `edges`, `is_valid_for(&self, graph: &UnGraph<(), ()>) -> bool`, and
+  `Display`; `HamiltonianPath` additionally has
+  `endpoints() -> (NodeIndex, NodeIndex)` (no `Option`, since a single-vertex
+  path reports its one vertex as both ends).  Neither has `len()` —
+  `vertices().len()` is right there, and adding `len()` would trip the
+  standard `clippy::len_without_is_empty` lint, which fires on exported types
+  and would want a companion `is_empty()` that can only ever return `false`.
+  That is the ordinary Rust lint, not a convention local to this crate.  Five
+  `From` impls convert to `Decomposition`: by value and by reference for each
+  newtype, plus `From<&Decomposition> for Decomposition` (a clone; this does
+  not conflict with std's reflexive blanket impl, which yields a different
+  `Self`).
+- `src/segment.rs` — `Segment` becomes `pub(crate)`, along with all of its
+  methods.  `Decomposition::new`, `segments` and `as_hamiltonian_cycle` become
+  `pub(crate)` too, since a `pub fn` cannot expose a now-private type;
+  `Decomposition::len`, `is_empty` and `covered_vertices` stay `pub`.
+  `Decomposition` and `SegmentError` stay `pub` and re-exported.  Reword any
+  doc comment on a `pub` item that linked `[`Segment`]`, since that item is no
+  longer public and `private_intra_doc_links` will flag it.
+- `src/render.rs` — `board_ascii`, `dot` and `svg` take
+  `impl Into<Decomposition>` instead of `&Decomposition`, so a
+  `HamiltonianCycle`, a `HamiltonianPath`, or a `Decomposition` can all be
+  rendered directly, and one function body still serves both a final answer
+  and a mid-refinement counterexample.
+- `src/lib.rs` — `find_hamiltonian_cycle` returns
+  `Result<Option<HamiltonianCycle>, Error>`; `find_hamiltonian_path` returns
+  `Result<Option<HamiltonianPath>, Error>`.  The wrap happens at the three
+  points that produce an answer: `Step::Found` in each function, and the
+  `n == 1` trivial path.
+
+**Tests:** `solution.rs` gets its own `mod tests` (`mod cycle`, `mod path`,
+`mod conversions`), following `segment.rs`'s layout of submodules inside
+`#[cfg(test)] mod tests`.  Existing entry-point and renderer tests are updated
+to call `is_valid_for` instead of `is_hamiltonian_cycle`/`is_hamiltonian_path`,
+and one test per renderer is added that passes a `HamiltonianCycle` instead of
+a hand-built `Decomposition`, to pin the `Into` plumbing.
+
+**Done when:** `cargo build`, `cargo clippy --all-targets`, `cargo test` and
+`cargo doc --no-deps` are all clean, and no external behaviour changed — this
+is a representation change at the public boundary only.

@@ -1,9 +1,11 @@
 //! Hamiltonian cycles and paths, found by CEGAR (counterexample-guided
 //! abstraction refinement) over an incremental SAT solver.
 //!
-//! The whole public surface is the two functions below.  The engine searches
+//! The public surface is the two functions below, plus the answer types they
+//! return: [`HamiltonianCycle`] and [`HamiltonianPath`].  The engine searches
 //! for Hamiltonian **cycles**; paths are answered by reducing them to a cycle
-//! query on a graph with one extra vertex (see the private `reduction` module).
+//! query on a graph with one extra vertex (see the private `reduction`
+//! module).
 //!
 //! Both functions distinguish three outcomes:
 //!
@@ -31,14 +33,17 @@ mod reduction;
 mod refinement;
 pub mod render;
 mod segment;
+mod solution;
 #[cfg(test)]
 mod testing;
 
 pub use cycles::CoverError;
 pub use reduction::ReductionError;
-pub use segment::{Decomposition, Segment, SegmentError};
+pub use segment::{Decomposition, SegmentError};
+pub use solution::{HamiltonianCycle, HamiltonianPath};
 
 use petgraph::graph::UnGraph;
+use segment::Segment;
 use std::fmt;
 
 /// Something went wrong, or the search gave up.
@@ -102,9 +107,11 @@ impl From<CoverError> for Error {
 /// over it.  It is public in its own right because some instances are genuinely
 /// cycle problems — a *closed* knight's tour, for one.
 ///
-/// Returns the cycle as a closed [`Segment`] in canonical orientation, or
+/// Returns the cycle as a [`HamiltonianCycle`] in canonical orientation, or
 /// `Ok(None)` if the graph has no Hamiltonian cycle.
-pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>) -> Result<Option<Segment>, Error> {
+pub fn find_hamiltonian_cycle(
+    graph: &UnGraph<(), ()>,
+) -> Result<Option<HamiltonianCycle>, Error> {
     // No simple graph on fewer than 3 vertices has a cycle.
     if graph.node_count() < 3 {
         return Ok(None);
@@ -114,7 +121,7 @@ pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>) -> Result<Option<Segment>
     let result = search.run()?;
 
     match result {
-        driver::Step::Found(segment) => Ok(Some(segment)),
+        driver::Step::Found(segment) => Ok(Some(HamiltonianCycle::new(segment))),
         driver::Step::NoCycle => Ok(None),
         driver::Step::LimitReached => Err(Error::LimitExceeded),
         driver::Step::Spurious { .. } => {
@@ -130,14 +137,16 @@ pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>) -> Result<Option<Segment>
 ///
 /// Internally this adds an apex vertex joined to every vertex of `graph`,
 /// searches for a Hamiltonian cycle in that larger graph, and deletes the apex
-/// from the cycle it finds.  The returned segment is open and indexes the
+/// from the cycle it finds.  The returned [`HamiltonianPath`] indexes the
 /// vertices of `graph`, not of the reduced graph.
 ///
 /// There is deliberately no way to ask for a path with particular endpoints —
 /// "any path" is the question CEGAR answers.  See the `reduction` module.
 ///
 /// Returns `Ok(None)` if no Hamiltonian path exists.
-pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>) -> Result<Option<Segment>, Error> {
+pub fn find_hamiltonian_path(
+    graph: &UnGraph<(), ()>,
+) -> Result<Option<HamiltonianPath>, Error> {
     match graph.node_count() {
         0 => return Ok(None),
         1 => {
@@ -145,7 +154,7 @@ pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>) -> Result<Option<Segment>,
             let vertex = graph.node_indices().next().unwrap();
             let segment = Segment::new_open(vec![vertex])
                 .expect("a single vertex is a valid open segment");
-            return Ok(Some(segment));
+            return Ok(Some(HamiltonianPath::new(segment)));
         }
         _ => {
             // n >= 2: reduce to a cycle query.
@@ -163,9 +172,10 @@ pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>) -> Result<Option<Segment>,
     // Translate the result back to a path in the original graph.
     match result {
         driver::Step::Found(cycle) => {
-            let path = instance.path_from_cycle(&cycle)?;
+            let segment = instance.path_from_cycle(&cycle)?;
+            let path = HamiltonianPath::new(segment);
             debug_assert!(
-                path.is_hamiltonian_path(graph),
+                path.is_valid_for(graph),
                 "find_hamiltonian_path is about to return an answer that is \
                  not actually a Hamiltonian path of the original graph: {path}"
             );
@@ -196,10 +206,7 @@ mod tests {
             // Path should succeed.
             let path_result = assert_ok!(find_hamiltonian_path(&graph));
             let path = path_result.expect("path graph has a Hamiltonian path");
-            assert!(
-                path.is_hamiltonian_path(&graph),
-                "not a Hamiltonian path: {path}"
-            );
+            assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
 
             // Cycle should fail (conclusively).
             let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
@@ -213,10 +220,7 @@ mod tests {
             // Path should succeed.
             let path_result = assert_ok!(find_hamiltonian_path(&graph));
             let path = path_result.expect("5x5 knight's graph has an open tour");
-            assert!(
-                path.is_hamiltonian_path(&graph),
-                "not a Hamiltonian path: {path}"
-            );
+            assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
 
             // Cycle should fail.
             let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
@@ -230,7 +234,7 @@ mod tests {
             let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
             let cycle = cycle_result.expect("triangle has a Hamiltonian cycle");
             assert!(
-                cycle.is_hamiltonian_cycle(&graph),
+                cycle.is_valid_for(&graph),
                 "not a Hamiltonian cycle: {cycle}"
             );
         }
@@ -272,8 +276,7 @@ mod tests {
             let graph = graph_of(1, &[]);
             let result = assert_ok!(find_hamiltonian_path(&graph));
             let path = result.expect("a single vertex is a trivial open path");
-            assert!(!path.is_closed());
-            assert_eq!(path.len(), 1);
+            assert_eq!(path.vertices().len(), 1);
         }
 
         #[test]
@@ -281,10 +284,7 @@ mod tests {
             let graph = graph_of(2, &[(0, 1)]);
             let result = assert_ok!(find_hamiltonian_path(&graph));
             let path = result.expect("two connected vertices form a trivial open path");
-            assert!(
-                path.is_hamiltonian_path(&graph),
-                "not a Hamiltonian path: {path}"
-            );
+            assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
         }
     }
 

@@ -67,7 +67,8 @@ Each was considered and rejected for a stated reason.
 | Encode Hamiltonian *paths* directly | The engine does cycles only.  Paths reduce to cycles; encoding them directly means fighting the endpoint asymmetry for nothing. |
 | Use one SAT variable per undirected edge | The algorithm is defined over *arcs*: two variables per edge, paired so that `var(u→v) ^ 1 == var(v→u)`.  The asymmetry clauses and the cut clauses both depend on that pairing.  An earlier draft of this file said otherwise; it was wrong. |
 | Let the caller constrain which path is found | Only "is there *any* Hamiltonian path" is wanted — that is the point of CEGAR.  An earlier draft had an `Endpoints` enum for pinning one or both ends; it has been cut.  See "Path-to-cycle reduction" for the one case where it might come back, and why it probably will not. |
-| Widen the public surface | Only the two entry points, `Segment`, `Error`, and their error types are `pub`, plus `generators` and `render`.  The driver, encoding, refinement and reduction internals stay private to this module tree. |
+| Widen the public surface | Only the two entry points, `HamiltonianPath`, `HamiltonianCycle`, `Decomposition`, `Error` and the error types are `pub`, plus `generators` and `render`.  The driver, encoding, refinement and reduction internals stay private to this module tree. |
+| Merge `HamiltonianPath` and `HamiltonianCycle` back into one type | The shared internal representation is `Segment`/`Decomposition`, and that sharing is what matters — one *public* type forced four meaningless methods (`is_closed`, `endpoints`, `is_hamiltonian_path`, plus the `new_open`/`new_closed`/`canonicalize` construction machinery) onto every caller, most of them nonsensical for whichever answer was actually held. |
 | Report "no Hamiltonian path exists" as an error | It is an ordinary answer: `Ok(None)`.  `Err` means the question was *not settled*. |
 | Make anything generic over `EdgeType` | Concretely `UnGraph<(), ()>`.  The algorithm is now known and takes an undirected graph — it derives its own arc orientation internally — so there is still nothing to generalise over.  Changing one concrete type later is easy; unwinding premature generics is not. |
 
@@ -98,7 +99,8 @@ investigation is needed.
 | File | Visibility | Contents |
 |---|---|---|
 | `lib.rs` | public surface | the two entry points, `Error`, re-exports |
-| `segment.rs` | `pub` types, re-exported | `Segment`, `Decomposition`, `SegmentError` |
+| `segment.rs` | private module, `Decomposition` and `SegmentError` re-exported | `Segment`, `Decomposition`, `SegmentError` |
+| `solution.rs` | **`pub`** types, re-exported | `HamiltonianCycle`, `HamiltonianPath` |
 | `reduction.rs` | private module | `CycleInstance`, `ReductionError` |
 | `encoding.rs` | private module | arc variable map, cycle-cover CNF (Algorithm C steps C1–C2), DIMACS dump |
 | `precheck.rs` | private module | connectivity, degree, bridge and articulation checks |
@@ -123,10 +125,10 @@ The entire public surface:
 
 ```rust
 pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>)
-    -> Result<Option<Segment>, Error>;
+    -> Result<Option<HamiltonianCycle>, Error>;
 
 pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>)
-    -> Result<Option<Segment>, Error>;
+    -> Result<Option<HamiltonianPath>, Error>;
 ```
 
 Neither takes a parameter saying *which* cycle or path is wanted.  "Any" is the
@@ -466,6 +468,16 @@ This is deliberate and load-bearing:
   counterexamples, so the round-by-round visualisation comes free.
 - Validation is one function: segments disjoint, every consecutive pair a real
   edge, then the Hamiltonicity predicate on top.
+
+This is a statement about the **internal** representation, not the public one.
+The two entry points do not hand back a `Segment` or a `Decomposition`; each
+wraps its answer in a thin public newtype, `HamiltonianCycle` or
+`HamiltonianPath`, that exposes only what makes sense for the answer it holds.
+The renderers still take `impl Into<Decomposition>`, so they see one
+`Decomposition` regardless of whether the caller passed a final answer or a
+mid-refinement counterexample — that is what keeps the flipbook free; only the
+type returned to the caller is split.
+
 ### What `Decomposition` is *not*
 
 It is not the CEGAR loop's working data structure.  An earlier draft of this file
