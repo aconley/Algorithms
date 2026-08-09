@@ -41,8 +41,21 @@ use rustsat_cadical::CaDiCaL;
 use std::time::Duration;
 
 /// Knobs on a single search.
+///
+/// Every field has a default, so set only the ones you care about with struct
+/// update syntax:
+///
+/// ```
+/// use taocp_hamiltonian_paths::Config;
+///
+/// let config = Config { max_rounds: Some(100), ..Default::default() };
+/// ```
+///
+/// These govern *how the search runs* — its limits, and which optimisations
+/// are on.  None of them constrains *which* cycle or path is found; "any" is
+/// still the only question this crate answers.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct Config {
+pub struct Config {
     /// Give up after this many refinement rounds, if set.
     pub max_rounds: Option<usize>,
     /// Give up after this many solver conflicts in total, if set.
@@ -98,7 +111,7 @@ pub(crate) enum Step {
 /// what show whether one refinement rule beats another, which is the substance
 /// of the exercise; treat them as part of the result.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub(crate) struct Stats {
+pub struct Stats {
     /// Refinement rounds completed, not counting the round that settled it.
     pub rounds: usize,
     /// Clauses in the initial encoding of the abstraction.
@@ -412,7 +425,6 @@ impl<'g> CegarSearch<'g> {
     /// `None` before the first [`step`](Self::step).  The inner `Result` fails
     /// only if the cover is malformed, which would mean the encoding and the
     /// decoder disagree.
-    #[allow(dead_code)] // used by the renderers, phase 11
     pub(crate) fn decomposition(
         &self,
     ) -> Option<Result<Decomposition, super::SegmentError>> {
@@ -437,12 +449,6 @@ impl<'g> CegarSearch<'g> {
         var
     }
 
-    #[allow(dead_code)] // used by the renderers, phase 11
-    pub(crate) fn graph(&self) -> &'g UnGraph<(), ()> {
-        self.graph
-    }
-
-    #[allow(dead_code)] // used by the pub bench entry point, phase 12
     pub(crate) fn stats(&self) -> &Stats {
         &self.stats
     }

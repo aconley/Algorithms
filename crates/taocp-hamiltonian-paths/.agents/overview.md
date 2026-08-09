@@ -56,7 +56,7 @@ Each was considered and rejected for a stated reason.
 | Encode Hamiltonian *paths* directly | The engine does cycles only.  Paths reduce to cycles; encoding them directly means fighting the endpoint asymmetry for nothing. |
 | Use one SAT variable per undirected edge | The algorithm is defined over *arcs*: two variables per edge, paired so that `var(u→v) ^ 1 == var(v→u)`.  The asymmetry clauses and the cut clauses both depend on that pairing.  An earlier draft of this file said otherwise; it was wrong. |
 | Let the caller constrain which path is found | Only "is there *any* Hamiltonian path" is wanted — that is the point of CEGAR.  An earlier draft had an `Endpoints` enum for pinning one or both ends; it has been cut.  See "Path-to-cycle reduction" for the one case where it might come back, and why it probably will not. |
-| Widen the public surface | Only the two entry points, `HamiltonianPath`, `HamiltonianCycle`, `Decomposition`, `Error` and the error types are `pub`, plus `generators` and `render`.  The driver, encoding, refinement and reduction internals stay private to this module tree. |
+| Widen the public surface | Only the two entry points, `Search`, `Progress`, `Config`, `Stats`, `HamiltonianPath`, `HamiltonianCycle`, `Decomposition`, `Error` and the error types are `pub`, plus `generators` and `render`.  The driver, encoding, refinement and reduction internals stay private to this module tree — `Search` is a thin window onto `CegarSearch`, not an export of it, and `Step` stays `pub(crate)`. |
 | Merge `HamiltonianPath` and `HamiltonianCycle` back into one type | The shared internal representation is `Segment`/`Decomposition`, and that sharing is what matters — one *public* type forced four meaningless methods (`is_closed`, `endpoints`, `is_hamiltonian_path`, plus the `new_open`/`new_closed`/`canonicalize` construction machinery) onto every caller, most of them nonsensical for whichever answer was actually held. |
 | Report "no Hamiltonian path exists" as an error | It is an ordinary answer: `Ok(None)`.  `Err` means the question was *not settled*. |
 | Make anything generic over `EdgeType` | Concretely `UnGraph<(), ()>`.  The algorithm is now known and takes an undirected graph — it derives its own arc orientation internally — so there is still nothing to generalise over.  Changing one concrete type later is easy; unwinding premature generics is not. |
@@ -90,6 +90,7 @@ investigation is needed.
 | `lib.rs` | public surface | the two entry points, `Error`, re-exports |
 | `segment.rs` | private module, `Decomposition` and `SegmentError` re-exported | `Segment`, `Decomposition`, `SegmentError` |
 | `solution.rs` | **`pub`** types, re-exported | `HamiltonianCycle`, `HamiltonianPath` |
+| `search.rs` | **`pub`** types, re-exported | `Search`, `Progress` — the round-by-round window onto `driver.rs` |
 | `reduction.rs` | private module | `CycleInstance`, `ReductionError` |
 | `encoding.rs` | private module | arc variable map, cycle-cover CNF (Algorithm C steps C1–C2), DIMACS dump |
 | `precheck.rs` | private module | connectivity, degree, bridge and articulation checks |
@@ -110,18 +111,48 @@ which stays private.
 
 ## Public API
 
-The entire public surface:
+The two one-shot entry points:
 
 ```rust
-pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>)
+pub fn find_hamiltonian_cycle(graph: &UnGraph<(), ()>, config: Config)
     -> Result<Option<HamiltonianCycle>, Error>;
 
-pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>)
+pub fn find_hamiltonian_path(graph: &UnGraph<(), ()>, config: Config)
     -> Result<Option<HamiltonianPath>, Error>;
 ```
 
 Neither takes a parameter saying *which* cycle or path is wanted.  "Any" is the
-only question asked, and it is the question CEGAR answers.
+only question asked, and it is the question CEGAR answers.  `Config` is not a
+breach of that: it governs how the search *runs* — round and conflict limits,
+whether cycle merging is on, whether precondition checks are skipped — and
+never which answer comes back.  It implements `Default`, so the ordinary call
+passes `Config::default()`, and the merging on-versus-off comparison is the
+reason it is reachable at all.
+
+Plus one observation type, for callers that want the rounds rather than only
+the answer:
+
+```rust
+pub struct Search<'g>;                      // cycle search, watched round by round
+impl<'g> Search<'g> {
+    pub fn new(graph: &'g UnGraph<(), ()>, config: Config) -> Result<Self, Error>;
+    pub fn step(&mut self) -> Result<Progress, Error>;
+    pub fn cover(&self) -> Option<Result<Decomposition, Error>>;
+    pub fn stats(&self) -> &Stats;
+}
+
+pub enum Progress { Refining { cycles: usize }, Found(HamiltonianCycle),
+                    NoCycle, LimitReached }
+```
+
+`Search` is a window onto the same loop, not a second implementation.  It is
+what makes the multi-segment renderers reachable — without it a `Decomposition`
+with more than one segment cannot be obtained from outside the crate, and the
+per-round flipbook the rendering section describes is unbuildable.  It is also
+how a benchmark reaches `Stats` without running the solver twice.  There is no
+path variant: a path query is a cycle query on a graph with an added apex
+vertex, so its rounds would be reported against that larger graph rather than
+the one the caller passed.
 
 Three outcomes, and the distinction between them matters:
 
@@ -616,14 +647,33 @@ Deliberately left open; do not resolve these unilaterally:
 
 Resolved since this file was first written:
 
-- **How the benchmark reaches `Stats`:** a `pub` entry point returning `Stats`
-  alongside the answer.  A bench is a separate crate and still cannot see
-  `pub(crate)` items, but since the workspace split `pub` widens only this
-  solver crate rather than the whole repository, which makes it the cheap
-  answer rather than a trade-off.  original_plan.md phase 12 records it.
+- **How the benchmark reaches `Stats`:** `Search::stats`.  A bench is a separate
+  crate and cannot see `pub(crate)` items, and `Search` is `pub` for the
+  round-by-round rendering anyway, so the benchmark gets `Stats` off the same
+  handle without a second entry point and without running the solver twice.
 
 - **The algorithm** is Knuth's Algorithm C, transcribed in algorithm.md.
 - **Refinement strategy comparison** is cycle merging on versus off
   (`Config::merge_cycles`), which is why merging is a flag rather than
   unconditional.  A second arm comparing pairwise against `am1` for the apex's
   degree constraint is available if wanted.
+
+### Refinement rarely engages — measured
+
+Worth knowing before building that benchmark, because it decides whether there
+is anything to measure.  Across this crate's own generators, **the first solve
+almost always returns a single spanning cycle and no refinement round happens
+at all**: every satisfiable knight board tried up to 10×10, every grid, and
+every random instance at moderate density settled with `rounds == 0`.  Of ~210
+random graphs swept near the Hamiltonicity threshold (n from 40 to 100, edge
+probability 0.05 to 0.12), only three needed even one round.  CaDiCaL finds a
+spanning cycle directly.
+
+The one instance here that reliably fragments is the Petersen graph, which has
+no Hamiltonian cycle: the loop runs six rounds, each cover splitting into two
+cycles, until the abstraction goes unsatisfiable.
+
+So a merging on-versus-off comparison over the knight family would compare
+nothing — both arms take zero rounds.  A benchmark needs instance families that
+actually fragment, and finding or constructing them is the first piece of that
+work, not an afterthought.

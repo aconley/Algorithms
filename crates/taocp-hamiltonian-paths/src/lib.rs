@@ -2,10 +2,11 @@
 //! abstraction refinement) over an incremental SAT solver.
 //!
 //! The public surface is the two functions below, plus the answer types they
-//! return: [`HamiltonianCycle`] and [`HamiltonianPath`].  The engine searches
-//! for Hamiltonian **cycles**; paths are answered by reducing them to a cycle
-//! query on a graph with one extra vertex (see the private `reduction`
-//! module).
+//! return — [`HamiltonianCycle`] and [`HamiltonianPath`] — and [`Search`], for
+//! callers that want the refinement rounds rather than only the answer.  The
+//! engine searches for Hamiltonian **cycles**; paths are answered by reducing
+//! them to a cycle query on a graph with one extra vertex (see the private
+//! `reduction` module).
 //!
 //! Both functions distinguish three outcomes:
 //!
@@ -33,13 +34,16 @@ mod precheck;
 mod reduction;
 mod refinement;
 pub mod render;
+mod search;
 mod segment;
 mod solution;
 #[cfg(test)]
 mod testing;
 
 pub use cycles::CoverError;
+pub use driver::{Config, Stats};
 pub use reduction::ReductionError;
+pub use search::{Progress, Search};
 pub use segment::{Decomposition, SegmentError};
 pub use solution::{HamiltonianCycle, HamiltonianPath};
 
@@ -110,15 +114,19 @@ impl From<CoverError> for Error {
 ///
 /// Returns the cycle as a [`HamiltonianCycle`] in canonical orientation, or
 /// `Ok(None)` if the graph has no Hamiltonian cycle.
+///
+/// `config` governs limits and optimisations, not which cycle is found; pass
+/// [`Config::default`] unless you have a reason not to.
 pub fn find_hamiltonian_cycle(
     graph: &UnGraph<(), ()>,
+    config: Config,
 ) -> Result<Option<HamiltonianCycle>, Error> {
     // No simple graph on fewer than 3 vertices has a cycle.
     if graph.node_count() < 3 {
         return Ok(None);
     }
 
-    let mut search = driver::CegarSearch::new(graph, driver::Config::default())?;
+    let mut search = driver::CegarSearch::new(graph, config)?;
     let result = search.run()?;
 
     match result {
@@ -144,9 +152,13 @@ pub fn find_hamiltonian_cycle(
 /// There is deliberately no way to ask for a path with particular endpoints —
 /// "any path" is the question CEGAR answers.  See the `reduction` module.
 ///
+/// `config` governs limits and optimisations, not which path is found; pass
+/// [`Config::default`] unless you have a reason not to.
+///
 /// Returns `Ok(None)` if no Hamiltonian path exists.
 pub fn find_hamiltonian_path(
     graph: &UnGraph<(), ()>,
+    config: Config,
 ) -> Result<Option<HamiltonianPath>, Error> {
     match graph.node_count() {
         0 => return Ok(None),
@@ -166,8 +178,7 @@ pub fn find_hamiltonian_path(
     let instance = reduction::CycleInstance::new(graph)?;
 
     // Search for a Hamiltonian cycle in the reduced graph.
-    let mut search =
-        driver::CegarSearch::new(instance.graph(), driver::Config::default())?;
+    let mut search = driver::CegarSearch::new(instance.graph(), config)?;
     let result = search.run()?;
 
     // Translate the result back to a path in the original graph.
@@ -205,12 +216,14 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
 
             // Path should succeed.
-            let path_result = assert_ok!(find_hamiltonian_path(&graph));
+            let path_result =
+                assert_ok!(find_hamiltonian_path(&graph, Config::default()));
             let path = path_result.expect("path graph has a Hamiltonian path");
             assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
 
             // Cycle should fail (conclusively).
-            let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let cycle_result =
+                assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
             assert!(cycle_result.is_none());
         }
 
@@ -219,12 +232,14 @@ mod tests {
             let graph = crate::generators::knight_graph(5, 5).0;
 
             // Path should succeed.
-            let path_result = assert_ok!(find_hamiltonian_path(&graph));
+            let path_result =
+                assert_ok!(find_hamiltonian_path(&graph, Config::default()));
             let path = path_result.expect("5x5 knight's graph has an open tour");
             assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
 
             // Cycle should fail.
-            let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let cycle_result =
+                assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
             assert!(cycle_result.is_none());
         }
 
@@ -232,7 +247,8 @@ mod tests {
         fn triangle_has_cycle() {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
 
-            let cycle_result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let cycle_result =
+                assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
             let cycle = cycle_result.expect("triangle has a Hamiltonian cycle");
             assert!(
                 cycle.is_valid_for(&graph),
@@ -247,35 +263,35 @@ mod tests {
         #[test]
         fn cycle_empty_graph() {
             let graph = graph_of(0, &[]);
-            let result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let result = assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
             assert!(result.is_none());
         }
 
         #[test]
         fn cycle_single_vertex() {
             let graph = graph_of(1, &[]);
-            let result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let result = assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
             assert!(result.is_none());
         }
 
         #[test]
         fn cycle_two_vertices() {
             let graph = graph_of(2, &[(0, 1)]);
-            let result = assert_ok!(find_hamiltonian_cycle(&graph));
+            let result = assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
             assert!(result.is_none());
         }
 
         #[test]
         fn path_empty_graph() {
             let graph = graph_of(0, &[]);
-            let result = assert_ok!(find_hamiltonian_path(&graph));
+            let result = assert_ok!(find_hamiltonian_path(&graph, Config::default()));
             assert!(result.is_none());
         }
 
         #[test]
         fn path_single_vertex() {
             let graph = graph_of(1, &[]);
-            let result = assert_ok!(find_hamiltonian_path(&graph));
+            let result = assert_ok!(find_hamiltonian_path(&graph, Config::default()));
             let path = result.expect("a single vertex is a trivial open path");
             assert_eq!(path.vertices().len(), 1);
         }
@@ -283,7 +299,7 @@ mod tests {
         #[test]
         fn path_two_vertices() {
             let graph = graph_of(2, &[(0, 1)]);
-            let result = assert_ok!(find_hamiltonian_path(&graph));
+            let result = assert_ok!(find_hamiltonian_path(&graph, Config::default()));
             let path = result.expect("two connected vertices form a trivial open path");
             assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
         }
