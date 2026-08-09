@@ -14,6 +14,7 @@
 use petgraph::graph::{EdgeIndex, NodeIndex, UnGraph};
 use rustsat::instances::Cnf;
 use rustsat::types::{Clause, Lit};
+#[cfg(test)]
 use std::io::{self, Write};
 
 /// The map between graph arcs and SAT variables.
@@ -143,7 +144,10 @@ pub(crate) fn cycle_cover_cnf(graph: &UnGraph<(), ()>) -> Cnf {
 /// solver on a dumped round separates "the encoding is wrong" from "the
 /// refinement is wrong".  There is no DIMACS *input* path, and none should be
 /// added.
-#[allow(dead_code)] // a debugging aid, invoked ad hoc; nothing calls it
+///
+/// Compiled only for tests, which are its only callers.  To dump a real round
+/// while debugging, drop the `cfg` and call it.
+#[cfg(test)]
 pub(crate) fn write_dimacs<W: Write>(cnf: &Cnf, w: &mut W) -> io::Result<()> {
     let n_vars = cnf
         .iter()

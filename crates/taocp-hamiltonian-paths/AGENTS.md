@@ -128,3 +128,23 @@ remain are targeted at one item each and carry a comment saying why it is
 there.  A change must introduce **no new warnings** of its own.  `cargo build
 --workspace --all-targets` is warning-clean, so any build warning you see is
 one you added.
+
+### `dead_code` on something only the tests use
+
+`cargo build` does not compile `#[cfg(test)] mod tests`, so an item whose only
+callers live there has no callers at all in a plain build, and `dead_code`
+fires even though `cargo test` is clean.  Reach for these in order:
+
+1. **Delete it.**  `mod tests` is a *child* of the module it sits in, so it
+   already sees that module's private fields.  A `pub(crate) fn apex(&self)`
+   returning `self.apex` buys a test nothing over writing `instance.apex`.
+   Most accessors that look test-only are simply unnecessary.
+2. **`#[cfg(test)]` on the item**, if it is a genuine helper rather than an
+   accessor — `encoding::write_dimacs` is the example.  The item then exists
+   only where it is used, so no lint is suppressed.  Any import that exists
+   solely to serve it needs the same attribute.
+3. **`#[allow(dead_code)]`** only when the item has no caller in *any*
+   configuration and is being kept deliberately, with a comment saying why.
+
+Reaching for 3 first is what leaves a lint permanently silenced on an item
+that may later become dead for a real reason.
