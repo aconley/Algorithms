@@ -273,6 +273,7 @@ C6.8. [Reverse subpath.] Set u = w′, u′ = SUCC[u]. While u != v′ , set
        u′′ = SUCC[u′], SUCC[u′] = u, PRED[u] = u′ , u = u′ , u′ = u′′ .
 C6.9. [Merge.] Set SUCC[v] = v′, SUCC[w′] = w, PRED[v′] = v, PRED[w] = w′,
        u = v′ . Repeatedly set CID[u] = c and u = SUCC[u] until u == w.
+       Finally set w = v′.
 C6.10. [Delete c′ .] Set t = t−1; go to C7 if t == 1. Otherwise set 
        k = CLOC[c′]. If k > j, set CYC[k] = CYC[t] and CLOC[CYC[k]] = k.
        Otherwise set j = j − 1, and while k < t set CYC[k] = CYC[k+1], 
@@ -293,15 +294,14 @@ Two facts that make this sound, so they do not have to be rederived:
   merged cycle is a union of whole model cycles, so no model arc crosses it, so
   the model violates the cut clause.  Progress in step C8 is still guaranteed.
 
-One correction the implementation makes to the steps as written above, because
-taking them literally corrupts SUCC.  C6.9 splices v′ … w′ in between v and w,
-which leaves SUCC[v] = v′ rather than w; C6.11 then carries on through the
-remaining neighbours of v with a w that is no longer SUCC[v].  A second merge at
-the same v splices its cycle in between v and that same stale w, so w ends up
-with two predecessors and the cycle absorbed first is orphaned.  **Set w ← v′ at
-the end of C6.9**, restoring the invariant w = SUCC[v] that C6.3 establishes and
-C6.12 maintains.  As a bonus, C6.12's walk then continues through the newly
-absorbed vertices, so they are examined for merges too.
+C6.9's closing ‘w = v′’ is a correction to the step as originally published,
+confirmed by Knuth.  Without it the merge leaves SUCC[v] = v′ rather than w, so
+C6.11 carries on through v's remaining neighbours with a stale w; a second merge
+at the same v then splices its cycle in between v and that same w, giving w two
+predecessors and orphaning the cycle absorbed first.  Setting w = v′ restores the
+invariant w = SUCC[v] that C6.3 establishes and C6.12 maintains, and as a bonus
+C6.12's walk then continues through the newly absorbed vertices, so they are
+examined for merges too.
 
 Working the example above through one merge pass gives, for j = 0, c = 1:
 v = HEAD[1] = 0 and w = SUCC[0] = 2.  Neighbours 2 and 3 of v are already in c,

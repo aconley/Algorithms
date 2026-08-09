@@ -206,15 +206,14 @@ impl CycleCover {
     /// otherwise carries is not wanted here, which is why this takes no
     /// [`ArcVars`].
     ///
-    /// **One correction to that transcription**, which is load-bearing.  C6.9
-    /// splices `v' .. w'` in between `v` and `w`, leaving `SUCC[v] == v'`
-    /// rather than `w`; C6.11 then continues over the remaining neighbours of
-    /// `v` with a `w` that is no longer `SUCC[v]`.  A second merge at the same
-    /// `v` would splice its cycle in between `v` and that same stale `w`,
-    /// giving `w` two predecessors and orphaning the cycle absorbed first.
-    /// Setting `w = v'` at the end of C6.9 restores the step's own invariant
-    /// that `w == SUCC[v]`, and has the further merit of extending C6.12's
-    /// walk over the newly absorbed vertices.
+    /// C6.9's closing `w = v'` is **load-bearing**, and is a correction to the
+    /// step as originally published, confirmed by Knuth.  Without it the merge
+    /// leaves `SUCC[v] == v'` rather than `w`, so C6.11 continues over `v`'s
+    /// remaining neighbours with a stale `w`; a second merge at the same `v`
+    /// would then splice its cycle in between `v` and that same `w`, giving
+    /// `w` two predecessors and orphaning the cycle absorbed first.  It also
+    /// has the merit of extending C6.12's walk over the newly absorbed
+    /// vertices.
     pub(crate) fn merge(&mut self, graph: &UnGraph<(), ()>) {
         // C6.1 [Begin loop on j.]
         let mut j = 0usize;
@@ -273,7 +272,7 @@ impl CycleCover {
                         self.cid[u.index()] = c;
                         u = self.succ[u.index()];
                     }
-                    // Restore w == SUCC[v]; see this method's doc comment.
+                    // Restores w == SUCC[v]; see this method's doc comment.
                     w = v_prime;
 
                     // C6.10 [Delete c'.]  Knuth checks t == 1 before touching
