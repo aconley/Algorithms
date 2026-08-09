@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//workspaces/taocp/**)",
+      "Bash(cargo test -p taocp sat::dpll_claude)",
+      "Bash(cd /workspaces/taocp && cargo test -p taocp sat::dpll_claude 2>&1 | grep -E \"warning|error|FAILED|ok\\\\.$|test result\")",
+      "Bash(cd /workspaces/taocp && cargo build 2>&1)",
+      "Bash(cd /workspaces/taocp && cargo test 2>&1 | tail -30)",
+      "Bash(cd /workspaces/taocp && cargo bench --bench dpll_benchmark --no-run 2>&1)",
+      "Bash(cargo bench --bench dpll_benchmark -- \"r_prime\" --warm-up-time 1 --measurement-time 3 2>&1 | grep -E \"\\(Benchmarking|time:|thrpt:\\)\")",
+      "Bash(cargo bench --bench dpll_benchmark --no-run 2>&1 | tail -5)",
+      "Bash(cargo test 2>&1 | tail -5)",
+      "Bash(cargo test 2>&1 | grep -E \"^test result\")",
+      "Bash(cargo test --lib 2>&1 | grep -E \"\\(FAILED|error|test result\\)\")",
+      "Bash(cargo test sat::dpll_alternatives 2>&1 | tail -20)"
+    ]
+  }
+}

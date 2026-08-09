@@ -1,0 +1,13 @@
+[package]
+name = "taocp-sat"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dev-dependencies]
+claim.workspace = true
+criterion.workspace = true
+
+[[bench]]
+name = "dpll_benchmark"
+harness = false

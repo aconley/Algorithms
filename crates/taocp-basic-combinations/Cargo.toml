@@ -1,0 +1,12 @@
+[package]
+name = "taocp-basic-combinations"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
+[[bench]]
+name = "combinatoric_benchmark"
+harness = false

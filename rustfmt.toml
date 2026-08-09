@@ -1,0 +1,12 @@
+# Rust code in this repository is formatted at 90 columns rather than
+# rustfmt's default of 100.
+#
+# This lives at the repository root, not in a subdirectory, because `cargo fmt`
+# resolves its configuration from the crate root and silently ignores nested
+# rustfmt.toml files — a nested config would be undone by the next `cargo fmt`.
+#
+# 90 rather than 80: at 80, rustfmt breaks ordinary `write!` calls across four
+# lines for no readability gain.  90 tightens the genuinely long signatures
+# without that.  Note that rustfmt on stable does not reflow comments at all;
+# prose is hand-wrapped (see src/hamiltonian_paths/AGENTS.md).
+max_width = 90

@@ -3,8 +3,8 @@ FROM rust:latest
 ARG TZ
 ENV TZ="$TZ"
 
-# Install Node.js 20.x
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+# Install Node.js 22.x
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 
 # Install basic development tools
 RUN apt-get update && apt-get install -y \
@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
   gnupg2 \
   curl \
   build-essential \
+  libclang-dev \
   nodejs \
   vim \
   ripgrep \
@@ -71,8 +72,14 @@ RUN rustup component add clippy rustfmt rust-analyzer
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
 ENV PATH=$PATH:/usr/local/share/npm-global/bin
 
-# Install Claude Code and Gemini CLI
-RUN npm install -g @anthropic-ai/claude-code @google/gemini-cli @openai/codex
+# Install Codex
+RUN npm install -g @openai/codex
+
+# Claude Code and Antigravity CLI both ship native installers that drop their
+# binaries (claude, agy) into ~/.local/bin
+ENV PATH=/home/$USERNAME/.local/bin:$PATH
+RUN curl -fsSL https://claude.ai/install.sh | bash
+RUN curl -fsSL https://antigravity.google/cli/install.sh | bash
 
 # Set the default shell to fish
 ENV SHELL=/usr/bin/fish
@@ -81,6 +88,8 @@ ENV SHELL=/usr/bin/fish
 RUN mkdir -p /home/$USERNAME/.config/fish && \
   echo "# Add cargo bin to PATH" >> /home/$USERNAME/.config/fish/config.fish && \
   echo "set -gx PATH /home/$USERNAME/.cargo/bin \$PATH" >> /home/$USERNAME/.config/fish/config.fish && \
+  echo "# Add natively-installed CLIs (claude, agy) to PATH" >> /home/$USERNAME/.config/fish/config.fish && \
+  echo "set -gx PATH /home/$USERNAME/.local/bin \$PATH" >> /home/$USERNAME/.config/fish/config.fish && \
   echo "# Set up fzf key bindings" >> /home/$USERNAME/.config/fish/config.fish && \
   echo "source /usr/share/doc/fzf/examples/key-bindings.fish 2>/dev/null; or true" >> /home/$USERNAME/.config/fish/config.fish && \
   chown -R $USERNAME:$USERNAME /home/$USERNAME/.config
