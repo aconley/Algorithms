@@ -184,47 +184,6 @@ mod tests {
     use crate::testing::graph_of;
     use claim::assert_ok;
 
-    /// Build a 5×5 knight's graph by hand.
-    fn knight_graph_5x5() -> UnGraph<(), ()> {
-        let mut graph = UnGraph::new_undirected();
-        for _ in 0..25 {
-            graph.add_node(());
-        }
-
-        let knight_moves = [
-            (-2, -1),
-            (-2, 1),
-            (-1, -2),
-            (-1, 2),
-            (1, -2),
-            (1, 2),
-            (2, -1),
-            (2, 1),
-        ];
-
-        for row in 0..5 {
-            for col in 0..5 {
-                let v1 = (row * 5 + col) as i32;
-                for &(dr, dc) in &knight_moves {
-                    let new_row = row as i32 + dr;
-                    let new_col = col as i32 + dc;
-                    if new_row >= 0 && new_row < 5 && new_col >= 0 && new_col < 5 {
-                        let v2 = (new_row * 5 + new_col) as usize;
-                        if (v1 as usize) < v2 {
-                            graph.add_edge(
-                                petgraph::graph::NodeIndex::new(v1 as usize),
-                                petgraph::graph::NodeIndex::new(v2),
-                                (),
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        graph
-    }
-
     mod basic_entry_points {
         use super::*;
 
@@ -248,7 +207,7 @@ mod tests {
 
         #[test]
         fn knight_5x5_has_path_but_no_cycle() {
-            let graph = knight_graph_5x5();
+            let graph = crate::generators::knight_graph(5, 5).0;
 
             // Path should succeed.
             let path_result = assert_ok!(find_hamiltonian_path(&graph));

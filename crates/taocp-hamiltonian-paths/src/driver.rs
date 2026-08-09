@@ -451,61 +451,8 @@ impl<'g> CegarSearch<'g> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::generators::{knight_graph, petersen};
     use crate::testing::{graph_of, v};
-
-    /// Builds the Petersen graph: 10 vertices, outer pentagon (0-1-2-3-4-0)
-    /// plus inner pentagram (5-7-9-6-8-5), with radii connecting i to (i+5).
-    fn petersen_graph() -> UnGraph<(), ()> {
-        let mut graph = graph_of(10, &[]);
-        // Outer pentagon
-        for i in 0..5 {
-            graph.add_edge(v(i), v((i + 1) % 5), ());
-        }
-        // Inner pentagram (each vertex to the one 2 steps away in the pentagon)
-        for i in 0..5 {
-            graph.add_edge(v(5 + i), v(5 + (i + 2) % 5), ());
-        }
-        // Radii connecting outer to inner
-        for i in 0..5 {
-            graph.add_edge(v(i), v(5 + i), ());
-        }
-        graph
-    }
-
-    /// Builds a 6×6 knight's graph: 36 vertices (rows 0-5, files 0-5),
-    /// edges connect squares a knight's move apart.
-    fn knight_6x6() -> UnGraph<(), ()> {
-        let mut graph = graph_of(36, &[]);
-
-        let knight_moves = [
-            (2, 1),
-            (2, -1),
-            (-2, 1),
-            (-2, -1),
-            (1, 2),
-            (1, -2),
-            (-1, 2),
-            (-1, -2),
-        ];
-
-        for r in 0..6 {
-            for f in 0..6 {
-                let from_idx = r * 6 + f;
-                for &(dr, df) in &knight_moves {
-                    let nr = r as i32 + dr;
-                    let nf = f as i32 + df;
-                    if nr >= 0 && nr < 6 && nf >= 0 && nf < 6 {
-                        let to_idx = (nr as usize) * 6 + (nf as usize);
-                        if from_idx < to_idx {
-                            graph.add_edge(v(from_idx), v(to_idx), ());
-                        }
-                    }
-                }
-            }
-        }
-
-        graph
-    }
 
     mod path_abc {
         use super::*;
@@ -609,7 +556,7 @@ mod tests {
             // but non-Hamiltonian. Its first model will be a spurious cover
             // (outer pentagon + inner pentagram), so at least one refinement
             // round is guaranteed.
-            let graph = petersen_graph();
+            let graph = petersen();
 
             let config = Config::default();
 
@@ -696,7 +643,7 @@ mod tests {
 
         #[test]
         fn knight_6x6_has_hamiltonian_cycle() {
-            let graph = knight_6x6();
+            let graph = knight_graph(6, 6).0;
 
             let config = Config::default();
 
@@ -742,14 +689,14 @@ mod tests {
             // is the sharper of the two cases: its answer is a *proof* of
             // non-existence, which merging could only break by making the
             // solver see a formula it should not have.
-            let (without, with) = both_ways(&petersen_graph());
+            let (without, with) = both_ways(&petersen());
             assert_eq!(without, Step::NoCycle);
             assert_eq!(with, Step::NoCycle);
         }
 
         #[test]
         fn knight_6x6_answers_the_same_either_way() {
-            let graph = knight_6x6();
+            let graph = knight_graph(6, 6).0;
             let (without, with) = both_ways(&graph);
 
             // Not the same *cycle* — merging returns one the solver never
@@ -770,7 +717,7 @@ mod tests {
         fn merging_is_recorded_against_the_pre_merge_count() {
             // Both per-round series are filled in on every refining round,
             // whether or not merging is on; with it off they are equal.
-            let graph = petersen_graph();
+            let graph = petersen();
             let config = Config {
                 merge_cycles: false,
                 ..Default::default()
