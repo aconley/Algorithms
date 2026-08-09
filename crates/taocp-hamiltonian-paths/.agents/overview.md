@@ -13,39 +13,28 @@ written, so that an implementing agent does not have to re-derive them or
 re-litigate them.  It covers representations, library choices, and — most
 importantly — the things that were deliberately **rejected**.
 
-The CEGAR algorithm itself is described in algorithm.md in this directory, and
-the phase-by-phase work order is in plan.md.
+The CEGAR algorithm itself is described in algorithm.md in this directory.
 
 ---
 
 ## Status
 
-A skeleton exists: every type, signature and doc comment is in place, and every
-body is `todo!()`.  This is the `taocp-hamiltonian-paths` member of the
-workspace; its crate root is `src/lib.rs`.
+The crate is implemented.  It is the `taocp-hamiltonian-paths` member of the
+workspace; its crate root is `src/lib.rs`, and there is no crate-level
+`#![allow(dead_code)]` — the few `#[allow]` attributes left are targeted and
+each carries a comment saying why.
 
-The job is to fill in the bodies — not to redesign the interfaces, which were
-settled deliberately and are documented here and in the doc comments.
+The interfaces were settled deliberately and are documented here and in the doc
+comments.  Read "Non-goals" below before changing one: it records what was
+considered and **rejected**, so those choices do not get re-litigated.
 
-**Read plan.md before starting.**  It is the work order: phases 0 through 11,
-each a commit with its own tests, with the fixtures and expected values spelled
-out, plus a deferred phase 12 for benchmarking.  This file explains *why* the
-design is what it is; plan.md says what to do.
-
-`lib.rs` carries a crate-level `#![allow(dead_code)]` so the unfinished skeleton
-does not bury real warnings.  **Remove it once the crate is implemented.**
-
-### Where the skeleton is known to be wrong
-
-The skeleton was written before Knuth's algorithm was transcribed, so parts of it
-described a design that did not survive contact with it.  The `Endpoints` enum
-has already been removed from `reduction.rs` and `lib.rs`.  What is left for
-phase 0 of plan.md, and should not be trusted until then:
-
-- `driver.rs`, on `next_var`: it says edge variables occupy `0..edge_count`.
-  They occupy `0..2*edge_count` — see "Graph representation" below.
-- `driver.rs`, on `CegarSearch::new`: it says "freezes every edge variable".  It
-  is every *arc* variable, all 2*m* of them.
+original_plan.md in this directory records the phased work order the crate was
+first built to, with the fixtures and expected values each step was checked
+against.  It is a **historical record, not a plan to follow.**  New work is
+scoped on its own terms; there is no need to fit it into a numbered phase, and
+the phase numbering should not be extended.  The one piece of deliberately
+unfinished work it still describes is the Criterion benchmark comparing cycle
+merging on versus off.
 
 ---
 
@@ -628,10 +617,10 @@ Deliberately left open; do not resolve these unilaterally:
 Resolved since this file was first written:
 
 - **How the benchmark reaches `Stats`:** a `pub` entry point returning `Stats`
-  alongside the segment.  A bench is a separate crate and still cannot see
+  alongside the answer.  A bench is a separate crate and still cannot see
   `pub(crate)` items, but since the workspace split `pub` widens only this
   solver crate rather than the whole repository, which makes it the cheap
-  answer rather than a trade-off.  plan.md phase 12 records it.
+  answer rather than a trade-off.  original_plan.md phase 12 records it.
 
 - **The algorithm** is Knuth's Algorithm C, transcribed in algorithm.md.
 - **Refinement strategy comparison** is cycle merging on versus off

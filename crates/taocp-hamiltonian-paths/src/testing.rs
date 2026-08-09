@@ -51,13 +51,13 @@ pub(crate) fn model_of(graph: &UnGraph<(), ()>, arcs: &[(usize, usize)]) -> Assi
 /// vertices named A through M, 21 edges.  Node indices follow the book's
 /// A=0 .. M=12 mapping.  This helper and the two below it are shared by
 /// `cycles.rs`'s and `encoding.rs`'s tests, and are reused as the merge
-/// fixture in `plan.md`'s phase 9.
+/// fixture in `original_plan.md`'s phase 9.
 ///
 /// The edge list was reconstructed from the book's stated at-least-one
 /// clauses for A, B and M, cross-checked against the three cycles
-/// `plan.md` gives for the merge example (a subset of this graph's edges),
-/// and confirmed vertex-by-vertex in conversation for the rest: C-D, D's
-/// third neighbour G, E's fourth neighbour H, and H-K.
+/// `original_plan.md` gives for the merge example (a subset of this graph's
+/// edges), and confirmed vertex-by-vertex in conversation for the rest: C-D,
+/// D's third neighbour G, E's fourth neighbour H, and H-K.
 pub(crate) fn knuth_graph() -> UnGraph<(), ()> {
     graph_of(
         13,

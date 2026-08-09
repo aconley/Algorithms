@@ -6,8 +6,8 @@
 //! on solver behaviour.
 //!
 //! See `.agents/algorithm.md`, "Clause conventions" and "Clauses encoding the
-//! cycle cover", for the underlying math, and `.agents/plan.md`, "Variable
-//! mapping", for the 0-based numbering used here — it supersedes
+//! cycle cover", for the underlying math, and `.agents/original_plan.md`,
+//! "Variable mapping", for the 0-based numbering used here — it supersedes
 //! `algorithm.md`'s 2-based one, but keeps the ⊕1 pairing that makes the
 //! asymmetry clauses and (later) the cut clauses work.
 
@@ -291,8 +291,8 @@ mod tests {
             assert_eq!(cnf.len(), 15);
         }
 
-        /// The general tripwire formula from `plan.md`: `m + 2n + 2 * sum_v
-        /// C(d_v, 2)`, checked against a graph with mixed degrees.
+        /// The general tripwire formula from `original_plan.md`: `m + 2n +
+        /// 2 * sum_v C(d_v, 2)`, checked against a graph with mixed degrees.
         #[test]
         fn matches_the_general_clause_count_formula() {
             let graph =

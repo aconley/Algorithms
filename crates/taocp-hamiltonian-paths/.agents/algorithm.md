@@ -4,7 +4,8 @@ This file describes how to use CEGAR to detect whether not a given graph
 has a hamiltonian cycle.  It is taken from Knuth Fascicle 8a (Hamiltonian paths).
 
 > **This file is a faithful transcription and keeps Knuth's conventions.**  The
-> implementation adapts them in two places, both documented in plan.md: variables
+> implementation adapts them in two places, both documented in
+> original_plan.md: variables
 > are numbered from 0 rather than from 2 (rustsat's `Var` is 0-based and we do not
 > need `0` as a sentinel, since arcs are looked up with `graph.find_edge` instead
 > of a dense `ADJ` matrix), and literals are `rustsat::types::Lit` rather than raw

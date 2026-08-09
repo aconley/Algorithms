@@ -22,7 +22,8 @@
 //! to; `.agents/overview.md` for the design decisions behind the
 //! representations used here, and for the constraints that must not be
 //! relitigated; `.agents/algorithm.md` for Knuth's Algorithm C; and
-//! `.agents/plan.md` for the phase-by-phase work order.
+//! `.agents/original_plan.md` for the work order the crate was first built
+//! to, which is a historical record rather than a plan to follow.
 
 mod cycles;
 mod driver;

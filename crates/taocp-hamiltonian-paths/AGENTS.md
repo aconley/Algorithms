@@ -1,10 +1,10 @@
 # Hamiltonian Paths — Working Conventions
 
 How to work in this crate.  These conventions are **local and authoritative**:
-the other crates in this workspace are an accumulation of separate exercises
-rather than a coherent body of work, so do not infer conventions from them.
-Where a neighbouring crate does something differently, that is not a precedent —
-follow this file.
+the other crates in this workspace implement algorithms from different sections
+of TAOCP and were written at different times, so do not infer conventions from
+them.  Where a neighbouring crate does something differently, that is not a
+precedent — follow this file.
 
 ## Where things are
 
@@ -12,13 +12,13 @@ follow this file.
 |---|---|
 | `.agents/overview.md` | The design decisions, and — more importantly — the alternatives that were considered and **rejected**, with reasons.  Read before changing an interface. |
 | `.agents/algorithm.md` | Knuth's Algorithm C (Fascicle 8a), transcribed, with implementation notes where the transcription needed adapting. |
-| `.agents/plan.md` | The phase-by-phase work order.  Each phase is one commit with its own tests. |
+| `.agents/original_plan.md` | The phased work order the crate was first built to, with the fixtures and expected values each step was checked against.  A **historical record, not a plan to follow** — new work is scoped on its own terms, not fitted into a numbered phase. |
 | `AGENTS.md` | This file: how to write the code, as opposed to what to write. |
 
 ## Formatting
 
-**Run rustfmt.**  Every file here is expected to be rustfmt-clean, and a phase is
-not complete until it is:
+**Run rustfmt.**  Every file here is expected to be rustfmt-clean, and a change
+is not complete until it is:
 
 ```bash
 cargo fmt -p taocp-hamiltonian-paths
@@ -123,7 +123,8 @@ will not notice when the wrong one is returned.
 
 ## Warnings
 
-`lib.rs` carries `#![allow(dead_code)]` while the skeleton is incomplete; it is
-removed in phase 8.  Until then, a phase must still introduce **no new warnings**
-of its own.  `cargo build --workspace --all-targets` is warning-clean, so any
-warning you see is one you added.
+There is no crate-level `#![allow(dead_code)]`; the `#[allow]` attributes that
+remain are targeted at one item each and carry a comment saying why it is
+there.  A change must introduce **no new warnings** of its own.  `cargo build
+--workspace --all-targets` is warning-clean, so any build warning you see is
+one you added.
