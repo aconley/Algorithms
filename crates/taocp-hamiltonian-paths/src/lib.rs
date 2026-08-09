@@ -29,13 +29,14 @@ pub mod generators;
 mod precheck;
 mod reduction;
 mod refinement;
+pub mod render;
 mod segment;
 #[cfg(test)]
 mod testing;
 
 pub use cycles::CoverError;
 pub use reduction::ReductionError;
-pub use segment::{Segment, SegmentError};
+pub use segment::{Decomposition, Segment, SegmentError};
 
 use petgraph::graph::UnGraph;
 use std::fmt;

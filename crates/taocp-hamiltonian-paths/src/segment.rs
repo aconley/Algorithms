@@ -275,13 +275,11 @@ impl Decomposition {
         Ok(Decomposition { segments })
     }
 
-    #[allow(dead_code)] // used by the renderers, phase 11
     pub fn segments(&self) -> &[Segment] {
         &self.segments
     }
 
     /// Number of segments.
-    #[allow(dead_code)] // used by the renderers, phase 11
     pub fn len(&self) -> usize {
         self.segments.len()
     }
@@ -292,7 +290,6 @@ impl Decomposition {
     }
 
     /// Total number of vertices covered across all segments.
-    #[allow(dead_code)] // used by the renderers, phase 11
     pub fn covered_vertices(&self) -> usize {
         self.segments.iter().map(Segment::len).sum()
     }
