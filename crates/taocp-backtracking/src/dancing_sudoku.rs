@@ -62,7 +62,7 @@ impl SudokuEntry {
         values
             .iter()
             .enumerate()
-            .filter(|(_, &val)| val != 0)
+            .filter(|&(_, &val)| val != 0)
             .map(|(idx, val)| SudokuEntry {
                 row: (idx / 9) as u8,
                 col: (idx % 9) as u8,
@@ -75,7 +75,7 @@ impl SudokuEntry {
         values
             .iter()
             .enumerate()
-            .filter(|(_, &val)| val != 0)
+            .filter(|&(_, &val)| val != 0)
             .map(|(idx, val)| SudokuEntry {
                 row: (idx / 9) as u8,
                 col: (idx % 9) as u8,

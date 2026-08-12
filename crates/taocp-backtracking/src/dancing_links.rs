@@ -90,7 +90,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match &mut self.state {
             IteratorState::DONE => None,
-            IteratorState::NEW(ref mut initial_state) => {
+            IteratorState::NEW(initial_state) => {
                 let mut solution_state =
                     Box::new(SolutionState::initiate(std::mem::take(initial_state)));
                 match solution_state.choose_next_item() {
@@ -111,10 +111,7 @@ where
                     }
                 }
             }
-            IteratorState::READY {
-                ref mut x,
-                ref mut solution_state,
-            } => {
+            IteratorState::READY { x, solution_state } => {
                 loop {
                     // Safety: all the indexing is internally controlled and
                     // kept consistent.
@@ -423,7 +420,7 @@ impl<ItemType> SolutionState<ItemType> {
         }
     }
 
-    unsafe fn cover(&mut self, item: u16) {
+    unsafe fn cover(&mut self, item: u16) { unsafe {
         let iu = item as usize;
         let mut p = self.option_nodes.get_unchecked(iu).dlink;
         while p != item {
@@ -434,9 +431,9 @@ impl<ItemType> SolutionState<ItemType> {
         let r = self.item_nodes.get_unchecked(iu).rlink;
         self.item_nodes.get_unchecked_mut(l as usize).rlink = r;
         self.item_nodes.get_unchecked_mut(r as usize).llink = l;
-    }
+    }}
 
-    unsafe fn hide(&mut self, p: u16) {
+    unsafe fn hide(&mut self, p: u16) { unsafe {
         let mut q = p + 1;
         while q != p {
             let qu = q as usize;
@@ -453,9 +450,9 @@ impl<ItemType> SolutionState<ItemType> {
                 q += 1;
             }
         }
-    }
+    }}
 
-    unsafe fn uncover(&mut self, item: u16) {
+    unsafe fn uncover(&mut self, item: u16) { unsafe {
         let iu = item as usize;
         let l = self.item_nodes.get_unchecked(iu).llink;
         let r = self.item_nodes.get_unchecked(iu).rlink;
@@ -467,9 +464,9 @@ impl<ItemType> SolutionState<ItemType> {
             self.unhide(p);
             p = self.option_nodes.get_unchecked(p as usize).ulink;
         }
-    }
+    }}
 
-    unsafe fn unhide(&mut self, p: u16) {
+    unsafe fn unhide(&mut self, p: u16) { unsafe {
         let mut q = p - 1;
         while q != p {
             let qu = q as usize;
@@ -486,9 +483,9 @@ impl<ItemType> SolutionState<ItemType> {
                 q -= 1;
             }
         }
-    }
+    }}
 
-    unsafe fn apply_move(&mut self, xl: u16) {
+    unsafe fn apply_move(&mut self, xl: u16) { unsafe {
         let mut p = xl + 1;
         while p != xl {
             let pu = p as usize;
@@ -501,9 +498,9 @@ impl<ItemType> SolutionState<ItemType> {
                 p += 1;
             }
         }
-    }
+    }}
 
-    unsafe fn unapply_move(&mut self, xl: u16) {
+    unsafe fn unapply_move(&mut self, xl: u16) { unsafe {
         if xl <= self.num_primary_items {
             return;
         }
@@ -519,7 +516,7 @@ impl<ItemType> SolutionState<ItemType> {
                 p -= 1;
             }
         }
-    }
+    }}
 
     // Choose the next item using the MRV heuristic.  Returns None if there is
     // no move.

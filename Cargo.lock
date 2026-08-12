@@ -814,7 +814,7 @@ dependencies = [
 
 [[package]]
 name = "taocp-backtracking"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "claim",
  "criterion",
@@ -823,14 +823,14 @@ dependencies = [
 
 [[package]]
 name = "taocp-basic-combinations"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
 ]
 
 [[package]]
 name = "taocp-hamiltonian-paths"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "claim",
  "petgraph",
@@ -840,7 +840,7 @@ dependencies = [
 
 [[package]]
 name = "taocp-sat"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "claim",
  "criterion",

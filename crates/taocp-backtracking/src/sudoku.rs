@@ -73,7 +73,7 @@ impl InitialPosition {
         values
             .iter()
             .enumerate()
-            .filter(|(_, &val)| val != 0)
+            .filter(|&(_, &val)| val != 0)
             .map(|(idx, val)| InitialPosition {
                 row: (idx / 9) as u8,
                 col: (idx % 9) as u8,
@@ -86,7 +86,7 @@ impl InitialPosition {
         values
             .iter()
             .enumerate()
-            .filter(|(_, &val)| val != 0)
+            .filter(|&(_, &val)| val != 0)
             .map(|(idx, val)| InitialPosition {
                 row: (idx / 9) as u8,
                 col: (idx % 9) as u8,
@@ -199,7 +199,7 @@ impl SolutionState {
             m = unused
                 .iter()
                 .enumerate()
-                .filter(|(_, &v)| v)
+                .filter(|&(_, &v)| v)
                 .map(|(idx, _)| Move {
                     square: Square::create(idx as u8 / 9, idx as u8 % 9),
                     current_move: 0,
@@ -260,12 +260,12 @@ impl SolutionState {
     // Chooses the next move and swaps it into place as m[l].
     // Assumes that self.l is in the range [0, n)
     #[inline(always)]
-    unsafe fn choose_next_move(&mut self) -> () {
+    unsafe fn choose_next_move(&mut self) -> () { unsafe {
         let next_move = self.suggest_next_move();
         self.m.swap(self.l, next_move.idx);
         self.m[self.l].current_move = 0;
         self.m[self.l].available_moves = next_move.available_moves;
-    }
+    }}
 
     // Returns the next move that should be made.  Assumes that self.l is in
     // the range [0, n)
@@ -394,7 +394,7 @@ impl Iterator for SudokuIterator {
                     }
                 }
             }
-            IteratorState::READY(ref mut solution_state) => {
+            IteratorState::READY(solution_state) => {
                 solution_state.l -= 1;
                 let result = solution_state.next();
                 if result.is_none() {
