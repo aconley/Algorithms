@@ -1,5 +1,7 @@
 // Routines to generate combinations -- n things taken t at a time.
 
+use lending_iterator::prelude::*;
+
 pub trait Visitor {
     // Visits a single combination.  Returns true if further solutions should
     // be visited, otherwise false.
@@ -318,6 +320,174 @@ impl Iterator for CombinationsIter {
     }
 }
 
+// LendingIterator version of Algorithm L (basic_generate).  Like the Visitor
+// pattern, yields each combination as a borrowed view into the internal
+// working buffer instead of cloning it.
+pub struct BasicGenerateLendingIter {
+    c: Vec<u32>,
+    ts: usize,
+    started: bool,
+    done: bool,
+}
+
+impl BasicGenerateLendingIter {
+    pub fn new(n: u32, t: u32) -> BasicGenerateLendingIter {
+        assert!(n >= t, "n must be >= t");
+
+        let ts = t as usize;
+
+        // L1: Initialize
+        let mut c = Vec::with_capacity(ts + 2);
+        for i in 0..ts {
+            c.push(i as u32);
+        }
+        c.push(n);
+        c.push(0);
+
+        BasicGenerateLendingIter {
+            c,
+            ts,
+            started: false,
+            done: n == 0 || t == 0,
+        }
+    }
+}
+
+#[gat]
+impl LendingIterator for BasicGenerateLendingIter {
+    type Item<'next>
+    where
+        Self: 'next,
+    = &'next [u32];
+
+    fn next(&'_ mut self) -> Option<&'_ [u32]> {
+        if self.done {
+            return None;
+        }
+
+        if self.started {
+            // L3: Find c[j] to increase.
+            let mut j = 0;
+            while self.c[j] + 1 == self.c[j + 1] {
+                self.c[j] = j as u32;
+                j += 1;
+            }
+
+            // L4: Terminate.
+            if j >= self.ts {
+                self.done = true;
+                return None;
+            }
+
+            // L5: Increase c[j]
+            self.c[j] += 1;
+        }
+        self.started = true;
+
+        // L2: Visit.
+        Some(&self.c[0..self.ts])
+    }
+}
+
+// LendingIterator version of Algorithm T (combinations).  Like the Visitor
+// pattern, yields each combination as a borrowed view into the internal
+// working buffer instead of cloning it.
+pub struct CombinationsLendingIter {
+    c: Vec<u32>,
+    ts: usize,
+    j: usize,
+    started: bool,
+    done: bool,
+    single: bool,
+}
+
+impl CombinationsLendingIter {
+    pub fn new(n: u32, t: u32) -> CombinationsLendingIter {
+        assert!(n >= t, "n must be >= t");
+
+        let ts = t as usize;
+        let done = n == 0 || t == 0;
+        // Algorithm T assumes t < n.
+        let single = !done && n == t;
+
+        // We work with a 1 indexed array as in Knuth's specification,
+        // then slice for visiting.
+
+        // L1: Initialize
+        let mut c = Vec::with_capacity(ts + 2);
+        c.push(0); // Ignored
+        for i in 0..t {
+            c.push(i);
+        }
+        c.push(n);
+        c.push(0);
+
+        CombinationsLendingIter {
+            c,
+            ts,
+            j: ts,
+            started: false,
+            done,
+            single,
+        }
+    }
+}
+
+#[gat]
+impl LendingIterator for CombinationsLendingIter {
+    type Item<'next>
+    where
+        Self: 'next,
+    = &'next [u32];
+
+    fn next(&'_ mut self) -> Option<&'_ [u32]> {
+        if self.done {
+            return None;
+        }
+
+        if self.single {
+            self.done = true;
+            // L1's initialization already set c[1..=ts] to [0, ts).
+            return Some(&self.c[1..=self.ts]);
+        }
+
+        if self.started {
+            if self.j > 0 {
+                // T6: increase c_j
+                self.c[self.j] = self.j as u32;
+                self.j -= 1;
+            } else if self.c[1] + 1 < self.c[2] {
+                // T3: Easy case?
+                self.c[1] += 1;
+            } else {
+                // T4: find j.
+                self.c[1] = 0;
+                self.j = 2;
+                let mut x = self.c[2] + 1;
+                while x == self.c[self.j + 1] {
+                    self.j += 1;
+                    self.c[self.j - 1] = (self.j - 2) as u32;
+                    x = self.c[self.j] + 1;
+                }
+
+                // T5: done?
+                if self.j > self.ts {
+                    self.done = true;
+                    return None;
+                }
+
+                // T6: increase cj
+                self.c[self.j] = x;
+                self.j -= 1;
+            }
+        }
+        self.started = true;
+
+        // L2: Visit.
+        Some(&self.c[1..=self.ts])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -360,6 +530,26 @@ mod tests {
     #[test]
     fn combinations_iter_visit() {
         test_iter_visit(CombinationsIter::new);
+    }
+
+    #[test]
+    fn basic_generate_lending_count() {
+        test_lending_counts(BasicGenerateLendingIter::new);
+    }
+
+    #[test]
+    fn basic_generate_lending_visit() {
+        test_lending_visit(BasicGenerateLendingIter::new);
+    }
+
+    #[test]
+    fn combinations_lending_count() {
+        test_lending_counts(CombinationsLendingIter::new);
+    }
+
+    #[test]
+    fn combinations_lending_visit() {
+        test_lending_visit(CombinationsLendingIter::new);
     }
 
     fn test_counts(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
@@ -428,5 +618,39 @@ mod tests {
         assert_eq!(solutions.len(), 20);
         assert_eq!(solutions[0], [0, 1, 2]);
         assert_eq!(solutions[1], [0, 1, 3]);
+    }
+
+    #[apply(Gat!)]
+    fn test_lending_counts<I: LendingIterator>(f: impl Fn(u32, u32) -> I) {
+        // 3 choose 3
+        assert_eq!(f(3, 3).count(), 1);
+
+        // 3 choose 2
+        assert_eq!(f(3, 2).count(), 3);
+
+        // 5 choose 2
+        assert_eq!(f(5, 2).count(), 10);
+
+        // 6 choose 3
+        assert_eq!(f(6, 3).count(), 20);
+
+        // 10 choose 4
+        assert_eq!(f(10, 4).count(), 210);
+    }
+
+    #[apply(Gat!)]
+    fn test_lending_visit<I>(f: impl Fn(u32, u32) -> I)
+    where
+        I: for<'n> LendingIterator<Item<'n> = &'n [u32]>,
+    {
+        // 4 choose 4
+        let mut iter = f(4, 4);
+        assert_eq!(iter.next(), Some(&[0, 1, 2, 3][..]));
+        assert_eq!(iter.next(), None);
+
+        // 6 choose 3
+        let mut iter = f(6, 3);
+        assert_eq!(iter.next(), Some(&[0, 1, 2][..]));
+        assert_eq!(iter.next(), Some(&[0, 1, 3][..]));
     }
 }

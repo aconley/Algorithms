@@ -4,6 +4,9 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 
+[dependencies]
+lending-iterator.workspace = true
+
 [dev-dependencies]
 criterion.workspace = true
 
