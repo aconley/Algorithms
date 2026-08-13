@@ -161,6 +161,163 @@ pub fn combinations(n: u32, t: u32, v: &mut dyn Visitor) {
     }
 }
 
+// Iterator version of Algorithm L (basic_generate).  Yields owned combinations,
+// cloning out of the internal working buffer on each call to next().
+pub struct BasicGenerateIter {
+    c: Vec<u32>,
+    ts: usize,
+    started: bool,
+    done: bool,
+}
+
+impl BasicGenerateIter {
+    pub fn new(n: u32, t: u32) -> BasicGenerateIter {
+        assert!(n >= t, "n must be >= t");
+
+        let ts = t as usize;
+
+        // L1: Initialize
+        let mut c = Vec::with_capacity(ts + 2);
+        for i in 0..ts {
+            c.push(i as u32);
+        }
+        c.push(n);
+        c.push(0);
+
+        BasicGenerateIter {
+            c,
+            ts,
+            started: false,
+            done: n == 0 || t == 0,
+        }
+    }
+}
+
+impl Iterator for BasicGenerateIter {
+    type Item = Vec<u32>;
+
+    fn next(&mut self) -> Option<Vec<u32>> {
+        if self.done {
+            return None;
+        }
+
+        if self.started {
+            // L3: Find c[j] to increase.
+            let mut j = 0;
+            while self.c[j] + 1 == self.c[j + 1] {
+                self.c[j] = j as u32;
+                j += 1;
+            }
+
+            // L4: Terminate.
+            if j >= self.ts {
+                self.done = true;
+                return None;
+            }
+
+            // L5: Increase c[j]
+            self.c[j] += 1;
+        }
+        self.started = true;
+
+        // L2: Visit.
+        Some(self.c[0..self.ts].to_vec())
+    }
+}
+
+// Iterator version of Algorithm T (combinations).  Yields owned combinations,
+// cloning out of the internal working buffer on each call to next().
+pub struct CombinationsIter {
+    c: Vec<u32>,
+    ts: usize,
+    j: usize,
+    started: bool,
+    done: bool,
+    single: bool,
+}
+
+impl CombinationsIter {
+    pub fn new(n: u32, t: u32) -> CombinationsIter {
+        assert!(n >= t, "n must be >= t");
+
+        let ts = t as usize;
+        let done = n == 0 || t == 0;
+        // Algorithm T assumes t < n.
+        let single = !done && n == t;
+
+        // We work with a 1 indexed array as in Knuth's specification,
+        // then slice for visiting.
+
+        // L1: Initialize
+        let mut c = Vec::with_capacity(ts + 2);
+        c.push(0); // Ignored
+        for i in 0..t {
+            c.push(i);
+        }
+        c.push(n);
+        c.push(0);
+
+        CombinationsIter {
+            c,
+            ts,
+            j: ts,
+            started: false,
+            done,
+            single,
+        }
+    }
+}
+
+impl Iterator for CombinationsIter {
+    type Item = Vec<u32>;
+
+    fn next(&mut self) -> Option<Vec<u32>> {
+        if self.done {
+            return None;
+        }
+
+        if self.single {
+            self.done = true;
+            return Some((0..self.ts as u32).collect());
+        }
+
+        if self.started {
+            if self.j > 0 {
+                // T6: increase c_j
+                self.c[self.j] = self.j as u32;
+                self.j -= 1;
+            } else if self.c[1] + 1 < self.c[2] {
+                // T3: Easy case?
+                self.c[1] += 1;
+            } else {
+                // T4: find j.
+                self.c[1] = 0;
+                self.j = 2;
+                let mut x = self.c[2] + 1;
+                while x == self.c[self.j + 1] {
+                    self.j += 1;
+                    self.c[self.j - 1] = (self.j - 2) as u32;
+                    x = self.c[self.j] + 1;
+                }
+
+                // T5: done?
+                if self.j > self.ts {
+                    self.done = true;
+                    return None;
+                }
+
+                // T6: increase cj
+                self.c[self.j] = x;
+                self.j -= 1;
+            }
+        }
+        self.started = true;
+
+        // L2: Visit.
+        Some(self.c[1..=self.ts].to_vec())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -183,6 +340,26 @@ mod tests {
     #[test]
     fn combinations_visit() {
         test_visit(&combinations)
+    }
+
+    #[test]
+    fn basic_generate_iter_count() {
+        test_iter_counts(BasicGenerateIter::new);
+    }
+
+    #[test]
+    fn basic_generate_iter_visit() {
+        test_iter_visit(BasicGenerateIter::new);
+    }
+
+    #[test]
+    fn combinations_iter_count() {
+        test_iter_counts(CombinationsIter::new);
+    }
+
+    #[test]
+    fn combinations_iter_visit() {
+        test_iter_visit(CombinationsIter::new);
     }
 
     fn test_counts(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
@@ -221,5 +398,35 @@ mod tests {
         let mut cv = CountingVisitor::new();
         f(n, t, &mut cv);
         cv.n_solutions
+    }
+
+    fn test_iter_counts<I: Iterator<Item = Vec<u32>>>(f: impl Fn(u32, u32) -> I) {
+        // 3 choose 3
+        assert_eq!(f(3, 3).count(), 1);
+
+        // 3 choose 2
+        assert_eq!(f(3, 2).count(), 3);
+
+        // 5 choose 2
+        assert_eq!(f(5, 2).count(), 10);
+
+        // 6 choose 3
+        assert_eq!(f(6, 3).count(), 20);
+
+        // 10 choose 4
+        assert_eq!(f(10, 4).count(), 210);
+    }
+
+    fn test_iter_visit<I: Iterator<Item = Vec<u32>>>(f: impl Fn(u32, u32) -> I) {
+        // 4 choose 4
+        let solutions: Vec<_> = f(4, 4).collect();
+        assert_eq!(solutions.len(), 1);
+        assert_eq!(solutions[0], [0, 1, 2, 3]);
+
+        // 6 choose 3
+        let solutions: Vec<_> = f(6, 3).collect();
+        assert_eq!(solutions.len(), 20);
+        assert_eq!(solutions[0], [0, 1, 2]);
+        assert_eq!(solutions[1], [0, 1, 3]);
     }
 }
