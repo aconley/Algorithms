@@ -2,6 +2,25 @@
 
 use lending_iterator::prelude::*;
 
+// Error returned by the Iterator/LendingIterator constructors for invalid
+// parameters.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InvalidCombinationParams(String);
+
+impl InvalidCombinationParams {
+    pub fn new(message: impl Into<String>) -> InvalidCombinationParams {
+        InvalidCombinationParams(message.into())
+    }
+}
+
+impl std::fmt::Display for InvalidCombinationParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for InvalidCombinationParams {}
+
 pub trait Visitor {
     // Visits a single combination.  Returns true if further solutions should
     // be visited, otherwise false.
@@ -165,6 +184,7 @@ pub fn combinations(n: u32, t: u32, v: &mut dyn Visitor) {
 
 // Iterator version of Algorithm L (basic_generate).  Yields owned combinations,
 // cloning out of the internal working buffer on each call to next().
+#[derive(Debug)]
 pub struct BasicGenerateIter {
     c: Vec<u32>,
     ts: usize,
@@ -173,8 +193,10 @@ pub struct BasicGenerateIter {
 }
 
 impl BasicGenerateIter {
-    pub fn new(n: u32, t: u32) -> BasicGenerateIter {
-        assert!(n >= t, "n must be >= t");
+    pub fn new(n: u32, t: u32) -> Result<BasicGenerateIter, InvalidCombinationParams> {
+        if n < t {
+            return Err(InvalidCombinationParams::new("n must be >= t"));
+        }
 
         let ts = t as usize;
 
@@ -186,12 +208,12 @@ impl BasicGenerateIter {
         c.push(n);
         c.push(0);
 
-        BasicGenerateIter {
+        Ok(BasicGenerateIter {
             c,
             ts,
             started: false,
             done: n == 0 || t == 0,
-        }
+        })
     }
 }
 
@@ -229,6 +251,7 @@ impl Iterator for BasicGenerateIter {
 
 // Iterator version of Algorithm T (combinations).  Yields owned combinations,
 // cloning out of the internal working buffer on each call to next().
+#[derive(Debug)]
 pub struct CombinationsIter {
     c: Vec<u32>,
     ts: usize,
@@ -239,8 +262,10 @@ pub struct CombinationsIter {
 }
 
 impl CombinationsIter {
-    pub fn new(n: u32, t: u32) -> CombinationsIter {
-        assert!(n >= t, "n must be >= t");
+    pub fn new(n: u32, t: u32) -> Result<CombinationsIter, InvalidCombinationParams> {
+        if n < t {
+            return Err(InvalidCombinationParams::new("n must be >= t"));
+        }
 
         let ts = t as usize;
         let done = n == 0 || t == 0;
@@ -259,14 +284,14 @@ impl CombinationsIter {
         c.push(n);
         c.push(0);
 
-        CombinationsIter {
+        Ok(CombinationsIter {
             c,
             ts,
             j: ts,
             started: false,
             done,
             single,
-        }
+        })
     }
 }
 
@@ -323,6 +348,7 @@ impl Iterator for CombinationsIter {
 // LendingIterator version of Algorithm L (basic_generate).  Like the Visitor
 // pattern, yields each combination as a borrowed view into the internal
 // working buffer instead of cloning it.
+#[derive(Debug)]
 pub struct BasicGenerateLendingIter {
     c: Vec<u32>,
     ts: usize,
@@ -331,8 +357,13 @@ pub struct BasicGenerateLendingIter {
 }
 
 impl BasicGenerateLendingIter {
-    pub fn new(n: u32, t: u32) -> BasicGenerateLendingIter {
-        assert!(n >= t, "n must be >= t");
+    pub fn new(
+        n: u32,
+        t: u32,
+    ) -> Result<BasicGenerateLendingIter, InvalidCombinationParams> {
+        if n < t {
+            return Err(InvalidCombinationParams::new("n must be >= t"));
+        }
 
         let ts = t as usize;
 
@@ -344,12 +375,12 @@ impl BasicGenerateLendingIter {
         c.push(n);
         c.push(0);
 
-        BasicGenerateLendingIter {
+        Ok(BasicGenerateLendingIter {
             c,
             ts,
             started: false,
             done: n == 0 || t == 0,
-        }
+        })
     }
 }
 
@@ -392,6 +423,7 @@ impl LendingIterator for BasicGenerateLendingIter {
 // LendingIterator version of Algorithm T (combinations).  Like the Visitor
 // pattern, yields each combination as a borrowed view into the internal
 // working buffer instead of cloning it.
+#[derive(Debug)]
 pub struct CombinationsLendingIter {
     c: Vec<u32>,
     ts: usize,
@@ -402,8 +434,13 @@ pub struct CombinationsLendingIter {
 }
 
 impl CombinationsLendingIter {
-    pub fn new(n: u32, t: u32) -> CombinationsLendingIter {
-        assert!(n >= t, "n must be >= t");
+    pub fn new(
+        n: u32,
+        t: u32,
+    ) -> Result<CombinationsLendingIter, InvalidCombinationParams> {
+        if n < t {
+            return Err(InvalidCombinationParams::new("n must be >= t"));
+        }
 
         let ts = t as usize;
         let done = n == 0 || t == 0;
@@ -422,14 +459,14 @@ impl CombinationsLendingIter {
         c.push(n);
         c.push(0);
 
-        CombinationsLendingIter {
+        Ok(CombinationsLendingIter {
             c,
             ts,
             j: ts,
             started: false,
             done,
             single,
-        }
+        })
     }
 }
 
@@ -514,42 +551,74 @@ mod tests {
 
     #[test]
     fn basic_generate_iter_count() {
-        test_iter_counts(BasicGenerateIter::new);
+        test_iter_counts(|n, t| BasicGenerateIter::new(n, t).unwrap());
     }
 
     #[test]
     fn basic_generate_iter_visit() {
-        test_iter_visit(BasicGenerateIter::new);
+        test_iter_visit(|n, t| BasicGenerateIter::new(n, t).unwrap());
     }
 
     #[test]
     fn combinations_iter_count() {
-        test_iter_counts(CombinationsIter::new);
+        test_iter_counts(|n, t| CombinationsIter::new(n, t).unwrap());
     }
 
     #[test]
     fn combinations_iter_visit() {
-        test_iter_visit(CombinationsIter::new);
+        test_iter_visit(|n, t| CombinationsIter::new(n, t).unwrap());
     }
 
     #[test]
     fn basic_generate_lending_count() {
-        test_lending_counts(BasicGenerateLendingIter::new);
+        test_lending_counts(|n, t| BasicGenerateLendingIter::new(n, t).unwrap());
     }
 
     #[test]
     fn basic_generate_lending_visit() {
-        test_lending_visit(BasicGenerateLendingIter::new);
+        test_lending_visit(|n, t| BasicGenerateLendingIter::new(n, t).unwrap());
     }
 
     #[test]
     fn combinations_lending_count() {
-        test_lending_counts(CombinationsLendingIter::new);
+        test_lending_counts(|n, t| CombinationsLendingIter::new(n, t).unwrap());
     }
 
     #[test]
     fn combinations_lending_visit() {
-        test_lending_visit(CombinationsLendingIter::new);
+        test_lending_visit(|n, t| CombinationsLendingIter::new(n, t).unwrap());
+    }
+
+    #[test]
+    fn basic_generate_iter_invalid_params() {
+        assert_eq!(
+            BasicGenerateIter::new(2, 3).unwrap_err(),
+            InvalidCombinationParams::new("n must be >= t")
+        );
+    }
+
+    #[test]
+    fn combinations_iter_invalid_params() {
+        assert_eq!(
+            CombinationsIter::new(2, 3).unwrap_err(),
+            InvalidCombinationParams::new("n must be >= t")
+        );
+    }
+
+    #[test]
+    fn basic_generate_lending_invalid_params() {
+        assert_eq!(
+            BasicGenerateLendingIter::new(2, 3).unwrap_err(),
+            InvalidCombinationParams::new("n must be >= t")
+        );
+    }
+
+    #[test]
+    fn combinations_lending_invalid_params() {
+        assert_eq!(
+            CombinationsLendingIter::new(2, 3).unwrap_err(),
+            InvalidCombinationParams::new("n must be >= t")
+        );
     }
 
     fn test_counts(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {

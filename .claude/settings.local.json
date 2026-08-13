@@ -7,7 +7,8 @@
       "Bash(cargo build:*)",
       "Bash(find:*)",
       "Bash(jj st *)",
-      "Bash(jj diff *)"
+      "Bash(jj diff *)",
+      "Bash(cargo fmt *)"
     ],
     "deny": [],
     "ask": []
