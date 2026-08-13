@@ -11,5 +11,5 @@ lending-iterator.workspace = true
 criterion.workspace = true
 
 [[bench]]
-name = "combinatoric_benchmark"
+name = "combinations_benchmark"
 harness = false
