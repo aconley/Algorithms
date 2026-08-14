@@ -17,3 +17,7 @@ harness = false
 [[bench]]
 name = "permutations_benchmark"
 harness = false
+
+[[bench]]
+name = "partitions_benchmark"
+harness = false
