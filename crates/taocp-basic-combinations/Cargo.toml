@@ -22,3 +22,7 @@ harness = false
 [[bench]]
 name = "partitions_benchmark"
 harness = false
+
+[[bench]]
+name = "subsets_benchmark"
+harness = false
