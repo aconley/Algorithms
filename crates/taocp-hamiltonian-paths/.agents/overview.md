@@ -597,7 +597,7 @@ generate, and costs only a round number in the filename.
 
 ## Testing conventions
 
-Mechanics — test submodules, `claim`, rustfmt — are in `../AGENTS.md`, which is
+Mechanics — test submodules, `test-that`, rustfmt — are in `../AGENTS.md`, which is
 authoritative for this directory.  Work red/green, as the DPLL work in this repo
 did.
 

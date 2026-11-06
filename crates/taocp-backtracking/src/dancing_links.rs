@@ -122,8 +122,10 @@ where
                             == solution_state
                                 .option_nodes
                                 .get_unchecked(
-                                    solution_state.option_nodes.get_unchecked(xl as usize).top
-                                        as usize,
+                                    solution_state
+                                        .option_nodes
+                                        .get_unchecked(xl as usize)
+                                        .top as usize,
                                 )
                                 .ulink
                         {
@@ -131,7 +133,8 @@ where
                             // so we have to backtrack.
                             solution_state.unapply_move(xl);
                             solution_state.uncover(
-                                solution_state.option_nodes.get_unchecked(xl as usize).top as u16,
+                                solution_state.option_nodes.get_unchecked(xl as usize).top
+                                    as u16,
                             );
                             x.pop();
                             if x.is_empty() {
@@ -174,15 +177,17 @@ where
     }
 }
 
-impl<ItemType, OptionType> std::iter::FusedIterator for DancingLinksIterator<ItemType, OptionType> where
-    OptionType: ProblemOption<ItemType>
+impl<ItemType, OptionType> std::iter::FusedIterator
+    for DancingLinksIterator<ItemType, OptionType>
+where
+    OptionType: ProblemOption<ItemType>,
 {
 }
 
 // InitialState is the initial info needed to create SolutionState.
 #[derive(Debug)]
 struct InitialState<ItemType> {
-    items: Vec<ItemType>,   // The sorted items, with the primary items first.
+    items: Vec<ItemType>, // The sorted items, with the primary items first.
     num_primary_items: u16, // The number of primary items.
     options: Vec<InitialStateOption>, // The options.
     num_nodes: u16,
@@ -213,7 +218,8 @@ where
 
         // Make sure there are no overlaps.
         {
-            let mut primary_and_secondary = primary_items.intersection(&secondary_items).peekable();
+            let mut primary_and_secondary =
+                primary_items.intersection(&secondary_items).peekable();
             if primary_and_secondary.peek().is_some() {
                 return Err(DancingLinksError::new(
                     "Can't have items that are both primary and secondary",
@@ -420,103 +426,115 @@ impl<ItemType> SolutionState<ItemType> {
         }
     }
 
-    unsafe fn cover(&mut self, item: u16) { unsafe {
-        let iu = item as usize;
-        let mut p = self.option_nodes.get_unchecked(iu).dlink;
-        while p != item {
-            self.hide(p);
-            p = self.option_nodes.get_unchecked(p as usize).dlink;
-        }
-        let l = self.item_nodes.get_unchecked(iu).llink;
-        let r = self.item_nodes.get_unchecked(iu).rlink;
-        self.item_nodes.get_unchecked_mut(l as usize).rlink = r;
-        self.item_nodes.get_unchecked_mut(r as usize).llink = l;
-    }}
-
-    unsafe fn hide(&mut self, p: u16) { unsafe {
-        let mut q = p + 1;
-        while q != p {
-            let qu = q as usize;
-            let x = self.option_nodes.get_unchecked(qu).top;
-            let u = self.option_nodes.get_unchecked(qu).ulink;
-            if x <= 0 {
-                // Spacer node.
-                q = u;
-            } else {
-                let d = self.option_nodes.get_unchecked(qu).dlink;
-                self.option_nodes.get_unchecked_mut(u as usize).dlink = d;
-                self.option_nodes.get_unchecked_mut(d as usize).ulink = u;
-                self.item_nodes.get_unchecked_mut(x as usize).len -= 1;
-                q += 1;
+    unsafe fn cover(&mut self, item: u16) {
+        unsafe {
+            let iu = item as usize;
+            let mut p = self.option_nodes.get_unchecked(iu).dlink;
+            while p != item {
+                self.hide(p);
+                p = self.option_nodes.get_unchecked(p as usize).dlink;
             }
+            let l = self.item_nodes.get_unchecked(iu).llink;
+            let r = self.item_nodes.get_unchecked(iu).rlink;
+            self.item_nodes.get_unchecked_mut(l as usize).rlink = r;
+            self.item_nodes.get_unchecked_mut(r as usize).llink = l;
         }
-    }}
+    }
 
-    unsafe fn uncover(&mut self, item: u16) { unsafe {
-        let iu = item as usize;
-        let l = self.item_nodes.get_unchecked(iu).llink;
-        let r = self.item_nodes.get_unchecked(iu).rlink;
-        self.item_nodes.get_unchecked_mut(l as usize).rlink = item;
-        self.item_nodes.get_unchecked_mut(r as usize).llink = item;
-
-        let mut p = self.option_nodes[item as usize].ulink;
-        while p != item {
-            self.unhide(p);
-            p = self.option_nodes.get_unchecked(p as usize).ulink;
-        }
-    }}
-
-    unsafe fn unhide(&mut self, p: u16) { unsafe {
-        let mut q = p - 1;
-        while q != p {
-            let qu = q as usize;
-            let x = self.option_nodes.get_unchecked(qu).top;
-            let d = self.option_nodes.get_unchecked(qu).dlink;
-            if x <= 0 {
-                // Spacer node.
-                q = d;
-            } else {
+    unsafe fn hide(&mut self, p: u16) {
+        unsafe {
+            let mut q = p + 1;
+            while q != p {
+                let qu = q as usize;
+                let x = self.option_nodes.get_unchecked(qu).top;
                 let u = self.option_nodes.get_unchecked(qu).ulink;
-                self.option_nodes.get_unchecked_mut(u as usize).dlink = q;
-                self.option_nodes.get_unchecked_mut(d as usize).ulink = q;
-                self.item_nodes.get_unchecked_mut(x as usize).len += 1;
-                q -= 1;
+                if x <= 0 {
+                    // Spacer node.
+                    q = u;
+                } else {
+                    let d = self.option_nodes.get_unchecked(qu).dlink;
+                    self.option_nodes.get_unchecked_mut(u as usize).dlink = d;
+                    self.option_nodes.get_unchecked_mut(d as usize).ulink = u;
+                    self.item_nodes.get_unchecked_mut(x as usize).len -= 1;
+                    q += 1;
+                }
             }
         }
-    }}
+    }
 
-    unsafe fn apply_move(&mut self, xl: u16) { unsafe {
-        let mut p = xl + 1;
-        while p != xl {
-            let pu = p as usize;
-            let j = self.option_nodes.get_unchecked(pu).top;
-            if j <= 0 {
-                // Spacer.
-                p = self.option_nodes.get_unchecked(pu).ulink;
-            } else {
-                self.cover(j as u16);
-                p += 1;
-            }
-        }
-    }}
+    unsafe fn uncover(&mut self, item: u16) {
+        unsafe {
+            let iu = item as usize;
+            let l = self.item_nodes.get_unchecked(iu).llink;
+            let r = self.item_nodes.get_unchecked(iu).rlink;
+            self.item_nodes.get_unchecked_mut(l as usize).rlink = item;
+            self.item_nodes.get_unchecked_mut(r as usize).llink = item;
 
-    unsafe fn unapply_move(&mut self, xl: u16) { unsafe {
-        if xl <= self.num_primary_items {
-            return;
-        }
-        let mut p = xl - 1;
-        while p != xl {
-            let pu = p as usize;
-            let j = self.option_nodes.get_unchecked(pu).top;
-            if j <= 0 {
-                // Spacer.
-                p = self.option_nodes.get_unchecked(pu).dlink;
-            } else {
-                self.uncover(j as u16);
-                p -= 1;
+            let mut p = self.option_nodes[item as usize].ulink;
+            while p != item {
+                self.unhide(p);
+                p = self.option_nodes.get_unchecked(p as usize).ulink;
             }
         }
-    }}
+    }
+
+    unsafe fn unhide(&mut self, p: u16) {
+        unsafe {
+            let mut q = p - 1;
+            while q != p {
+                let qu = q as usize;
+                let x = self.option_nodes.get_unchecked(qu).top;
+                let d = self.option_nodes.get_unchecked(qu).dlink;
+                if x <= 0 {
+                    // Spacer node.
+                    q = d;
+                } else {
+                    let u = self.option_nodes.get_unchecked(qu).ulink;
+                    self.option_nodes.get_unchecked_mut(u as usize).dlink = q;
+                    self.option_nodes.get_unchecked_mut(d as usize).ulink = q;
+                    self.item_nodes.get_unchecked_mut(x as usize).len += 1;
+                    q -= 1;
+                }
+            }
+        }
+    }
+
+    unsafe fn apply_move(&mut self, xl: u16) {
+        unsafe {
+            let mut p = xl + 1;
+            while p != xl {
+                let pu = p as usize;
+                let j = self.option_nodes.get_unchecked(pu).top;
+                if j <= 0 {
+                    // Spacer.
+                    p = self.option_nodes.get_unchecked(pu).ulink;
+                } else {
+                    self.cover(j as u16);
+                    p += 1;
+                }
+            }
+        }
+    }
+
+    unsafe fn unapply_move(&mut self, xl: u16) {
+        unsafe {
+            if xl <= self.num_primary_items {
+                return;
+            }
+            let mut p = xl - 1;
+            while p != xl {
+                let pu = p as usize;
+                let j = self.option_nodes.get_unchecked(pu).top;
+                if j <= 0 {
+                    // Spacer.
+                    p = self.option_nodes.get_unchecked(pu).dlink;
+                } else {
+                    self.uncover(j as u16);
+                    p -= 1;
+                }
+            }
+        }
+    }
 
     // Choose the next item using the MRV heuristic.  Returns None if there is
     // no move.
@@ -528,7 +546,8 @@ impl<ItemType> SolutionState<ItemType> {
 
         // Safety: the current item index is always within bounds.
         unsafe {
-            let mut best_len = self.item_nodes.get_unchecked(current_item_idx as usize).len;
+            let mut best_len =
+                self.item_nodes.get_unchecked(current_item_idx as usize).len;
             if best_len == 0 {
                 return None;
             }
@@ -539,7 +558,8 @@ impl<ItemType> SolutionState<ItemType> {
                 .get_unchecked(current_item_idx as usize)
                 .rlink;
             while current_item_idx != 0 && current_item_idx <= self.num_primary_items {
-                let current_len = self.item_nodes.get_unchecked(current_item_idx as usize).len;
+                let current_len =
+                    self.item_nodes.get_unchecked(current_item_idx as usize).len;
                 if current_len == 0 {
                     // Item has no choices.
                     best_item = 0;
@@ -645,34 +665,39 @@ mod tests {
     ) -> Result<SolutionState<String>, DancingLinksError> {
         let iterator = DancingLinksIterator::new(options)?;
         match iterator.state {
-            IteratorState::DONE => Err(DancingLinksError::new("Iterator created in DONE state")),
+            IteratorState::DONE => {
+                Err(DancingLinksError::new("Iterator created in DONE state"))
+            }
             IteratorState::READY { .. } => {
                 Err(DancingLinksError::new("Iterator created in READY state"))
             }
-            IteratorState::NEW(initial_state) => Ok(SolutionState::initiate(initial_state)),
+            IteratorState::NEW(initial_state) => {
+                Ok(SolutionState::initiate(initial_state))
+            }
         }
     }
 
     mod initialize_iterator {
         use super::StringOption;
         use crate::dancing_links::{DancingLinksIterator, IteratorState};
-        use claim::assert_ok;
+        use test_that::prelude::*;
 
         #[test]
         fn no_options_is_done_iterator() {
-            let it = assert_ok!(DancingLinksIterator::<String, StringOption>::new(vec![]));
-            assert!(matches!(it.state, IteratorState::DONE));
+            let it = DancingLinksIterator::<String, StringOption>::new(vec![]).unwrap();
+            assert_that!(matches!(it.state, IteratorState::DONE), eq(true));
         }
 
         #[test]
         fn single_option_is_in_new_state() {
-            let it = assert_ok!(DancingLinksIterator::<String, StringOption>::new(vec![
+            let it = DancingLinksIterator::<String, StringOption>::new(vec![
                 StringOption::new(
                     /*primary_items=*/ &["a"],
-                    /*secondary_items=*/ &["b"]
-                )
-            ]));
-            assert!(matches!(it.state, IteratorState::NEW { .. }));
+                    /*secondary_items=*/ &["b"],
+                ),
+            ])
+            .unwrap();
+            assert_that!(matches!(it.state, IteratorState::NEW { .. }), eq(true));
         }
 
         #[test]
@@ -687,15 +712,18 @@ mod tests {
             );
             let res = DancingLinksIterator::new(vec![option1, option2]);
 
-            assert!(res.is_err());
-            assert!(res.unwrap_err().0.contains("both primary and secondary"));
+            assert_that!(res, err(anything()));
+            assert_that!(
+                res.unwrap_err().0.contains("both primary and secondary"),
+                eq(true)
+            );
         }
     }
 
     mod initialize_solution_state {
-        use super::{create_solution_state, StringOption};
+        use super::{StringOption, create_solution_state};
         use crate::dancing_links::{ItemNode, OptionNode, SolutionState};
-        use claim::assert_ok_eq;
+        use test_that::prelude::*;
 
         #[test]
         fn single_primary_item_initializes() {
@@ -704,9 +732,9 @@ mod tests {
                 /*secondary_items=*/ &[],
             );
 
-            assert_ok_eq!(
+            assert_that!(
                 create_solution_state(vec![option]),
-                SolutionState {
+                ok(eq(SolutionState {
                     items: vec!["a".to_string()],
                     num_primary_items: 1,
                     item_nodes: vec![
@@ -757,7 +785,7 @@ mod tests {
                             dlink: 0
                         }
                     ],
-                }
+                }))
             );
         }
 
@@ -772,9 +800,9 @@ mod tests {
                 /*secondary_items=*/ &["c"],
             );
 
-            assert_ok_eq!(
+            assert_that!(
                 create_solution_state(vec![option1, option2]),
-                SolutionState {
+                ok(eq(SolutionState {
                     items: vec!["a".to_string(), "b".to_string(), "c".to_string()],
                     num_primary_items: 2,
                     item_nodes: vec![
@@ -875,7 +903,7 @@ mod tests {
                             dlink: 0  // unused
                         }
                     ],
-                }
+                }))
             );
         }
 
@@ -908,9 +936,11 @@ mod tests {
                 /*secondary_items=*/ &["g"],
             );
 
-            assert_ok_eq!(
-                create_solution_state(vec![option1, option2, option3, option4, option5, option6]),
-                SolutionState {
+            assert_that!(
+                create_solution_state(vec![
+                    option1, option2, option3, option4, option5, option6
+                ]),
+                ok(eq(SolutionState {
                     items: ["a", "b", "c", "d", "e", "f", "g"]
                         .into_iter()
                         .map(|v| v.to_string())
@@ -1164,23 +1194,29 @@ mod tests {
                             dlink: 0 // unused
                         }
                     ],
-                }
+                }))
             );
         }
     }
 
     mod choose_next {
-        use super::{create_solution_state, StringOption};
+        use super::{StringOption, create_solution_state};
         use crate::dancing_links::SolutionState;
-        use claim::{assert_ok, assert_some, assert_some_eq};
         use std::collections::BTreeSet;
+        use test_that::prelude::*;
 
-        fn item_name(solution_state: &SolutionState<String>, idx: u16) -> Option<&String> {
+        fn item_name(
+            solution_state: &SolutionState<String>,
+            idx: u16,
+        ) -> Option<&String> {
             let idx_u = idx as usize;
             if idx_u >= solution_state.item_nodes.len() {
                 None
             } else {
-                Some(&solution_state.items[solution_state.item_nodes[idx_u].item_index as usize])
+                Some(
+                    &solution_state.items
+                        [solution_state.item_nodes[idx_u].item_index as usize],
+                )
             }
         }
 
@@ -1190,13 +1226,13 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
             );
-            let solution_state = assert_ok!(create_solution_state(vec![option]));
+            let solution_state = create_solution_state(vec![option]).unwrap();
 
-            assert_some_eq!(
+            assert_that!(
                 solution_state
                     .choose_next_item()
                     .and_then(|v| item_name(&solution_state, v.get())),
-                "a"
+                some(eq("a"))
             );
         }
 
@@ -1211,11 +1247,11 @@ mod tests {
                 /*secondary_items=*/ &[],
             );
 
-            let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
+            let solution_state = create_solution_state(vec![option1, option2]).unwrap();
 
-            assert_eq!(solution_state.num_primary_items, 3);
+            assert_that!(solution_state.num_primary_items, eq(3));
             // Check the LEN vars are what we expect.
-            assert_eq!(
+            assert_that!(
                 solution_state
                     .item_nodes
                     .iter()
@@ -1223,9 +1259,9 @@ mod tests {
                     .take(3)
                     .map(|item| item.len)
                     .collect::<Vec<_>>(),
-                vec![2, 1, 2]
+                eq(vec![2, 1, 2])
             );
-            assert_eq!(
+            assert_that!(
                 solution_state
                     .item_nodes
                     .iter()
@@ -1233,14 +1269,14 @@ mod tests {
                     .take(3)
                     .map(|item| item.rlink)
                     .collect::<Vec<_>>(),
-                vec![2, 3, 0]
+                eq(vec![2, 3, 0])
             );
 
-            assert_some_eq!(
+            assert_that!(
                 solution_state
                     .choose_next_item()
                     .and_then(|v| item_name(&solution_state, v.get())),
-                "b"
+                some(eq("b"))
             );
         }
 
@@ -1254,13 +1290,13 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &["b"],
             );
-            let solution_state = assert_ok!(create_solution_state(vec![option1, option2]));
+            let solution_state = create_solution_state(vec![option1, option2]).unwrap();
 
-            assert_some_eq!(
+            assert_that!(
                 solution_state
                     .choose_next_item()
                     .and_then(|v| item_name(&solution_state, v.get())),
-                "a"
+                some(eq("a"))
             );
         }
 
@@ -1293,27 +1329,32 @@ mod tests {
                 /*secondary_items=*/ &["g"],
             );
 
-            let solution_state = assert_ok!(create_solution_state(vec![
-                option1, option2, option3, option4, option5, option6
-            ]));
-            assert_eq!(solution_state.num_primary_items, 5);
+            let solution_state = create_solution_state(vec![
+                option1, option2, option3, option4, option5, option6,
+            ])
+            .unwrap();
+            assert_that!(solution_state.num_primary_items, eq(5));
 
             // b, c, e, f are all acceptable choices.  d is not because
             // it has 3 items, a and g are not because they are secondary.
-            let choice = assert_some!(solution_state
+            let choice = solution_state
                 .choose_next_item()
-                .and_then(|v| item_name(&solution_state, v.get())));
-            assert!(["b", "c", "e", "f"]
-                .into_iter()
-                .map(|s| s.to_string())
-                .collect::<BTreeSet<_>>()
-                .contains(choice));
+                .and_then(|v| item_name(&solution_state, v.get()))
+                .unwrap();
+            assert_that!(
+                ["b", "c", "e", "f"]
+                    .into_iter()
+                    .map(|s| s.to_string())
+                    .collect::<BTreeSet<_>>()
+                    .contains(choice),
+                eq(true)
+            );
         }
     }
 
     mod cover {
-        use super::{create_solution_state, StringOption};
-        use claim::assert_ok;
+        use super::{StringOption, create_solution_state};
+        use test_that::prelude::*;
 
         #[test]
         fn single_primary_item_cover() {
@@ -1322,7 +1363,7 @@ mod tests {
                 /*secondary_items=*/ &[],
             );
 
-            let mut state = assert_ok!(create_solution_state(vec![option]));
+            let mut state = create_solution_state(vec![option]).unwrap();
 
             // For a single item, cover only affects the item links.
             let mut expected_state = state.clone();
@@ -1332,7 +1373,7 @@ mod tests {
             unsafe {
                 state.cover(1);
             }
-            assert_eq!(state, expected_state);
+            assert_that!(state, eq_deref_of(&expected_state));
         }
 
         #[test]
@@ -1364,9 +1405,10 @@ mod tests {
                 /*secondary_items=*/ &[],
             );
 
-            let mut state = assert_ok!(create_solution_state(vec![
-                option1, option2, option3, option4, option5, option6
-            ]));
+            let mut state = create_solution_state(vec![
+                option1, option2, option3, option4, option5, option6,
+            ])
+            .unwrap();
 
             // cover(1).
             let mut expected_state = state.clone();
@@ -1391,7 +1433,7 @@ mod tests {
             unsafe {
                 state.cover(1);
             }
-            assert_eq!(state, expected_state);
+            assert_that!(state, eq_deref_of(&expected_state));
 
             // cover(4).
             expected_state.item_nodes[5].llink = 3;
@@ -1406,7 +1448,7 @@ mod tests {
             unsafe {
                 state.cover(4);
             }
-            assert_eq!(state, expected_state);
+            assert_that!(state, eq_deref_of(&expected_state));
 
             // cover(7)
             expected_state.item_nodes[6].rlink = 0;
@@ -1418,7 +1460,7 @@ mod tests {
             unsafe {
                 state.cover(7);
             }
-            assert_eq!(state, expected_state);
+            assert_that!(state, eq_deref_of(&expected_state));
 
             // cover(2)
             expected_state.item_nodes[3].llink = 0;
@@ -1433,7 +1475,7 @@ mod tests {
             unsafe {
                 state.cover(2);
             }
-            assert_eq!(state, expected_state);
+            assert_that!(state, eq_deref_of(&expected_state));
         }
 
         #[test]
@@ -1443,7 +1485,7 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
             );
-            let initial_state = assert_ok!(create_solution_state(vec![option]));
+            let initial_state = create_solution_state(vec![option]).unwrap();
 
             let mut state = initial_state.clone();
             unsafe {
@@ -1451,7 +1493,7 @@ mod tests {
                 state.uncover(1);
             }
 
-            assert_eq!(state, initial_state);
+            assert_that!(state, eq(initial_state));
         }
 
         #[test]
@@ -1483,9 +1525,10 @@ mod tests {
                 /*secondary_items=*/ &[],
             );
 
-            let initial_state = assert_ok!(create_solution_state(vec![
-                option1, option2, option3, option4, option5, option6
-            ]));
+            let initial_state = create_solution_state(vec![
+                option1, option2, option3, option4, option5, option6,
+            ])
+            .unwrap();
 
             let mut state = initial_state.clone();
 
@@ -1501,34 +1544,42 @@ mod tests {
                 state.cover(3);
 
                 state.uncover(3);
-                assert_eq!(
-                    state, state_before_cover_3,
+                assert_that!(
+                    state,
+                    eq(state_before_cover_3),
                     "uncover(3) did not reverse cover(3)"
                 );
                 state.uncover(2);
-                assert_eq!(
-                    state, state_before_cover_2,
+                assert_that!(
+                    state,
+                    eq(state_before_cover_2),
                     "uncover(2) did not reverse cover(2)"
                 );
                 state.uncover(7);
-                assert_eq!(
-                    state, state_before_cover_7,
+                assert_that!(
+                    state,
+                    eq(state_before_cover_7),
                     "uncover(7) did not reverse cover(7)"
                 );
                 state.uncover(4);
-                assert_eq!(
-                    state, state_before_cover_4,
+                assert_that!(
+                    state,
+                    eq(state_before_cover_4),
                     "uncover(4) did not reverse cover(4)"
                 );
                 state.uncover(1);
-                assert_eq!(state, initial_state, "uncover(1) did not reverse cover(1)");
+                assert_that!(
+                    state,
+                    eq(initial_state),
+                    "uncover(1) did not reverse cover(1)"
+                );
             }
         }
     }
 
     mod to_solution {
-        use super::{create_solution_state, StringOption};
-        use claim::assert_ok;
+        use super::{StringOption, create_solution_state};
+        use test_that::prelude::*;
 
         #[test]
         fn small_test_case_get_options() {
@@ -1541,14 +1592,12 @@ mod tests {
                 /*secondary_items=*/ &["c"],
             );
 
-            let state = assert_ok!(create_solution_state(vec![
-                option1.clone(),
-                option2.clone()
-            ]));
+            let state =
+                create_solution_state(vec![option1.clone(), option2.clone()]).unwrap();
 
-            assert_eq!(state.to_option::<StringOption>(5), option1);
-            assert_eq!(state.to_option::<StringOption>(6), option1);
-            assert_eq!(state.to_option::<StringOption>(8), option2);
+            assert_that!(state.to_option::<StringOption>(5), eq_deref_of(&option1));
+            assert_that!(state.to_option::<StringOption>(6), eq(option1));
+            assert_that!(state.to_option::<StringOption>(8), eq(option2));
         }
 
         #[test]
@@ -1580,26 +1629,27 @@ mod tests {
                 /*secondary_items=*/ &["g"],
             );
 
-            let state = assert_ok!(create_solution_state(vec![
+            let state = create_solution_state(vec![
                 option1.clone(),
                 option2,
                 option3.clone(),
                 option4,
                 option5,
-                option6
-            ]));
+                option6,
+            ])
+            .unwrap();
 
-            assert_eq!(state.to_option::<StringOption>(9), option1);
-            assert_eq!(state.to_option::<StringOption>(10), option1);
-            assert_eq!(state.to_option::<StringOption>(16), option3);
+            assert_that!(state.to_option::<StringOption>(9), eq_deref_of(&option1));
+            assert_that!(state.to_option::<StringOption>(10), eq(option1));
+            assert_that!(state.to_option::<StringOption>(16), eq(option3));
         }
     }
 
     mod iterates_over_solutions {
         use super::StringOption;
         use crate::dancing_links::DancingLinksIterator;
-        use claim::{assert_none, assert_ok, assert_some_eq};
         use std::collections::HashSet;
+        use test_that::prelude::*;
 
         #[test]
         fn single_item_one_option_solution() {
@@ -1607,10 +1657,10 @@ mod tests {
                 /*primary_items=*/ &["a"],
                 /*secondary_items=*/ &[],
             );
-            let mut iterator = assert_ok!(DancingLinksIterator::new(vec![option1.clone()]));
+            let mut iterator = DancingLinksIterator::new(vec![option1.clone()]).unwrap();
 
-            assert_some_eq!(iterator.next(), vec![option1]);
-            assert_none!(iterator.next());
+            assert_that!(iterator.next(), some(eq(vec![option1])));
+            assert_that!(iterator.next(), none());
         }
 
         #[test]
@@ -1625,10 +1675,10 @@ mod tests {
             );
 
             let mut iterator =
-                assert_ok!(DancingLinksIterator::new(vec![option1.clone(), option2]));
+                DancingLinksIterator::new(vec![option1.clone(), option2]).unwrap();
 
-            assert_some_eq!(iterator.next(), vec![option1]);
-            assert_none!(iterator.next());
+            assert_that!(iterator.next(), some(eq(vec![option1])));
+            assert_that!(iterator.next(), none());
         }
 
         #[test]
@@ -1646,25 +1696,26 @@ mod tests {
                 /*secondary_items=*/ &["c"],
             );
 
-            let mut iterator = assert_ok!(DancingLinksIterator::new(vec![
+            let mut iterator = DancingLinksIterator::new(vec![
                 option1.clone(),
                 option2.clone(),
-                option3.clone()
-            ]));
+                option3.clone(),
+            ])
+            .unwrap();
 
-            assert_some_eq!(
+            assert_that!(
                 iterator
                     .next()
                     .map(move |v| v.into_iter().collect::<HashSet<_>>()),
-                HashSet::from([option1])
+                some(eq(HashSet::from([option1])))
             );
-            assert_some_eq!(
+            assert_that!(
                 iterator
                     .next()
                     .map(move |v| v.into_iter().collect::<HashSet<_>>()),
-                HashSet::from([option2, option3])
+                some(eq(HashSet::from([option2, option3])))
             );
-            assert_none!(iterator.next());
+            assert_that!(iterator.next(), none());
         }
 
         #[test]
@@ -1696,22 +1747,23 @@ mod tests {
                 /*secondary_items=*/ &["g"],
             );
 
-            let mut iterator = assert_ok!(DancingLinksIterator::new(vec![
+            let mut iterator = DancingLinksIterator::new(vec![
                 option1.clone(),
                 option2,
                 option3,
                 option4.clone(),
                 option5.clone(),
-                option6
-            ]));
+                option6,
+            ])
+            .unwrap();
 
-            assert_some_eq!(
+            assert_that!(
                 iterator
                     .next()
                     .map(move |v| v.into_iter().collect::<HashSet<_>>()),
-                HashSet::from([option1, option4, option5])
+                some(eq(HashSet::from([option1, option4, option5])))
             );
-            assert_none!(iterator.next());
+            assert_that!(iterator.next(), none());
         }
     }
 }

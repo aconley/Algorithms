@@ -147,69 +147,70 @@ impl std::iter::FusedIterator for DancingQueensIterator {}
 #[cfg(test)]
 mod tests {
     use crate::dancing_queens::NQueensSolution;
+    use test_that::prelude::*;
 
     #[test]
     fn formatter_works() {
         let sol = NQueensSolution {
             rows: vec![2, 0, 3, 1],
         };
-        assert_eq!(
+        assert_that!(
             format!("{}", sol),
-            ". . Q . \nQ . . . \n. . . Q \n. Q . . \n"
+            eq(". . Q . \nQ . . . \n. . . Q \n. Q . . \n")
         );
     }
 
     mod dancing_queens_iterator_test {
         use crate::dancing_queens::{DancingQueensIterator, NQueensSolution};
-        use claim::assert_ok;
+        use test_that::prelude::*;
 
         #[test]
         fn count_n1() {
-            assert_eq!(assert_ok!(DancingQueensIterator::new(1)).count(), 1);
+            assert_that!(DancingQueensIterator::new(1).unwrap().count(), eq(1));
         }
 
         #[test]
         fn count_n2() {
-            assert_eq!(assert_ok!(DancingQueensIterator::new(2)).count(), 0);
+            assert_that!(DancingQueensIterator::new(2).unwrap().count(), eq(0));
         }
 
         #[test]
         fn count_n4() {
-            assert_eq!(assert_ok!(DancingQueensIterator::new(4)).count(), 2);
+            assert_that!(DancingQueensIterator::new(4).unwrap().count(), eq(2));
         }
 
         #[test]
         fn count_n5() {
-            assert_eq!(assert_ok!(DancingQueensIterator::new(5)).count(), 10);
+            assert_that!(DancingQueensIterator::new(5).unwrap().count(), eq(10));
         }
 
         #[test]
         fn count_n8() {
-            assert_eq!(assert_ok!(DancingQueensIterator::new(8)).count(), 92);
+            assert_that!(DancingQueensIterator::new(8).unwrap().count(), eq(92));
         }
 
         #[test]
         fn count_n10() {
-            assert_eq!(assert_ok!(DancingQueensIterator::new(10)).count(), 724);
+            assert_that!(DancingQueensIterator::new(10).unwrap().count(), eq(724));
         }
 
         #[test]
         fn values_n4() {
-            let mut q = assert_ok!(DancingQueensIterator::new(4));
-            assert_eq!(
+            let mut q = DancingQueensIterator::new(4).unwrap();
+            assert_that!(
                 q.next(),
-                Some(NQueensSolution {
+                eq(Some(NQueensSolution {
                     rows: vec![1, 3, 0, 2]
-                })
+                }))
             );
-            assert_eq!(
+            assert_that!(
                 q.next(),
-                Some(NQueensSolution {
+                eq(Some(NQueensSolution {
                     rows: vec![2, 0, 3, 1]
-                })
+                }))
             );
-            assert_eq!(q.next(), None);
-            assert_eq!(q.next(), None);
+            assert_that!(q.next(), none());
+            assert_that!(q.next(), none());
         }
     }
 }

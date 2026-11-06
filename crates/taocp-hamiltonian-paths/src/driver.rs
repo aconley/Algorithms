@@ -29,8 +29,8 @@
 //! `refinement` derives the cut clauses (C8).
 
 use super::cycles::CycleCover;
-use super::encoding::{cycle_cover_cnf, ArcVars};
-use super::precheck::{check_preconditions, Obstruction};
+use super::encoding::{ArcVars, cycle_cover_cnf};
+use super::precheck::{Obstruction, check_preconditions};
 use super::refinement::cut_clauses;
 use super::segment::{Decomposition, Segment};
 use petgraph::graph::UnGraph;
@@ -459,6 +459,7 @@ mod tests {
     use super::*;
     use crate::generators::{knight_graph, petersen};
     use crate::testing::{graph_of, v};
+    use test_that::prelude::*;
 
     mod path_abc {
         use super::*;
@@ -480,9 +481,9 @@ mod tests {
 
             match result {
                 Step::NoCycle => {
-                    assert_eq!(
+                    assert_that!(
                         search.stats().rounds,
-                        0,
+                        eq(0),
                         "should be unsatisfiable at round 0"
                     );
                 }
@@ -507,13 +508,14 @@ mod tests {
 
             match result {
                 Step::Found(segment) => {
-                    assert_eq!(
+                    assert_that!(
                         search.stats().rounds,
-                        0,
+                        eq(0),
                         "triangle should be found with no refinement"
                     );
-                    assert!(
+                    assert_that!(
                         segment.is_hamiltonian_cycle(&graph),
+                        eq(true),
                         "not a Hamiltonian cycle of the graph: {segment}"
                     );
                 }
@@ -538,13 +540,14 @@ mod tests {
 
             match result {
                 Step::Found(segment) => {
-                    assert_eq!(
+                    assert_that!(
                         search.stats().rounds,
-                        0,
+                        eq(0),
                         "K4 should be found with no refinement"
                     );
-                    assert!(
+                    assert_that!(
                         segment.is_hamiltonian_cycle(&graph),
+                        eq(true),
                         "not a Hamiltonian cycle of the graph: {segment}"
                     );
                 }
@@ -573,7 +576,7 @@ mod tests {
             let result = search.step().expect("step should succeed");
             match result {
                 Step::Spurious { cycles } => {
-                    assert!(cycles > 1, "first model should be spurious");
+                    assert_that!(cycles, gt(1), "first model should be spurious");
                 }
                 other => panic!("expected Spurious, got {:?}", other),
             }
@@ -582,8 +585,9 @@ mod tests {
             loop {
                 match search.step().expect("step should succeed") {
                     Step::NoCycle => {
-                        assert!(
-                            search.stats().rounds >= 1,
+                        assert_that!(
+                            search.stats().rounds,
+                            ge(1),
                             "Petersen should need at least one refinement round"
                         );
                         break;
@@ -634,8 +638,9 @@ mod tests {
                 Step::Found(segment) => {
                     // Assert that the answer is correct, not the round count
                     // (which depends on which spurious cover CaDiCaL finds first).
-                    assert!(
+                    assert_that!(
                         segment.is_hamiltonian_cycle(&graph),
+                        eq(true),
                         "not a Hamiltonian cycle of the graph: {segment}"
                     );
                 }
@@ -659,8 +664,9 @@ mod tests {
 
             match result {
                 Step::Found(segment) => {
-                    assert!(
+                    assert_that!(
                         segment.is_hamiltonian_cycle(&graph),
+                        eq(true),
                         "not a Hamiltonian cycle of the graph: {segment}"
                     );
                 }
@@ -696,8 +702,8 @@ mod tests {
             // non-existence, which merging could only break by making the
             // solver see a formula it should not have.
             let (without, with) = both_ways(&petersen());
-            assert_eq!(without, Step::NoCycle);
-            assert_eq!(with, Step::NoCycle);
+            assert_that!(without, eq(Step::NoCycle));
+            assert_that!(with, eq(Step::NoCycle));
         }
 
         #[test]
@@ -710,8 +716,9 @@ mod tests {
             // instead of against each other.
             for answer in [without, with] {
                 match answer {
-                    Step::Found(segment) => assert!(
+                    Step::Found(segment) => assert_that!(
                         segment.is_hamiltonian_cycle(&graph),
+                        eq(true),
                         "not a Hamiltonian cycle of the graph: {segment}"
                     ),
                     other => panic!("expected Found, got {other:?}"),
@@ -733,12 +740,12 @@ mod tests {
             search.run().expect("run should succeed");
 
             let stats = search.stats();
-            assert!(stats.rounds >= 1, "Petersen must refine at least once");
-            assert_eq!(
+            assert_that!(stats.rounds, ge(1), "Petersen must refine at least once");
+            assert_that!(
                 stats.segments_before_merge_per_round,
-                stats.segments_per_round
+                eq_deref_of(&stats.segments_per_round)
             );
-            assert_eq!(stats.segments_per_round.len(), stats.rounds);
+            assert_that!(stats.segments_per_round, len(eq(stats.rounds)));
         }
     }
 
@@ -748,10 +755,10 @@ mod tests {
         #[test]
         fn default_config_has_no_limits_and_merges() {
             let config = Config::default();
-            assert!(config.max_rounds.is_none());
-            assert!(config.max_conflicts.is_none());
-            assert!(!config.skip_preconditions);
-            assert!(config.merge_cycles);
+            assert_that!(config.max_rounds, none());
+            assert_that!(config.max_conflicts, none());
+            assert_that!(config.skip_preconditions, eq(false));
+            assert_that!(config.merge_cycles, eq(true));
         }
 
         #[test]
@@ -761,7 +768,7 @@ mod tests {
             let search = CegarSearch::new(&graph, config).expect("new should succeed");
 
             // A triangle: 3 asymmetry + 6 at-least-one + 6 at-most-one = 15 clauses
-            assert_eq!(search.stats().initial_clauses, 15);
+            assert_that!(search.stats().initial_clauses, eq(15));
         }
     }
 
@@ -770,34 +777,37 @@ mod tests {
 
         #[test]
         fn describe_obstruction_covers_every_variant() {
-            assert_eq!(describe_obstruction(Obstruction::Empty), "graph is empty");
-            assert_eq!(
+            assert_that!(
+                describe_obstruction(Obstruction::Empty),
+                eq("graph is empty")
+            );
+            assert_that!(
                 describe_obstruction(Obstruction::SelfLoop(
                     petgraph::graph::EdgeIndex::new(2)
                 )),
-                "self-loop at edge 2"
+                eq("self-loop at edge 2")
             );
-            assert_eq!(
+            assert_that!(
                 describe_obstruction(Obstruction::ParallelEdges(v(0), v(1))),
-                "parallel edges between vertices 0 and 1"
+                eq("parallel edges between vertices 0 and 1")
             );
-            assert_eq!(
+            assert_that!(
                 describe_obstruction(Obstruction::Disconnected),
-                "graph is disconnected"
+                eq("graph is disconnected")
             );
-            assert_eq!(
+            assert_that!(
                 describe_obstruction(Obstruction::LowDegree(v(3))),
-                "vertex 3 has degree < 2"
+                eq("vertex 3 has degree < 2")
             );
-            assert_eq!(
+            assert_that!(
                 describe_obstruction(Obstruction::Bridge(
                     petgraph::graph::EdgeIndex::new(5)
                 )),
-                "bridge at edge 5"
+                eq("bridge at edge 5")
             );
-            assert_eq!(
+            assert_that!(
                 describe_obstruction(Obstruction::ArticulationPoint(v(4))),
-                "articulation point at vertex 4"
+                eq("articulation point at vertex 4")
             );
         }
 
@@ -807,9 +817,9 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 0), (2, 3)]);
             let search =
                 CegarSearch::new(&graph, Config::default()).expect("new should succeed");
-            assert_eq!(
+            assert_that!(
                 search.stats().obstruction.as_deref(),
-                Some("vertex 3 has degree < 2")
+                eq(Some("vertex 3 has degree < 2"))
             );
         }
     }
@@ -832,9 +842,9 @@ mod tests {
             };
 
             let second = search.step().expect("step should succeed");
-            assert_eq!(
+            assert_that!(
                 second,
-                Step::Found(segment),
+                eq(Step::Found(segment)),
                 "a second call after Found must report the same answer, not NoCycle"
             );
         }
@@ -849,8 +859,14 @@ mod tests {
             let mut search =
                 CegarSearch::new(&graph, config).expect("new should succeed");
 
-            assert_eq!(search.step().expect("step should succeed"), Step::NoCycle);
-            assert_eq!(search.step().expect("step should succeed"), Step::NoCycle);
+            assert_that!(
+                search.step().expect("step should succeed"),
+                eq(Step::NoCycle)
+            );
+            assert_that!(
+                search.step().expect("step should succeed"),
+                eq(Step::NoCycle)
+            );
         }
 
         #[test]
@@ -864,7 +880,10 @@ mod tests {
             };
             let mut search =
                 CegarSearch::new(&graph, config).expect("new should succeed");
-            assert_eq!(search.step().expect("step should succeed"), Step::NoCycle);
+            assert_that!(
+                search.step().expect("step should succeed"),
+                eq(Step::NoCycle)
+            );
         }
 
         #[test]
@@ -881,7 +900,10 @@ mod tests {
             };
             let mut search =
                 CegarSearch::new(&graph, config).expect("new should succeed");
-            assert_eq!(search.step().expect("step should succeed"), Step::NoCycle);
+            assert_that!(
+                search.step().expect("step should succeed"),
+                eq(Step::NoCycle)
+            );
         }
     }
 }

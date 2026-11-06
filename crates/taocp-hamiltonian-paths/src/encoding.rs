@@ -63,11 +63,7 @@ impl<'g> ArcVars<'g> {
             .graph
             .edge_endpoints(edge)
             .expect("var does not name an edge of this graph");
-        if var % 2 == 0 {
-            (a, b)
-        } else {
-            (b, a)
-        }
+        if var % 2 == 0 { (a, b) } else { (b, a) }
     }
 
     /// Number of arc variables, `2 * m`.
@@ -181,11 +177,7 @@ mod tests {
             .iter()
             .map(|lit| {
                 let n = lit.var().idx32() as i64 + 1;
-                if lit.is_neg() {
-                    -n
-                } else {
-                    n
-                }
+                if lit.is_neg() { -n } else { n }
             })
             .collect();
         lits.sort_unstable();
@@ -203,6 +195,7 @@ mod tests {
 
     mod arc_vars {
         use super::*;
+        use test_that::prelude::*;
 
         #[test]
         fn round_trips_over_every_arc() {
@@ -212,7 +205,7 @@ mod tests {
                 let (a, b) = graph.edge_endpoints(edge).unwrap();
                 for &(from, to) in &[(a, b), (b, a)] {
                     let var = vars.var(from, to).expect("adjacent pair has a variable");
-                    assert_eq!(vars.arc(var), (from, to));
+                    assert_that!(vars.arc(var), eq((from, to)));
                 }
             }
         }
@@ -223,26 +216,27 @@ mod tests {
             let vars = ArcVars::new(&graph);
             let forward = vars.var(v(0), v(1)).unwrap();
             let backward = vars.var(v(1), v(0)).unwrap();
-            assert_eq!(forward ^ 1, backward);
+            assert_that!(forward ^ 1, eq(backward));
         }
 
         #[test]
         fn returns_none_for_non_adjacent_pair() {
             let graph = graph_of(3, &[(0, 1), (1, 2)]);
             let vars = ArcVars::new(&graph);
-            assert_eq!(vars.var(v(0), v(2)), None);
+            assert_that!(vars.var(v(0), v(2)), none());
         }
 
         #[test]
         fn n_vars_is_twice_the_edge_count() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
             let vars = ArcVars::new(&graph);
-            assert_eq!(vars.n_vars(), 2 * graph.edge_count() as u32);
+            assert_that!(vars.n_vars(), eq(2 * graph.edge_count() as u32));
         }
     }
 
     mod cycle_cover_cnf {
         use super::*;
+        use test_that::prelude::*;
 
         /// The `A <-> B <-> C` path from `algorithm.md`, "Clauses encoding
         /// the cycle cover" — this is the doc's own illustrative example, not
@@ -259,7 +253,7 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2)]);
             let cnf = cycle_cover_cnf(&graph);
 
-            assert_eq!(cnf.len(), 10);
+            assert_that!(cnf, len(eq(10)));
 
             let expected: HashSet<Vec<i64>> = [
                 // Asymmetry: not(A->B) or not(B->A); not(B->C) or not(C->B).
@@ -284,7 +278,7 @@ mod tests {
             .into_iter()
             .collect();
 
-            assert_eq!(clause_set(&cnf), expected);
+            assert_that!(clause_set(&cnf), eq(expected));
         }
 
         #[test]
@@ -292,7 +286,7 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let cnf = cycle_cover_cnf(&graph);
             // 3 asymmetry + 6 at-least-one + 6 at-most-one.
-            assert_eq!(cnf.len(), 15);
+            assert_that!(cnf, len(eq(15)));
         }
 
         /// The general tripwire formula from `original_plan.md`: `m + 2n +
@@ -310,18 +304,19 @@ mod tests {
             let expected = m + 2 * n + 2 * degree_term;
 
             let cnf = cycle_cover_cnf(&graph);
-            assert_eq!(cnf.len(), expected);
+            assert_that!(cnf, len(eq(expected)));
         }
     }
 
     mod knuth_thirteen_vertex_example {
         use super::*;
+        use test_that::prelude::*;
 
         #[test]
         fn has_the_stated_order_and_size() {
             let graph = knuth_graph();
-            assert_eq!(graph.node_count(), 13);
-            assert_eq!(graph.edge_count(), 21);
+            assert_that!(graph.node_count(), eq(13));
+            assert_that!(graph.edge_count(), eq(21));
         }
 
         #[test]
@@ -331,7 +326,7 @@ mod tests {
             // + sum_v d_v(d_v - 1) at-most-one, exactly as the book states.
             // Degrees: A5 B3 C4 D3 E4 F3 G2 H4 I3 J2 K3 L3 M3, so
             // sum d(d-1) = 20+6+12+6+12+6+2+12+6+2+6+6+6 = 102.
-            assert_eq!(cnf.len(), 21 + 26 + 102);
+            assert_that!(cnf, len(eq(21 + 26 + 102)));
         }
 
         #[test]
@@ -353,33 +348,40 @@ mod tests {
             };
 
             // (AB ∨ AC ∨ AD ∨ AE ∨ AF) ∧ (BA ∨ CA ∨ DA ∨ EA ∨ FA)
-            assert!(clauses.contains(&lit_set(&[
-                (0, 1),
-                (0, 2),
-                (0, 3),
-                (0, 4),
-                (0, 5)
-            ])));
-            assert!(clauses.contains(&lit_set(&[
-                (1, 0),
-                (2, 0),
-                (3, 0),
-                (4, 0),
-                (5, 0)
-            ])));
+            assert_that!(
+                clauses.contains(&lit_set(&[(0, 1), (0, 2), (0, 3), (0, 4), (0, 5)])),
+                eq(true)
+            );
+            assert_that!(
+                clauses.contains(&lit_set(&[(1, 0), (2, 0), (3, 0), (4, 0), (5, 0)])),
+                eq(true)
+            );
 
             // (BA ∨ BI ∨ BL) ∧ (AB ∨ IB ∨ LB)
-            assert!(clauses.contains(&lit_set(&[(1, 0), (1, 8), (1, 11)])));
-            assert!(clauses.contains(&lit_set(&[(0, 1), (8, 1), (11, 1)])));
+            assert_that!(
+                clauses.contains(&lit_set(&[(1, 0), (1, 8), (1, 11)])),
+                eq(true)
+            );
+            assert_that!(
+                clauses.contains(&lit_set(&[(0, 1), (8, 1), (11, 1)])),
+                eq(true)
+            );
 
             // (MH ∨ MK ∨ ML) ∧ (HM ∨ KM ∨ LM)
-            assert!(clauses.contains(&lit_set(&[(12, 7), (12, 10), (12, 11)])));
-            assert!(clauses.contains(&lit_set(&[(7, 12), (10, 12), (11, 12)])));
+            assert_that!(
+                clauses.contains(&lit_set(&[(12, 7), (12, 10), (12, 11)])),
+                eq(true)
+            );
+            assert_that!(
+                clauses.contains(&lit_set(&[(7, 12), (10, 12), (11, 12)])),
+                eq(true)
+            );
         }
     }
 
     mod write_dimacs {
         use super::*;
+        use test_that::prelude::*;
 
         #[test]
         fn produces_a_well_formed_header_and_one_line_per_clause() {
@@ -393,17 +395,17 @@ mod tests {
 
             let header = lines.next().expect("header line");
             let parts: Vec<&str> = header.split_whitespace().collect();
-            assert_eq!(parts[0], "p");
-            assert_eq!(parts[1], "cnf");
+            assert_that!(parts[0], eq("p"));
+            assert_that!(parts[1], eq("cnf"));
             let n_vars: usize = parts[2].parse().unwrap();
             let n_clauses: usize = parts[3].parse().unwrap();
-            assert_eq!(n_vars, ArcVars::new(&graph).n_vars() as usize);
-            assert_eq!(n_clauses, cnf.len());
+            assert_that!(n_vars, eq(ArcVars::new(&graph).n_vars() as usize));
+            assert_that!(n_clauses, eq(cnf.len()));
 
             let clause_lines: Vec<&str> = lines.collect();
-            assert_eq!(clause_lines.len(), cnf.len());
+            assert_that!(clause_lines, len(eq(cnf.len())));
             for line in clause_lines {
-                assert!(line.trim_end().ends_with('0'));
+                assert_that!(line.trim_end().ends_with('0'), eq(true));
             }
         }
     }

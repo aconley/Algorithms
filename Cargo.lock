@@ -157,15 +157,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "claim"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f81099d6bb72e1df6d50bb2347224b666a670912bb7f06dbe867a4a070ab3ce8"
-dependencies = [
- "autocfg",
-]
-
-[[package]]
 name = "clang-sys"
 version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -916,9 +907,9 @@ dependencies = [
 name = "taocp-backtracking"
 version = "0.1.1"
 dependencies = [
- "claim",
  "criterion",
  "lazy_static",
+ "test-that",
 ]
 
 [[package]]
@@ -934,18 +925,18 @@ dependencies = [
 name = "taocp-hamiltonian-paths"
 version = "0.1.1"
 dependencies = [
- "claim",
  "petgraph",
  "rustsat",
  "rustsat-cadical",
+ "test-that",
 ]
 
 [[package]]
 name = "taocp-sat"
 version = "0.1.1"
 dependencies = [
- "claim",
  "criterion",
+ "test-that",
 ]
 
 [[package]]

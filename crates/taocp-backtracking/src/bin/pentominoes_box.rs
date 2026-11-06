@@ -156,7 +156,8 @@ fn solve_box(
     height: u8,
     width: u8,
 ) -> Result<(usize, Option<PolynominoSolution>), DancingLinksError> {
-    let mut iterator = PolynominoIterator::new(pentominoes(), SimpleBox { height, width })?;
+    let mut iterator =
+        PolynominoIterator::new(pentominoes(), SimpleBox { height, width })?;
     match iterator.next() {
         Some(sol) => Ok((iterator.count() + 1, Some(sol))),
         None => Ok((0, None)),

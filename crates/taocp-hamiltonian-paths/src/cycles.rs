@@ -344,8 +344,8 @@ impl CycleCover {
 mod tests {
     use super::*;
     use crate::testing::{graph_of, knuth_cover, model_of, v};
-    use claim::{assert_err, assert_ok};
     use std::collections::HashSet;
+    use test_that::prelude::*;
 
     /// The vertices of `start`'s cycle, in `SUCC` order beginning at `start`.
     fn walk(cover: &CycleCover, start: NodeIndex) -> Vec<NodeIndex> {
@@ -369,14 +369,15 @@ mod tests {
         for i in 0..graph.node_count() {
             let u = v(i);
             let next = cover.succ[i];
-            assert!(
-                graph.find_edge(u, next).is_some(),
+            assert_that!(
+                graph.find_edge(u, next),
+                some(anything()),
                 "SUCC[{i}] = {} is not an edge of the graph",
                 next.index()
             );
-            assert_eq!(
+            assert_that!(
                 cover.pred[next.index()],
-                u,
+                eq(u),
                 "PRED does not invert SUCC at {i}"
             );
         }
@@ -384,13 +385,19 @@ mod tests {
         let mut seen = vec![false; graph.node_count()];
         for &c in cover.active() {
             for u in walk(cover, cover.head[c]) {
-                assert!(!seen[u.index()], "vertex {} is on two cycles", u.index());
+                assert_that!(
+                    seen[u.index()],
+                    eq(false),
+                    "vertex {} is on two cycles",
+                    u.index()
+                );
                 seen[u.index()] = true;
-                assert_eq!(cover.cid[u.index()], c, "CID disagrees with the walk");
+                assert_that!(cover.cid[u.index()], eq(c), "CID disagrees with the walk");
             }
         }
-        assert!(
+        assert_that!(
             seen.iter().all(|&covered| covered),
+            eq(true),
             "the active cycles do not cover every vertex"
         );
     }
@@ -403,15 +410,15 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
             let model = model_of(&graph, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
             let vars = ArcVars::new(&graph);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
 
-            assert_eq!(cover.t(), 1);
-            assert_eq!(cover.succ, vec![v(1), v(2), v(3), v(0)]);
-            assert_eq!(cover.pred, vec![v(3), v(0), v(1), v(2)]);
-            assert_eq!(cover.cid, vec![1, 1, 1, 1]);
-            assert_eq!(cover.cyc, vec![1]);
-            assert_eq!(cover.cloc[1], 0);
-            assert_eq!(cover.head[1], v(0));
+            assert_that!(cover.t(), eq(1));
+            assert_that!(cover.succ, eq(vec![v(1), v(2), v(3), v(0)]));
+            assert_that!(cover.pred, eq(vec![v(3), v(0), v(1), v(2)]));
+            assert_that!(cover.cid, eq(vec![1, 1, 1, 1]));
+            assert_that!(cover.cyc, eq(vec![1]));
+            assert_that!(cover.cloc[1], eq(0));
+            assert_that!(cover.head[1], eq(v(0)));
         }
 
         #[test]
@@ -420,17 +427,17 @@ mod tests {
             let model =
                 model_of(&graph, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
             let vars = ArcVars::new(&graph);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
 
-            assert_eq!(cover.t(), 2);
-            assert_eq!(cover.succ, vec![v(1), v(2), v(0), v(4), v(5), v(3)]);
-            assert_eq!(cover.pred, vec![v(2), v(0), v(1), v(5), v(3), v(4)]);
-            assert_eq!(cover.cid, vec![1, 1, 1, 2, 2, 2]);
-            assert_eq!(cover.cyc, vec![1, 2]);
-            assert_eq!(cover.cloc[1], 0);
-            assert_eq!(cover.cloc[2], 1);
-            assert_eq!(cover.head[1], v(0));
-            assert_eq!(cover.head[2], v(3));
+            assert_that!(cover.t(), eq(2));
+            assert_that!(cover.succ, eq(vec![v(1), v(2), v(0), v(4), v(5), v(3)]));
+            assert_that!(cover.pred, eq(vec![v(2), v(0), v(1), v(5), v(3), v(4)]));
+            assert_that!(cover.cid, eq(vec![1, 1, 1, 2, 2, 2]));
+            assert_that!(cover.cyc, eq(vec![1, 2]));
+            assert_that!(cover.cloc[1], eq(0));
+            assert_that!(cover.cloc[2], eq(1));
+            assert_that!(cover.head[1], eq(v(0)));
+            assert_that!(cover.head[2], eq(v(3)));
         }
 
         #[test]
@@ -438,9 +445,9 @@ mod tests {
             let cover = knuth_cover();
 
             // NAME[v] = A B C D E F G H I J K L M, v = 0..12.
-            assert_eq!(
+            assert_that!(
                 cover.succ,
-                vec![
+                eq(vec![
                     v(2),
                     v(11),
                     v(6),
@@ -454,11 +461,11 @@ mod tests {
                     v(12),
                     v(9),
                     v(7),
-                ]
+                ])
             );
-            assert_eq!(
+            assert_that!(
                 cover.pred,
-                vec![
+                eq(vec![
                     v(3),
                     v(8),
                     v(0),
@@ -472,17 +479,17 @@ mod tests {
                     v(5),
                     v(1),
                     v(10),
-                ]
+                ])
             );
-            assert_eq!(cover.cid, vec![1, 2, 1, 1, 2, 3, 1, 3, 2, 2, 3, 2, 3]);
-            assert_eq!(cover.t(), 3);
-            assert_eq!(cover.cyc, vec![1, 2, 3]);
-            assert_eq!(cover.cloc[1], 0);
-            assert_eq!(cover.cloc[2], 1);
-            assert_eq!(cover.cloc[3], 2);
-            assert_eq!(cover.head[1], v(0));
-            assert_eq!(cover.head[2], v(1));
-            assert_eq!(cover.head[3], v(5));
+            assert_that!(cover.cid, eq(vec![1, 2, 1, 1, 2, 3, 1, 3, 2, 2, 3, 2, 3]));
+            assert_that!(cover.t(), eq(3));
+            assert_that!(cover.cyc, eq(vec![1, 2, 3]));
+            assert_that!(cover.cloc[1], eq(0));
+            assert_that!(cover.cloc[2], eq(1));
+            assert_that!(cover.cloc[3], eq(2));
+            assert_that!(cover.head[1], eq(v(0)));
+            assert_that!(cover.head[2], eq(v(1)));
+            assert_that!(cover.head[3], eq(v(5)));
         }
 
         #[test]
@@ -494,8 +501,8 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let model = model_of(&graph, &[(0, 1), (1, 2), (2, 0), (0, 2)]);
             let vars = ArcVars::new(&graph);
-            let err = assert_err!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(err, CoverError::DuplicateOutArc(v(0)));
+            let err = CycleCover::from_model(&graph, &vars, &model).unwrap_err();
+            assert_that!(err, eq(CoverError::DuplicateOutArc(v(0))));
         }
 
         #[test]
@@ -507,8 +514,8 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let model = model_of(&graph, &[(1, 0), (2, 0)]);
             let vars = ArcVars::new(&graph);
-            let err = assert_err!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(err, CoverError::DuplicateInArc(v(0)));
+            let err = CycleCover::from_model(&graph, &vars, &model).unwrap_err();
+            assert_that!(err, eq(CoverError::DuplicateInArc(v(0))));
         }
 
         #[test]
@@ -521,8 +528,8 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let model = model_of(&graph, &[(1, 0), (2, 1)]);
             let vars = ArcVars::new(&graph);
-            let err = assert_err!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(err, CoverError::NoOutArc(v(0)));
+            let err = CycleCover::from_model(&graph, &vars, &model).unwrap_err();
+            assert_that!(err, eq(CoverError::NoOutArc(v(0))));
         }
 
         #[test]
@@ -534,8 +541,8 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let model = model_of(&graph, &[(0, 1), (1, 2)]);
             let vars = ArcVars::new(&graph);
-            let err = assert_err!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(err, CoverError::NoInArc(v(0)));
+            let err = CycleCover::from_model(&graph, &vars, &model).unwrap_err();
+            assert_that!(err, eq(CoverError::NoInArc(v(0))));
         }
     }
 
@@ -547,15 +554,15 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
             let model = model_of(&graph, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
             let vars = ArcVars::new(&graph);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
 
-            let decomposition = assert_ok!(cover.to_decomposition());
-            assert_eq!(decomposition.len(), 1);
-            assert!(decomposition.segments()[0].is_closed());
-            assert_eq!(decomposition.covered_vertices(), 4);
-            assert_eq!(
+            let decomposition = cover.to_decomposition().unwrap();
+            assert_that!(decomposition.len(), eq(1));
+            assert_that!(decomposition.segments()[0].is_closed(), eq(true));
+            assert_that!(decomposition.covered_vertices(), eq(4));
+            assert_that!(
                 decomposition.as_hamiltonian_cycle(4).unwrap().vertices(),
-                &[v(0), v(1), v(2), v(3)]
+                eq(&[v(0), v(1), v(2), v(3)])
             );
         }
 
@@ -565,20 +572,26 @@ mod tests {
             let model =
                 model_of(&graph, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
             let vars = ArcVars::new(&graph);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
 
-            let decomposition = assert_ok!(cover.to_decomposition());
-            assert_eq!(decomposition.len(), 2);
-            assert!(decomposition.segments().iter().all(Segment::is_closed));
-            assert_eq!(decomposition.as_hamiltonian_cycle(6), None);
+            let decomposition = cover.to_decomposition().unwrap();
+            assert_that!(decomposition.len(), eq(2));
+            assert_that!(
+                decomposition.segments().iter().all(Segment::is_closed),
+                eq(true)
+            );
+            assert_that!(decomposition.as_hamiltonian_cycle(6), none());
         }
 
         #[test]
         fn thirteen_vertex_example_walks_to_the_three_stated_cycles() {
             let cover = knuth_cover();
-            let decomposition = assert_ok!(cover.to_decomposition());
-            assert_eq!(decomposition.covered_vertices(), 13);
-            assert!(decomposition.segments().iter().all(Segment::is_closed));
+            let decomposition = cover.to_decomposition().unwrap();
+            assert_that!(decomposition.covered_vertices(), eq(13));
+            assert_that!(
+                decomposition.segments().iter().all(Segment::is_closed),
+                eq(true)
+            );
 
             // The book's three cycles A-C-G-D, B-L-J-E-I and F-K-M-H, each in
             // the canonical orientation `Decomposition::new` imposes: rotated
@@ -591,13 +604,13 @@ mod tests {
                 .iter()
                 .map(Segment::vertices)
                 .collect();
-            assert_eq!(
+            assert_that!(
                 cycles,
-                vec![
+                eq(vec![
                     &[v(0), v(2), v(6), v(3)][..],
                     &[v(1), v(8), v(4), v(9), v(11)][..],
                     &[v(5), v(7), v(12), v(10)][..],
-                ]
+                ])
             );
         }
 
@@ -612,9 +625,9 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (2, 3), (3, 0), (1, 2)]);
             let model = model_of(&graph, &[(0, 1), (1, 0), (2, 3), (3, 2)]);
             let vars = ArcVars::new(&graph);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
-            let err = assert_err!(cover.to_decomposition());
-            assert_eq!(err, SegmentError::ClosedTooShort(2));
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
+            let err = cover.to_decomposition().unwrap_err();
+            assert_that!(err, eq(SegmentError::ClosedTooShort(2)));
         }
     }
 
@@ -658,31 +671,31 @@ mod tests {
         fn thirteen_vertex_example_matches_the_book() {
             let graph = merge_example_graph();
             let mut cover = knuth_cover();
-            assert_eq!(cover.t(), 3);
+            assert_that!(cover.t(), eq(3));
 
             cover.merge(&graph);
 
             // The values `.agents/algorithm.md` states for this example.
-            assert_eq!(cover.succ[0], v(1));
-            assert_eq!(cover.succ[8], v(2));
-            assert_eq!(cover.pred[1], v(0));
-            assert_eq!(cover.pred[2], v(8));
-            assert_eq!(cover.t(), 2);
-            assert_eq!(cover.active(), &[1, 3]);
-            assert_eq!(cover.cloc[1], 0);
-            assert_eq!(cover.cloc[3], 1);
+            assert_that!(cover.succ[0], eq(v(1)));
+            assert_that!(cover.succ[8], eq(v(2)));
+            assert_that!(cover.pred[1], eq(v(0)));
+            assert_that!(cover.pred[2], eq(v(8)));
+            assert_that!(cover.t(), eq(2));
+            assert_that!(cover.active(), eq(&[1, 3]));
+            assert_that!(cover.cloc[1], eq(0));
+            assert_that!(cover.cloc[3], eq(1));
 
             // Cycle 2 (B L J E I) was absorbed into cycle 1; cycle 3 is
             // untouched.
-            assert_eq!(
+            assert_that!(
                 cover.cid,
-                vec![1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 3, 1, 3],
+                eq(vec![1, 1, 1, 1, 1, 3, 1, 3, 1, 1, 3, 1, 3]),
                 "every CID of 2 should now read 1"
             );
 
-            assert_eq!(
+            assert_that!(
                 walk(&cover, v(0)),
-                vec![v(0), v(1), v(11), v(9), v(4), v(8), v(2), v(6), v(3),],
+                eq(vec![v(0), v(1), v(11), v(9), v(4), v(8), v(2), v(6), v(3),]),
                 "the merged cycle should be 0 1 11 9 4 8 2 6 3"
             );
             assert_cover_invariants(&graph, &cover);
@@ -711,14 +724,17 @@ mod tests {
             let vars = ArcVars::new(&graph);
             let model =
                 model_of(&graph, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
-            let mut cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(cover.t(), 2);
+            let mut cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
+            assert_that!(cover.t(), eq(2));
 
             cover.merge(&graph);
 
-            assert_eq!(cover.t(), 1);
+            assert_that!(cover.t(), eq(1));
             // 3-4-5 now runs backwards: 3 -> 5 -> 4, spliced between 0 and 1.
-            assert_eq!(walk(&cover, v(0)), vec![v(0), v(3), v(5), v(4), v(1), v(2)]);
+            assert_that!(
+                walk(&cover, v(0)),
+                eq(vec![v(0), v(3), v(5), v(4), v(1), v(2)])
+            );
             assert_cover_invariants(&graph, &cover);
         }
 
@@ -767,14 +783,14 @@ mod tests {
                     (8, 6),
                 ],
             );
-            let mut cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(cover.t(), 3);
+            let mut cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
+            assert_that!(cover.t(), eq(3));
 
             cover.merge(&graph);
 
-            assert_eq!(cover.t(), 2);
+            assert_that!(cover.t(), eq(2));
             assert_cover_invariants(&graph, &cover);
-            assert_eq!(walk(&cover, v(0)).len(), 6);
+            assert_that!(walk(&cover, v(0)), len(eq(6)));
         }
 
         /// A deterministic xorshift.  A handful of small random graphs does
@@ -845,7 +861,7 @@ mod tests {
             let graph = graph_of(n, &edges);
             let vars = ArcVars::new(&graph);
             let model = model_of(&graph, &arcs);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
             (graph, cover)
         }
 
@@ -859,8 +875,9 @@ mod tests {
                 let before = cover.t();
                 cover.merge(&graph);
 
-                assert!(
-                    cover.t() <= before,
+                assert_that!(
+                    cover.t(),
+                    le(before),
                     "merging raised t from {before} to {}",
                     cover.t()
                 );

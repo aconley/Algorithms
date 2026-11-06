@@ -113,7 +113,7 @@ mod tests {
     use super::*;
     use crate::generators::{knight_graph, petersen};
     use crate::testing::graph_of;
-    use claim::assert_ok;
+    use test_that::prelude::*;
 
     mod stepping {
         use super::*;
@@ -121,10 +121,12 @@ mod tests {
         #[test]
         fn triangle_settles_on_the_first_step() {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
-            let mut search = assert_ok!(Search::new(&graph, Config::default()));
+            let mut search = Search::new(&graph, Config::default()).unwrap();
 
-            match assert_ok!(search.step()) {
-                Progress::Found(cycle) => assert!(cycle.is_valid_for(&graph)),
+            match search.step().unwrap() {
+                Progress::Found(cycle) => {
+                    assert_that!(cycle.is_valid_for(&graph), eq(true))
+                }
                 other => panic!("expected Found, got {other:?}"),
             }
         }
@@ -132,21 +134,21 @@ mod tests {
         #[test]
         fn terminal_progress_repeats_rather_than_advancing() {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
-            let mut search = assert_ok!(Search::new(&graph, Config::default()));
+            let mut search = Search::new(&graph, Config::default()).unwrap();
 
-            let first = assert_ok!(search.step());
-            let second = assert_ok!(search.step());
-            assert_eq!(first, second);
+            let first = search.step().unwrap();
+            let second = search.step().unwrap();
+            assert_that!(first, eq(second));
         }
 
         #[test]
         fn petersen_proves_no_cycle_exists() {
             let graph = petersen();
-            let mut search = assert_ok!(Search::new(&graph, Config::default()));
+            let mut search = Search::new(&graph, Config::default()).unwrap();
 
             loop {
-                match assert_ok!(search.step()) {
-                    Progress::Refining { cycles } => assert!(cycles >= 1),
+                match search.step().unwrap() {
+                    Progress::Refining { cycles } => assert_that!(cycles, ge(1)),
                     Progress::NoCycle => break,
                     other => panic!("expected refinement then NoCycle, got {other:?}"),
                 }
@@ -160,8 +162,8 @@ mod tests {
         #[test]
         fn no_cover_before_the_first_step() {
             let graph = petersen();
-            let search = assert_ok!(Search::new(&graph, Config::default()));
-            assert!(search.cover().is_none());
+            let search = Search::new(&graph, Config::default()).unwrap();
+            assert_that!(search.cover(), none());
         }
 
         /// The whole point of the type: a spurious round must expose a cover
@@ -170,14 +172,14 @@ mod tests {
         #[test]
         fn a_spurious_round_exposes_a_multi_segment_cover() {
             let graph = petersen();
-            let mut search = assert_ok!(Search::new(&graph, Config::default()));
+            let mut search = Search::new(&graph, Config::default()).unwrap();
 
             let mut saw_multi_segment = false;
             loop {
-                let progress = assert_ok!(search.step());
+                let progress = search.step().unwrap();
                 if let Some(cover) = search.cover() {
-                    let cover = assert_ok!(cover);
-                    assert_eq!(cover.covered_vertices(), graph.node_count());
+                    let cover = cover.unwrap();
+                    assert_that!(cover.covered_vertices(), eq(graph.node_count()));
                     if cover.len() > 1 {
                         saw_multi_segment = true;
                     }
@@ -186,8 +188,9 @@ mod tests {
                     break;
                 }
             }
-            assert!(
+            assert_that!(
                 saw_multi_segment,
+                eq(true),
                 "Petersen should fragment into several cycles before settling"
             );
         }
@@ -195,11 +198,11 @@ mod tests {
         #[test]
         fn cover_matches_the_reported_cycle_count() {
             let graph = petersen();
-            let mut search = assert_ok!(Search::new(&graph, Config::default()));
+            let mut search = Search::new(&graph, Config::default()).unwrap();
 
-            while let Progress::Refining { cycles } = assert_ok!(search.step()) {
-                let cover = assert_ok!(search.cover().expect("a round has been taken"));
-                assert_eq!(cover.len(), cycles);
+            while let Progress::Refining { cycles } = search.step().unwrap() {
+                let cover = search.cover().expect("a round has been taken").unwrap();
+                assert_that!(cover.len(), eq(cycles));
             }
         }
     }
@@ -210,14 +213,14 @@ mod tests {
         #[test]
         fn rounds_and_clauses_accumulate() {
             let graph = knight_graph(6, 6).0;
-            let mut search = assert_ok!(Search::new(&graph, Config::default()));
+            let mut search = Search::new(&graph, Config::default()).unwrap();
 
-            while let Progress::Refining { .. } = assert_ok!(search.step()) {}
+            while let Progress::Refining { .. } = search.step().unwrap() {}
 
             let stats = search.stats();
-            assert!(stats.initial_clauses > 0);
-            assert_eq!(stats.clauses_per_round.len(), stats.rounds);
-            assert_eq!(stats.segments_per_round.len(), stats.rounds);
+            assert_that!(stats.initial_clauses, gt(0));
+            assert_that!(stats.clauses_per_round, len(eq(stats.rounds)));
+            assert_that!(stats.segments_per_round, len(eq(stats.rounds)));
         }
     }
 }

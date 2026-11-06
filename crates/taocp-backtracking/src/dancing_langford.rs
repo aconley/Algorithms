@@ -144,49 +144,49 @@ fn create_options(n: u8) -> Result<Vec<LangfordOption>, DancingLinksError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use claim::assert_ok;
+    use test_that::prelude::*;
 
     #[test]
     fn count_no_solutions() {
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(1)).count(), 0);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(2)).count(), 0);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(5)).count(), 0);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(6)).count(), 0);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(9)).count(), 0);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(10)).count(), 0);
+        assert_that!(DancingLangfordIterator::new(1).unwrap().count(), eq(0));
+        assert_that!(DancingLangfordIterator::new(2).unwrap().count(), eq(0));
+        assert_that!(DancingLangfordIterator::new(5).unwrap().count(), eq(0));
+        assert_that!(DancingLangfordIterator::new(6).unwrap().count(), eq(0));
+        assert_that!(DancingLangfordIterator::new(9).unwrap().count(), eq(0));
+        assert_that!(DancingLangfordIterator::new(10).unwrap().count(), eq(0));
     }
 
     #[test]
     fn count_small_with_solutions() {
         // Recall that we don't include the mirror solutions.
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(3)).count(), 1);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(4)).count(), 1);
+        assert_that!(DancingLangfordIterator::new(3).unwrap().count(), eq(1));
+        assert_that!(DancingLangfordIterator::new(4).unwrap().count(), eq(1));
     }
 
     #[test]
     fn count_medium_with_solutions() {
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(7)).count(), 26);
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(8)).count(), 150);
+        assert_that!(DancingLangfordIterator::new(7).unwrap().count(), eq(26));
+        assert_that!(DancingLangfordIterator::new(8).unwrap().count(), eq(150));
     }
 
     #[test]
     fn count_large_number_solutions() {
-        assert_eq!(assert_ok!(DancingLangfordIterator::new(11)).count(), 17792);
+        assert_that!(DancingLangfordIterator::new(11).unwrap().count(), eq(17792));
     }
 
     #[test]
     fn expected_solutions_n3() {
-        assert_eq!(
-            assert_ok!(DancingLangfordIterator::new(3)).collect::<Vec<_>>(),
-            vec![vec![3, 1, 2, 1, 3, 2]]
+        assert_that!(
+            DancingLangfordIterator::new(3).unwrap().collect::<Vec<_>>(),
+            eq(vec![vec![3, 1, 2, 1, 3, 2]])
         );
     }
 
     #[test]
     fn expected_solutions_n4() {
-        assert_eq!(
-            assert_ok!(DancingLangfordIterator::new(4)).collect::<Vec<_>>(),
-            vec![vec![2, 3, 4, 2, 1, 3, 1, 4]]
+        assert_that!(
+            DancingLangfordIterator::new(4).unwrap().collect::<Vec<_>>(),
+            eq(vec![vec![2, 3, 4, 2, 1, 3, 1, 4]])
         );
     }
 }

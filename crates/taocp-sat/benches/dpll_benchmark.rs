@@ -3,10 +3,10 @@ extern crate criterion;
 extern crate taocp_sat;
 
 use criterion::{BenchmarkId, Criterion};
-use taocp_sat::{langford, waerden, SatProblem};
 use taocp_sat::dpll_alternatives::dpll_claude::solve_via_dpll as solve_via_dpll_claude;
 use taocp_sat::dpll_alternatives::dpll_codex::solve_via_dpll_codex;
 use taocp_sat::dpll_alternatives::dpll_gemini::solve_via_dpll as solve_via_dpll_gemini;
+use taocp_sat::{SatProblem, langford, waerden};
 
 fn r_prime() -> SatProblem {
     SatProblem::from_literals(&[

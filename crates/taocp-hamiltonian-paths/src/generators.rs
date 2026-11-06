@@ -280,6 +280,7 @@ pub fn random_graph(n: usize, edge_prob: f64, seed: u64) -> UnGraph<(), ()> {
 mod tests {
     use super::*;
     use std::collections::HashSet;
+    use test_that::prelude::*;
 
     /// Every generator's output must be free of self-loops and parallel
     /// edges: `precheck.rs` rejects both, so a generator that produced
@@ -288,9 +289,13 @@ mod tests {
         let mut seen = HashSet::new();
         for edge in graph.raw_edges() {
             let (a, b) = (edge.source(), edge.target());
-            assert_ne!(a, b, "self-loop at {a:?}");
+            assert_that!(a, not(eq(b)), "self-loop at {a:?}");
             let key = if a < b { (a, b) } else { (b, a) };
-            assert!(seen.insert(key), "parallel edge between {a:?} and {b:?}");
+            assert_that!(
+                seen.insert(key),
+                eq(true),
+                "parallel edge between {a:?} and {b:?}"
+            );
         }
     }
 
@@ -300,9 +305,9 @@ mod tests {
         #[test]
         fn six_by_six_has_36_vertices_and_80_edges() {
             let (graph, squares) = knight_graph(6, 6);
-            assert_eq!(graph.node_count(), 36);
-            assert_eq!(graph.edge_count(), 80);
-            assert_eq!(squares.len(), 36);
+            assert_that!(graph.node_count(), eq(36));
+            assert_that!(graph.edge_count(), eq(80));
+            assert_that!(squares, len(eq(36)));
             assert_simple(&graph);
         }
 
@@ -310,12 +315,12 @@ mod tests {
         fn node_index_matches_side_table() {
             let (_, squares) = knight_graph(4, 5);
             for (i, square) in squares.iter().enumerate() {
-                assert_eq!(
+                assert_that!(
                     *square,
-                    Square {
+                    eq(Square {
                         rank: i / 5,
                         file: i % 5
-                    }
+                    })
                 );
             }
         }
@@ -323,17 +328,17 @@ mod tests {
         #[test]
         fn degenerate_zero_by_zero_does_not_panic() {
             let (graph, squares) = knight_graph(0, 0);
-            assert_eq!(graph.node_count(), 0);
-            assert_eq!(graph.edge_count(), 0);
-            assert!(squares.is_empty());
+            assert_that!(graph.node_count(), eq(0));
+            assert_that!(graph.edge_count(), eq(0));
+            assert_that!(squares, empty());
         }
 
         #[test]
         fn one_by_one_has_no_edges() {
             let (graph, squares) = knight_graph(1, 1);
-            assert_eq!(graph.node_count(), 1);
-            assert_eq!(graph.edge_count(), 0);
-            assert_eq!(squares.len(), 1);
+            assert_that!(graph.node_count(), eq(1));
+            assert_that!(graph.edge_count(), eq(0));
+            assert_that!(squares, len(eq(1)));
         }
 
         /// Rebuilds `lib.rs`'s hand-written `knight_graph_5x5()` here — it is
@@ -374,8 +379,8 @@ mod tests {
             }
 
             let (graph, _) = knight_graph(5, 5);
-            assert_eq!(graph.edge_count(), 48);
-            assert_eq!(graph.edge_count(), expected.len());
+            assert_that!(graph.edge_count(), eq(48));
+            assert_that!(graph.edge_count(), eq(expected.len()));
             assert_simple(&graph);
 
             let actual: HashSet<(usize, usize)> = graph
@@ -383,7 +388,7 @@ mod tests {
                 .iter()
                 .map(|e| (e.source().index(), e.target().index()))
                 .collect();
-            assert_eq!(actual, expected);
+            assert_that!(actual, eq(expected));
         }
     }
 
@@ -396,8 +401,8 @@ mod tests {
             // 3 4 5
             // Horizontal: (0,1) (1,2) (3,4) (4,5); vertical: (0,3) (1,4) (2,5).
             let (graph, cells) = grid_graph(2, 3);
-            assert_eq!(graph.node_count(), 6);
-            assert_eq!(cells.len(), 6);
+            assert_that!(graph.node_count(), eq(6));
+            assert_that!(cells, len(eq(6)));
             assert_simple(&graph);
 
             let expected: HashSet<(usize, usize)> =
@@ -409,19 +414,19 @@ mod tests {
                 .iter()
                 .map(|e| (e.source().index(), e.target().index()))
                 .collect();
-            assert_eq!(actual, expected);
+            assert_that!(actual, eq(expected));
         }
 
         #[test]
         fn node_index_matches_side_table() {
             let (_, cells) = grid_graph(3, 4);
             for (i, cell) in cells.iter().enumerate() {
-                assert_eq!(
+                assert_that!(
                     *cell,
-                    Cell {
+                    eq(Cell {
                         row: i / 4,
                         col: i % 4
-                    }
+                    })
                 );
             }
         }
@@ -429,9 +434,9 @@ mod tests {
         #[test]
         fn one_by_one_has_single_node_and_no_edges() {
             let (graph, cells) = grid_graph(1, 1);
-            assert_eq!(graph.node_count(), 1);
-            assert_eq!(graph.edge_count(), 0);
-            assert_eq!(cells, vec![Cell { row: 0, col: 0 }]);
+            assert_that!(graph.node_count(), eq(1));
+            assert_that!(graph.edge_count(), eq(0));
+            assert_that!(cells, eq(vec![Cell { row: 0, col: 0 }]));
         }
     }
 
@@ -441,13 +446,13 @@ mod tests {
         #[test]
         fn has_10_vertices_15_edges_and_is_3_regular() {
             let graph = petersen();
-            assert_eq!(graph.node_count(), 10);
-            assert_eq!(graph.edge_count(), 15);
+            assert_that!(graph.node_count(), eq(10));
+            assert_that!(graph.edge_count(), eq(15));
             assert_simple(&graph);
             for node in graph.node_indices() {
-                assert_eq!(
+                assert_that!(
                     graph.neighbors(node).count(),
-                    3,
+                    eq(3),
                     "vertex {node:?} is not degree 3"
                 );
             }
@@ -460,14 +465,14 @@ mod tests {
         #[test]
         fn zero_probability_has_no_edges() {
             let graph = random_graph(20, 0.0, 42);
-            assert_eq!(graph.edge_count(), 0);
+            assert_that!(graph.edge_count(), eq(0));
         }
 
         #[test]
         fn one_probability_is_complete() {
             let n = 12;
             let graph = random_graph(n, 1.0, 42);
-            assert_eq!(graph.edge_count(), n * (n - 1) / 2);
+            assert_that!(graph.edge_count(), eq(n * (n - 1) / 2));
             assert_simple(&graph);
         }
 
@@ -475,14 +480,14 @@ mod tests {
         fn same_seed_is_deterministic() {
             let a = random_graph(30, 0.5, 12345);
             let b = random_graph(30, 0.5, 12345);
-            assert_eq!(edge_set(&a), edge_set(&b));
+            assert_that!(edge_set(&a), eq(edge_set(&b)));
         }
 
         #[test]
         fn different_seeds_differ() {
             let a = random_graph(30, 0.5, 1);
             let b = random_graph(30, 0.5, 2);
-            assert_ne!(edge_set(&a), edge_set(&b));
+            assert_that!(edge_set(&a), not(eq(edge_set(&b))));
         }
 
         #[test]
@@ -494,12 +499,12 @@ mod tests {
         #[test]
         fn degenerate_zero_and_one_vertex_do_not_panic() {
             let empty = random_graph(0, 0.5, 1);
-            assert_eq!(empty.node_count(), 0);
-            assert_eq!(empty.edge_count(), 0);
+            assert_that!(empty.node_count(), eq(0));
+            assert_that!(empty.edge_count(), eq(0));
 
             let single = random_graph(1, 0.5, 1);
-            assert_eq!(single.node_count(), 1);
-            assert_eq!(single.edge_count(), 0);
+            assert_that!(single.node_count(), eq(1));
+            assert_that!(single.edge_count(), eq(0));
         }
 
         fn edge_set(graph: &UnGraph<(), ()>) -> HashSet<(usize, usize)> {

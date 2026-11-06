@@ -172,7 +172,11 @@ Algorithms may store clause cells in **reverse clause order**
 
 ## Testing conventions
 
-- Use `claim::{assert_ok, assert_err}` for `Result`-returning constructors.
+- Assert with `test_that::assert_that!` (`use test_that::prelude::*;` in the test
+  module), not `assert!`/`assert_eq!`: `assert_that!(actual, eq(expected))`,
+  `assert_that!(result, ok(eq(..)))`, `err(eq(..))`, `some(..)`, `none()`.  Prefer
+  asserting on the specific error value over `err(anything())`.  For setup where
+  only the `Ok` value matters, `.unwrap()` is fine.
 - A helper like `fn make(clauses: &[Vec<u32>]) -> SatProblem` (calls
   `SatProblem::from_literals(...).unwrap()`) is idiomatic for test setup.
 - Tests verify the internal data structure via `match MyAlgorithm::new(&p)`

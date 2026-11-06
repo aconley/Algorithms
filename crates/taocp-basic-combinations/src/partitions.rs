@@ -495,45 +495,46 @@ impl LendingIterator for IntegerPartitionsIntoPartsLending {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     // Partitions
     #[test]
     fn count_n0() {
-        assert_eq!(IntegerPartitions::new(0).count(), 0);
+        assert_that!(IntegerPartitions::new(0).count(), eq(0));
     }
 
     #[test]
     fn count_n1() {
-        assert_eq!(IntegerPartitions::new(1).count(), 1);
+        assert_that!(IntegerPartitions::new(1).count(), eq(1));
     }
 
     #[test]
     fn count_n2() {
-        assert_eq!(IntegerPartitions::new(2).count(), 2);
+        assert_that!(IntegerPartitions::new(2).count(), eq(2));
     }
 
     #[test]
     fn count_n3() {
-        assert_eq!(IntegerPartitions::new(3).count(), 3);
+        assert_that!(IntegerPartitions::new(3).count(), eq(3));
     }
 
     #[test]
     fn count_n8() {
-        assert_eq!(IntegerPartitions::new(8).count(), 22);
+        assert_that!(IntegerPartitions::new(8).count(), eq(22));
     }
 
     #[test]
     fn values_n1() {
         let expected: Vec<Vec<usize>> = vec![vec![1]];
         let actual: Vec<Vec<usize>> = IntegerPartitions::new(1).collect();
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
     fn values_n3() {
         let expected: Vec<Vec<usize>> = vec![vec![3], vec![2, 1], vec![1, 1, 1]];
         let actual: Vec<Vec<usize>> = IntegerPartitions::new(3).collect();
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
@@ -541,7 +542,7 @@ mod tests {
         let expected: Vec<Vec<usize>> =
             vec![vec![4], vec![3, 1], vec![2, 2], vec![2, 1, 1], vec![1; 4]];
         let actual: Vec<Vec<usize>> = IntegerPartitions::new(4).collect();
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
@@ -571,36 +572,36 @@ mod tests {
             vec![1; 8],
         ];
         let actual: Vec<Vec<usize>> = IntegerPartitions::new(8).collect();
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     // Partitions into a fixed number of parts
     #[test]
     fn count_m1() {
-        assert_eq!(IntegerPartitionsIntoParts::new(1, 1).count(), 1);
-        assert_eq!(IntegerPartitionsIntoParts::new(10, 1).count(), 1);
+        assert_that!(IntegerPartitionsIntoParts::new(1, 1).count(), eq(1));
+        assert_that!(IntegerPartitionsIntoParts::new(10, 1).count(), eq(1));
     }
 
     #[test]
     fn count_n_eq_m() {
-        assert_eq!(IntegerPartitionsIntoParts::new(2, 2).count(), 1);
-        assert_eq!(IntegerPartitionsIntoParts::new(10, 10).count(), 1);
+        assert_that!(IntegerPartitionsIntoParts::new(2, 2).count(), eq(1));
+        assert_that!(IntegerPartitionsIntoParts::new(10, 10).count(), eq(1));
     }
 
     #[test]
     fn count_n7() {
-        assert_eq!(IntegerPartitionsIntoParts::new(7, 2).count(), 3);
-        assert_eq!(IntegerPartitionsIntoParts::new(7, 3).count(), 4);
-        assert_eq!(IntegerPartitionsIntoParts::new(7, 4).count(), 3);
-        assert_eq!(IntegerPartitionsIntoParts::new(7, 5).count(), 2);
-        assert_eq!(IntegerPartitionsIntoParts::new(7, 6).count(), 1);
-        assert_eq!(IntegerPartitionsIntoParts::new(7, 7).count(), 1);
+        assert_that!(IntegerPartitionsIntoParts::new(7, 2).count(), eq(3));
+        assert_that!(IntegerPartitionsIntoParts::new(7, 3).count(), eq(4));
+        assert_that!(IntegerPartitionsIntoParts::new(7, 4).count(), eq(3));
+        assert_that!(IntegerPartitionsIntoParts::new(7, 5).count(), eq(2));
+        assert_that!(IntegerPartitionsIntoParts::new(7, 6).count(), eq(1));
+        assert_that!(IntegerPartitionsIntoParts::new(7, 7).count(), eq(1));
     }
 
     #[test]
     fn count_n11() {
-        assert_eq!(IntegerPartitionsIntoParts::new(11, 3).count(), 10);
-        assert_eq!(IntegerPartitionsIntoParts::new(11, 4).count(), 11);
+        assert_that!(IntegerPartitionsIntoParts::new(11, 3).count(), eq(10));
+        assert_that!(IntegerPartitionsIntoParts::new(11, 4).count(), eq(11));
     }
 
     #[test]
@@ -619,19 +620,19 @@ mod tests {
             vec![3, 3, 3, 2],
         ];
         let actual: Vec<Vec<usize>> = IntegerPartitionsIntoParts::new(11, 4).collect();
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     // LendingIterator versions.
 
     #[test]
     fn lending_count_n0() {
-        assert_eq!(IntegerPartitionsLending::new(0).count(), 0);
+        assert_that!(IntegerPartitionsLending::new(0).count(), eq(0));
     }
 
     #[test]
     fn lending_count_n8() {
-        assert_eq!(IntegerPartitionsLending::new(8).count(), 22);
+        assert_that!(IntegerPartitionsLending::new(8).count(), eq(22));
     }
 
     #[test]
@@ -661,62 +662,62 @@ mod tests {
             vec![1; 8],
         ];
         let actual = collect_lending(IntegerPartitionsLending::new(8));
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
     fn into_parts_lending_count_m1() {
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(1, 1)
                 .unwrap()
                 .count(),
-            1
+            eq(1)
         );
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(10, 1)
                 .unwrap()
                 .count(),
-            1
+            eq(1)
         );
     }
 
     #[test]
     fn into_parts_lending_count_n7() {
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(7, 2)
                 .unwrap()
                 .count(),
-            3
+            eq(3)
         );
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(7, 3)
                 .unwrap()
                 .count(),
-            4
+            eq(4)
         );
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(7, 4)
                 .unwrap()
                 .count(),
-            3
+            eq(3)
         );
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(7, 5)
                 .unwrap()
                 .count(),
-            2
+            eq(2)
         );
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(7, 6)
                 .unwrap()
                 .count(),
-            1
+            eq(1)
         );
-        assert_eq!(
+        assert_that!(
             IntegerPartitionsIntoPartsLending::new(7, 7)
                 .unwrap()
                 .count(),
-            1
+            eq(1)
         );
     }
 
@@ -737,22 +738,22 @@ mod tests {
         ];
         let actual =
             collect_lending(IntegerPartitionsIntoPartsLending::new(11, 4).unwrap());
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
     fn into_parts_lending_invalid_params() {
-        assert_eq!(
-            IntegerPartitionsIntoPartsLending::new(0, 1).unwrap_err(),
-            InvalidPartitionParams::new("n must be > 0")
+        assert_that!(
+            IntegerPartitionsIntoPartsLending::new(0, 1),
+            err(eq(InvalidPartitionParams::new("n must be > 0")))
         );
-        assert_eq!(
-            IntegerPartitionsIntoPartsLending::new(1, 0).unwrap_err(),
-            InvalidPartitionParams::new("m must be > 0")
+        assert_that!(
+            IntegerPartitionsIntoPartsLending::new(1, 0),
+            err(eq(InvalidPartitionParams::new("m must be > 0")))
         );
-        assert_eq!(
-            IntegerPartitionsIntoPartsLending::new(1, 2).unwrap_err(),
-            InvalidPartitionParams::new("m must be <= n")
+        assert_that!(
+            IntegerPartitionsIntoPartsLending::new(1, 2),
+            err(eq(InvalidPartitionParams::new("m must be <= n")))
         );
     }
 

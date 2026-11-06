@@ -115,11 +115,17 @@ single-use helper there, and do not add a fixture nothing uses yet.
 
 ## Assertions
 
-Use `claim::{assert_ok, assert_err}` for constructors and other functions
-returning `Result`; `claim` is already a dev-dependency.  Assert on the specific
-error variant, not merely that an error occurred — several of the types here have
-error enums whose variants are easy to confuse, and a test that accepts any error
-will not notice when the wrong one is returned.
+Write assertions with `test_that::assert_that!` (`use test_that::prelude::*;`
+at the top of `mod tests`; submodules pick it up through `use super::*;`), not
+`assert!` / `assert_eq!`: `assert_that!(actual, eq(expected))`, and `ok(..)` /
+`err(..)` / `some(..)` / `none()` for `Result` and `Option`.  `test-that` is
+already a dev-dependency.  Where only the `Ok` value matters for setup,
+`.unwrap()` is fine.
+
+Assert on the specific error variant, not merely that an error occurred —
+`err(eq(..))` or `err(pat!(..))`, not `err(anything())`.  Several of the types
+here have error enums whose variants are easy to confuse, and a test that
+accepts any error will not notice when the wrong one is returned.
 
 ## Warnings
 

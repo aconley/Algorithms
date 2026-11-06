@@ -191,54 +191,64 @@ impl Iterator for LangfordIterator {
 mod tests {
     use super::*;
     use std::collections::HashSet;
+    use test_that::prelude::*;
 
     #[test]
     fn count_no_solutions() {
-        assert_eq!(LangfordIterator::new(1).count(), 0);
-        assert_eq!(LangfordIterator::new(2).count(), 0);
-        assert_eq!(LangfordIterator::new(5).count(), 0);
-        assert_eq!(LangfordIterator::new(6).count(), 0);
-        assert_eq!(LangfordIterator::new(9).count(), 0);
-        assert_eq!(LangfordIterator::new(10).count(), 0);
+        assert_that!(LangfordIterator::new(1).count(), eq(0));
+        assert_that!(LangfordIterator::new(2).count(), eq(0));
+        assert_that!(LangfordIterator::new(5).count(), eq(0));
+        assert_that!(LangfordIterator::new(6).count(), eq(0));
+        assert_that!(LangfordIterator::new(9).count(), eq(0));
+        assert_that!(LangfordIterator::new(10).count(), eq(0));
     }
 
     #[test]
     fn count_small_with_solutions() {
-        assert_eq!(LangfordIterator::new(3).count(), 2);
-        assert_eq!(LangfordIterator::new(4).count(), 2);
+        assert_that!(LangfordIterator::new(3).count(), eq(2));
+        assert_that!(LangfordIterator::new(4).count(), eq(2));
     }
 
     #[test]
     fn count_medium_with_solutions() {
-        assert_eq!(LangfordIterator::new(7).count(), 52);
-        assert_eq!(LangfordIterator::new(8).count(), 300);
+        assert_that!(LangfordIterator::new(7).count(), eq(52));
+        assert_that!(LangfordIterator::new(8).count(), eq(300));
     }
 
     #[test]
     fn count_large_number_solutions() {
-        assert_eq!(LangfordIterator::new(11).count(), 35584);
-        assert_eq!(LangfordIterator::new(12).count(), 216288);
+        assert_that!(LangfordIterator::new(11).count(), eq(35584));
+        assert_that!(LangfordIterator::new(12).count(), eq(216288));
     }
 
     #[test]
     fn expected_solutions_n3() {
-        assert_eq!(
+        assert_that!(
             LangfordIterator::new(3).collect::<Vec<_>>(),
-            vec![vec![2, 3, 1, 2, 1, 3], vec![3, 1, 2, 1, 3, 2]]
+            eq(vec![vec![2, 3, 1, 2, 1, 3], vec![3, 1, 2, 1, 3, 2]])
         );
     }
 
     #[test]
     fn expected_solutions_n4() {
-        assert_eq!(
+        assert_that!(
             LangfordIterator::new(4).collect::<Vec<_>>(),
-            vec![vec![2, 3, 4, 2, 1, 3, 1, 4], vec![4, 1, 3, 1, 2, 4, 3, 2]]
+            eq(vec![
+                vec![2, 3, 4, 2, 1, 3, 1, 4],
+                vec![4, 1, 3, 1, 2, 4, 3, 2]
+            ])
         );
     }
 
     #[test]
     fn number_unique_solutions_medium() {
-        assert_eq!(LangfordIterator::new(7).collect::<HashSet<_>>().len(), 52);
-        assert_eq!(LangfordIterator::new(8).collect::<HashSet<_>>().len(), 300);
+        assert_that!(
+            LangfordIterator::new(7).collect::<HashSet<_>>(),
+            len(eq(52))
+        );
+        assert_that!(
+            LangfordIterator::new(8).collect::<HashSet<_>>(),
+            len(eq(300))
+        );
     }
 }

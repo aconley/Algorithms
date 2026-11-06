@@ -312,7 +312,7 @@ impl Decomposition {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use claim::{assert_err, assert_ok};
+    use test_that::prelude::*;
 
     fn v(i: u32) -> NodeIndex {
         NodeIndex::new(i as usize)
@@ -328,76 +328,79 @@ mod tests {
 
         #[test]
         fn new_rejects_empty() {
-            let err = assert_err!(Segment::new_open(vec![]));
-            assert_eq!(err, SegmentError::Empty);
+            let err = Segment::new_open(vec![]).unwrap_err();
+            assert_that!(err, eq(SegmentError::Empty));
 
-            let err = assert_err!(Segment::new_closed(vec![]));
-            assert_eq!(err, SegmentError::Empty);
+            let err = Segment::new_closed(vec![]).unwrap_err();
+            assert_that!(err, eq(SegmentError::Empty));
         }
 
         #[test]
         fn new_rejects_repeated_vertex_open() {
-            let err = assert_err!(Segment::new_open(vs(&[0, 1, 0])));
-            assert_eq!(err, SegmentError::RepeatedVertex(v(0)));
+            let err = Segment::new_open(vs(&[0, 1, 0])).unwrap_err();
+            assert_that!(err, eq(SegmentError::RepeatedVertex(v(0))));
         }
 
         #[test]
         fn new_rejects_repeated_vertex_closed() {
-            let err = assert_err!(Segment::new_closed(vs(&[0, 1, 2, 1])));
-            assert_eq!(err, SegmentError::RepeatedVertex(v(1)));
+            let err = Segment::new_closed(vs(&[0, 1, 2, 1])).unwrap_err();
+            assert_that!(err, eq(SegmentError::RepeatedVertex(v(1))));
         }
 
         #[test]
         fn new_rejects_closed_too_short() {
-            let err = assert_err!(Segment::new_closed(vs(&[0])));
-            assert_eq!(err, SegmentError::ClosedTooShort(1));
+            let err = Segment::new_closed(vs(&[0])).unwrap_err();
+            assert_that!(err, eq(SegmentError::ClosedTooShort(1)));
 
-            let err = assert_err!(Segment::new_closed(vs(&[0, 1])));
-            assert_eq!(err, SegmentError::ClosedTooShort(2));
+            let err = Segment::new_closed(vs(&[0, 1])).unwrap_err();
+            assert_that!(err, eq(SegmentError::ClosedTooShort(2)));
         }
 
         #[test]
         fn new_accepts_minimal_closed_triangle() {
-            let seg = assert_ok!(Segment::new_closed(vs(&[0, 1, 2])));
-            assert!(seg.is_closed());
-            assert_eq!(seg.len(), 3);
+            let seg = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
+            assert_that!(seg.is_closed(), eq(true));
+            assert_that!(seg.len(), eq(3));
         }
 
         #[test]
         fn new_accepts_single_vertex_open() {
-            let seg = assert_ok!(Segment::new_open(vs(&[0])));
-            assert!(!seg.is_closed());
-            assert_eq!(seg.len(), 1);
+            let seg = Segment::new_open(vs(&[0])).unwrap();
+            assert_that!(seg.is_closed(), eq(false));
+            assert_that!(seg.len(), eq(1));
         }
 
         #[test]
         fn endpoints_open_reports_first_and_last() {
             let seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
-            assert_eq!(seg.endpoints(), Some((v(0), v(5))));
+            assert_that!(seg.endpoints(), eq(Some((v(0), v(5)))));
         }
 
         #[test]
         fn endpoints_single_vertex_open_reports_it_twice() {
             let seg = Segment::new_open(vs(&[7])).unwrap();
-            assert_eq!(seg.endpoints(), Some((v(7), v(7))));
+            assert_that!(seg.endpoints(), eq(Some((v(7), v(7)))));
         }
 
         #[test]
         fn endpoints_closed_is_none() {
             let seg = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
-            assert_eq!(seg.endpoints(), None);
+            assert_that!(seg.endpoints(), none());
         }
 
         #[test]
         fn edges_open_are_consecutive_pairs() {
             let seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
-            assert_eq!(seg.edges(), vec![(v(0), v(3)), (v(3), v(5))]);
+            assert_that!(seg.edges(), eq(vec![(v(0), v(3)), (v(3), v(5))]));
         }
 
         #[test]
         fn edges_closed_include_wrap_around() {
             let seg = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
-            assert_eq!(seg.edges(), vec![(v(0), v(3)), (v(3), v(5)), (v(5), v(0))]);
+            assert_that!(
+                seg.edges(),
+                eq(vec![(v(0), v(3)), (v(3), v(5)), (v(5), v(0))])
+            );
         }
     }
 
@@ -411,21 +414,21 @@ mod tests {
         fn open_reorients_toward_lower_endpoint() {
             let mut seg = Segment::new_open(vs(&[5, 3, 0])).unwrap();
             seg.canonicalize();
-            assert_eq!(seg.vertices(), &vs(&[0, 3, 5]));
+            assert_that!(seg.vertices(), eq(&vs(&[0, 3, 5])));
         }
 
         #[test]
         fn open_leaves_already_oriented_segment() {
             let mut seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             seg.canonicalize();
-            assert_eq!(seg.vertices(), &vs(&[0, 3, 5]));
+            assert_that!(seg.vertices(), eq(&vs(&[0, 3, 5])));
         }
 
         #[test]
         fn closed_rotates_and_orients() {
             let mut seg = Segment::new_closed(vs(&[3, 5, 0])).unwrap();
             seg.canonicalize();
-            assert_eq!(seg.vertices(), &vs(&[0, 3, 5]));
+            assert_that!(seg.vertices(), eq(&vs(&[0, 3, 5])));
         }
 
         #[test]
@@ -442,8 +445,9 @@ mod tests {
                 rotated.rotate_left(start);
                 let mut seg = Segment::new_closed(rotated).unwrap();
                 seg.canonicalize();
-                assert_eq!(
-                    seg, expected,
+                assert_that!(
+                    seg,
+                    eq_deref_of(&expected),
                     "rotation starting at {start} did not canonicalize the same"
                 );
             }
@@ -459,7 +463,7 @@ mod tests {
             let mut backward = Segment::new_closed(reversed_vertices).unwrap();
             backward.canonicalize();
 
-            assert_eq!(forward, backward);
+            assert_that!(forward, eq(backward));
         }
 
         /// The two tests above cover rotation and reversal separately.  Every later
@@ -485,8 +489,9 @@ mod tests {
                     rotated.rotate_left(start);
                     let mut seg = Segment::new_closed(rotated).unwrap();
                     seg.canonicalize();
-                    assert_eq!(
-                        seg, expected,
+                    assert_that!(
+                        seg,
+                        eq_deref_of(&expected),
                         "reversed={reversed}, rotation={start} did not canonicalize the same"
                     );
                 }
@@ -500,14 +505,14 @@ mod tests {
                 seg.canonicalize();
                 let once = seg.clone();
                 seg.canonicalize();
-                assert_eq!(seg, once);
+                assert_that!(seg, eq(once));
             }
 
             let mut open = Segment::new_open(vs(&[5, 0, 3])).unwrap();
             open.canonicalize();
             let once = open.clone();
             open.canonicalize();
-            assert_eq!(open, once);
+            assert_that!(open, eq(once));
         }
     }
 
@@ -518,24 +523,24 @@ mod tests {
         #[test]
         fn open_segment() {
             let seg = Segment::new_open(vs(&[0, 3, 5])).unwrap();
-            assert_eq!(seg.to_string(), "0 \u{2192} 3 \u{2192} 5");
+            assert_that!(seg.to_string(), eq("0 \u{2192} 3 \u{2192} 5"));
         }
 
         #[test]
         fn closed_segment() {
             let seg = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
-            assert_eq!(seg.to_string(), "0 \u{2192} 3 \u{2192} 5 \u{2192} 0");
+            assert_that!(seg.to_string(), eq("0 \u{2192} 3 \u{2192} 5 \u{2192} 0"));
         }
 
         #[test]
         fn segment_error() {
-            assert_eq!(
+            assert_that!(
                 SegmentError::RepeatedVertex(v(2)).to_string(),
-                "vertex 2 appears more than once in a segment"
+                eq("vertex 2 appears more than once in a segment")
             );
-            assert_eq!(
+            assert_that!(
                 SegmentError::ClosedTooShort(2).to_string(),
-                "closed segment has only 2 vertices, need at least 3"
+                eq("closed segment has only 2 vertices, need at least 3")
             );
         }
     }
@@ -549,8 +554,8 @@ mod tests {
         fn new_rejects_overlapping_segments() {
             let a = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let b = Segment::new_closed(vs(&[2, 3, 4])).unwrap();
-            let err = assert_err!(Decomposition::new(vec![a, b]));
-            assert_eq!(err, SegmentError::OverlappingSegments(v(2)));
+            let err = Decomposition::new(vec![a, b]).unwrap_err();
+            assert_that!(err, eq(SegmentError::OverlappingSegments(v(2))));
         }
 
         #[test]
@@ -559,8 +564,8 @@ mod tests {
             // catches overlap across otherwise-valid segments sharing a vertex.
             let a = Segment::new_open(vs(&[0, 1])).unwrap();
             let b = Segment::new_open(vs(&[1, 2])).unwrap();
-            let err = assert_err!(Decomposition::new(vec![a, b]));
-            assert_eq!(err, SegmentError::OverlappingSegments(v(1)));
+            let err = Decomposition::new(vec![a, b]).unwrap_err();
+            assert_that!(err, eq(SegmentError::OverlappingSegments(v(1))));
         }
 
         #[test]
@@ -570,11 +575,11 @@ mod tests {
             // orientation, so `new` must fix both before sorting.
             let a = Segment::new_open(vs(&[8, 6])).unwrap(); // canonicalizes to 6 -> 8
             let b = Segment::new_open(vs(&[7, 5])).unwrap(); // canonicalizes to 5 -> 7
-            let decomposition = assert_ok!(Decomposition::new(vec![a, b]));
+            let decomposition = Decomposition::new(vec![a, b]).unwrap();
 
-            assert_eq!(decomposition.len(), 2);
-            assert_eq!(decomposition.segments()[0].vertices(), &vs(&[5, 7]));
-            assert_eq!(decomposition.segments()[1].vertices(), &vs(&[6, 8]));
+            assert_that!(decomposition.len(), eq(2));
+            assert_that!(decomposition.segments()[0].vertices(), eq(&vs(&[5, 7])));
+            assert_that!(decomposition.segments()[1].vertices(), eq(&vs(&[6, 8])));
         }
 
         #[test]
@@ -582,7 +587,7 @@ mod tests {
             let a = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let b = Segment::new_open(vs(&[3, 4])).unwrap();
             let decomposition = Decomposition::new(vec![a, b]).unwrap();
-            assert_eq!(decomposition.covered_vertices(), 5);
+            assert_that!(decomposition.covered_vertices(), eq(5));
         }
 
         #[test]
@@ -590,15 +595,15 @@ mod tests {
             let seg = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
             let cycle = decomposition.as_hamiltonian_cycle(4);
-            assert!(cycle.is_some());
-            assert_eq!(cycle.unwrap().len(), 4);
+            assert_that!(cycle, some(anything()));
+            assert_that!(cycle.unwrap().len(), eq(4));
         }
 
         #[test]
         fn as_hamiltonian_cycle_rejects_single_open_segment() {
             let seg = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
-            assert_eq!(decomposition.as_hamiltonian_cycle(4), None);
+            assert_that!(decomposition.as_hamiltonian_cycle(4), none());
         }
 
         #[test]
@@ -606,14 +611,14 @@ mod tests {
             let a = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let b = Segment::new_closed(vs(&[3, 4, 5])).unwrap();
             let decomposition = Decomposition::new(vec![a, b]).unwrap();
-            assert_eq!(decomposition.as_hamiltonian_cycle(6), None);
+            assert_that!(decomposition.as_hamiltonian_cycle(6), none());
         }
 
         #[test]
         fn as_hamiltonian_cycle_rejects_covers_too_few() {
             let seg = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let decomposition = Decomposition::new(vec![seg]).unwrap();
-            assert_eq!(decomposition.as_hamiltonian_cycle(4), None);
+            assert_that!(decomposition.as_hamiltonian_cycle(4), none());
         }
     }
 
@@ -629,16 +634,16 @@ mod tests {
         fn cycle_recognizes_genuine_cycle() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
             let seg = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(seg.is_hamiltonian_cycle(&graph));
-            assert!(!seg.is_hamiltonian_path(&graph));
+            assert_that!(seg.is_hamiltonian_cycle(&graph), eq(true));
+            assert_that!(seg.is_hamiltonian_path(&graph), eq(false));
         }
 
         #[test]
         fn path_recognizes_genuine_path() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
             let seg = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(seg.is_hamiltonian_path(&graph));
-            assert!(!seg.is_hamiltonian_cycle(&graph));
+            assert_that!(seg.is_hamiltonian_path(&graph), eq(true));
+            assert_that!(seg.is_hamiltonian_cycle(&graph), eq(false));
         }
 
         #[test]
@@ -647,10 +652,10 @@ mod tests {
             let graph = graph_of(5, &[(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]);
 
             let cycle = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(!cycle.is_hamiltonian_cycle(&graph));
+            assert_that!(cycle.is_hamiltonian_cycle(&graph), eq(false));
 
             let path = Segment::new_open(vs(&[0, 1, 2])).unwrap();
-            assert!(!path.is_hamiltonian_path(&graph));
+            assert_that!(path.is_hamiltonian_path(&graph), eq(false));
         }
 
         #[test]
@@ -659,10 +664,10 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
 
             let cycle = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(!cycle.is_hamiltonian_cycle(&graph));
+            assert_that!(cycle.is_hamiltonian_cycle(&graph), eq(false));
 
             let path = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(!path.is_hamiltonian_path(&graph));
+            assert_that!(path.is_hamiltonian_path(&graph), eq(false));
         }
 
         #[test]
@@ -671,7 +676,7 @@ mod tests {
             // edge 3-0 is not.
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
             let cycle = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(!cycle.is_hamiltonian_cycle(&graph));
+            assert_that!(cycle.is_hamiltonian_cycle(&graph), eq(false));
         }
 
         #[test]
@@ -679,7 +684,7 @@ mod tests {
             // Edge 2-3 is missing.
             let graph = graph_of(4, &[(0, 1), (1, 2)]);
             let path = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
-            assert!(!path.is_hamiltonian_path(&graph));
+            assert_that!(path.is_hamiltonian_path(&graph), eq(false));
         }
 
         /// A segment holding vertex indices foreign to the graph being
@@ -693,12 +698,12 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
 
             let cycle = Segment::new_closed(vs(&[10, 11, 12])).unwrap();
-            assert!(!cycle.is_hamiltonian_cycle(&graph));
-            assert!(!cycle.is_hamiltonian_path(&graph));
+            assert_that!(cycle.is_hamiltonian_cycle(&graph), eq(false));
+            assert_that!(cycle.is_hamiltonian_path(&graph), eq(false));
 
             let path = Segment::new_open(vs(&[10, 11, 12])).unwrap();
-            assert!(!path.is_hamiltonian_path(&graph));
-            assert!(!path.is_hamiltonian_cycle(&graph));
+            assert_that!(path.is_hamiltonian_path(&graph), eq(false));
+            assert_that!(path.is_hamiltonian_cycle(&graph), eq(false));
         }
     }
 }

@@ -301,6 +301,7 @@ impl DpllData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     fn make(clauses: &[Vec<u32>]) -> SatProblem {
         SatProblem::from_literals(clauses).unwrap()
@@ -334,7 +335,7 @@ mod tests {
     #[test]
     fn test_new_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(matches!(Dpll::new(&p), Dpll::Trivial));
+        assert_that!(matches!(Dpll::new(&p), Dpll::Trivial), eq(true));
     }
 
     #[test]
@@ -342,20 +343,20 @@ mod tests {
         use crate::Clause;
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(matches!(Dpll::new(&p), Dpll::Unsatisfiable));
+        assert_that!(matches!(Dpll::new(&p), Dpll::Unsatisfiable), eq(true));
     }
 
     #[test]
     fn test_solve_r_prime() {
         let p = r_prime();
         let assignment = solve_via_dpll(&p).expect("R' is satisfiable");
-        assert!(p.is_satisfied(&assignment));
+        assert_that!(p.is_satisfied(&assignment), eq(true));
     }
 
     #[test]
     fn test_solve_r_prime_unsat() {
         let p = r_prime_unsat();
-        assert_eq!(solve_via_dpll(&p), None);
+        assert_that!(solve_via_dpll(&p), none());
     }
 
     // W(3,3) = 9: waerden(3,3,n) is SAT for n < 9, UNSAT for n >= 9.
@@ -366,7 +367,11 @@ mod tests {
             let p = waerden(3, 3, n).unwrap();
             let assignment = solve_via_dpll(&p)
                 .unwrap_or_else(|| panic!("waerden(3,3,{n}) should be satisfiable"));
-            assert!(p.is_satisfied(&assignment), "invalid solution at n={n}");
+            assert_that!(
+                p.is_satisfied(&assignment),
+                eq(true),
+                "invalid solution at n={n}"
+            );
         }
     }
 
@@ -378,12 +383,13 @@ mod tests {
             let res = solve_via_dpll(&p);
             if let Some(ref assignment) = res {
                 println!("n={} assignment: {:?}", n, assignment);
-                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
+                assert_that!(
+                    p.is_satisfied(assignment),
+                    eq(true),
+                    "invalid solution at n={n}"
+                );
             }
-            assert!(
-                res.is_none(),
-                "waerden(3,3,{n}) should be unsatisfiable"
-            );
+            assert_that!(res, none(), "waerden(3,3,{n}) should be unsatisfiable");
         }
     }
 
@@ -393,9 +399,13 @@ mod tests {
         for n in [3, 4, 7] {
             let p = langford(n).unwrap();
             let res = solve_via_dpll(&p);
-            assert!(res.is_some(), "langford({n}) should be satisfiable");
+            assert_that!(res, some(anything()), "langford({n}) should be satisfiable");
             if let Some(ref assignment) = res {
-                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
+                assert_that!(
+                    p.is_satisfied(assignment),
+                    eq(true),
+                    "invalid solution at n={n}"
+                );
             }
         }
     }
@@ -406,7 +416,7 @@ mod tests {
         for n in [1, 2, 5, 6] {
             let p = langford(n).unwrap();
             let res = solve_via_dpll(&p);
-            assert!(res.is_none(), "langford({n}) should be unsatisfiable");
+            assert_that!(res, none(), "langford({n}) should be unsatisfiable");
         }
     }
 }

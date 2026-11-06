@@ -18,7 +18,15 @@ impl fmt::Display for DancingSudokuSolution {
                 write!(
                     f,
                     "|{}{}{}|{}{}{}|{}{}{}|\n",
-                    row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4],
+                    row[5],
+                    row[6],
+                    row[7],
+                    row[8]
                 )?;
             }
         }
@@ -149,8 +157,10 @@ impl DancingSudokuIterator {
             }
             let row_idx = pos / 9;
             let col_idx = pos % 9;
-            let mut avail =
-                (c_row[row_idx] & c_col[col_idx] & c_box[3 * (row_idx / 3) + col_idx / 3]) as i16;
+            let mut avail = (c_row[row_idx]
+                & c_col[col_idx]
+                & c_box[3 * (row_idx / 3) + col_idx / 3])
+                as i16;
             while avail != 0 {
                 let next_value = avail & -avail;
                 options.push(SudokuEntry {
@@ -273,10 +283,10 @@ impl ProblemOptionBuilder<SudokuItem> for SudokuEntry {
 #[cfg(test)]
 mod tests {
     use super::{DancingSudokuIterator, DancingSudokuSolution, SudokuEntry};
-    use claim::{assert_none, assert_ok, assert_some_eq};
+    use test_that::prelude::*;
 
     fn create_solution(values: &[u8]) -> DancingSudokuSolution {
-        assert_eq!(values.len(), 81);
+        assert_that!(values.len(), eq(81));
         let mut result: Vec<Vec<u8>> = Vec::with_capacity(9);
         for row in values.chunks(9) {
             result.push(row.to_vec());
@@ -315,10 +325,10 @@ mod tests {
     #[test]
     fn solves_already_solved_puzzle() {
         let initial_position = SudokuEntry::create_from_values(&SOL);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&SOL));
-        assert_none!(iterator.next());
+        assert_that!(iterator.next(), some(eq(create_solution(&SOL))));
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -331,10 +341,10 @@ mod tests {
         }
 
         let initial_position = SudokuEntry::create_from_values(&puzzle);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&SOL));
-        assert_none!(iterator.next());
+        assert_that!(iterator.next(), some(eq(create_solution(&SOL))));
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -353,10 +363,13 @@ mod tests {
           ];
 
         let initial_position = SudokuEntry::create_from_values(&PARTIAL);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution)))
+        );
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -388,10 +401,13 @@ mod tests {
        ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution)))
+        );
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -422,10 +438,13 @@ mod tests {
        ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution)))
+        );
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -456,10 +475,13 @@ mod tests {
          ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution)))
+        );
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -492,10 +514,13 @@ mod tests {
        ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution)))
+        );
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -539,11 +564,17 @@ mod tests {
         ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution1));
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution2));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution1)))
+        );
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution2)))
+        );
+        assert_that!(iterator.next(), none());
     }
 
     #[test]
@@ -576,9 +607,12 @@ mod tests {
         ];
 
         let initial_position = SudokuEntry::create_from_values(&problem);
-        let mut iterator = assert_ok!(DancingSudokuIterator::new(initial_position));
+        let mut iterator = DancingSudokuIterator::new(initial_position).unwrap();
 
-        assert_some_eq!(iterator.next(), create_solution(&expected_solution));
-        assert_none!(iterator.next());
+        assert_that!(
+            iterator.next(),
+            some(eq(create_solution(&expected_solution)))
+        );
+        assert_that!(iterator.next(), none());
     }
 }

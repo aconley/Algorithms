@@ -207,6 +207,7 @@ impl LazyBacktrackingData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     fn make(clauses: &[Vec<u32>]) -> SatProblem {
         SatProblem::from_literals(clauses).unwrap()
@@ -240,10 +241,10 @@ mod tests {
     #[test]
     fn test_new_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(matches!(
-            LazyBacktracking::new(&p),
-            LazyBacktracking::Trivial
-        ));
+        assert_that!(
+            matches!(LazyBacktracking::new(&p), LazyBacktracking::Trivial),
+            eq(true)
+        );
     }
 
     #[test]
@@ -251,10 +252,10 @@ mod tests {
         use super::super::Clause;
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(matches!(
-            LazyBacktracking::new(&p),
-            LazyBacktracking::Unsatisfiable
-        ));
+        assert_that!(
+            matches!(LazyBacktracking::new(&p), LazyBacktracking::Unsatisfiable),
+            eq(true)
+        );
     }
 
     #[test]
@@ -264,32 +265,32 @@ mod tests {
             other => panic!("expected active, got {other:?}"),
         };
 
-        assert_eq!(data.n, 4);
-        assert_eq!(data.start.len() - 1, 7);
-        assert_eq!(data.start[0], 21);
+        assert_that!(data.n, eq(4));
+        assert_that!(data.start.len() - 1, eq(7));
+        assert_that!(data.start[0], eq(21));
         for j in 1..=7 {
-            assert_eq!(data.start[j], (21 - 3 * j) as u32, "start[{j}]");
+            assert_that!(data.start[j], eq((21 - 3 * j) as u32), "start[{j}]");
         }
 
         let expected_l = vec![
             9, 7, 3, 8, 7, 5, 6, 5, 3, 8, 4, 3, 8, 6, 2, 9, 6, 4, 7, 4, 2,
         ];
-        assert_eq!(&*data.l, &expected_l);
+        assert_that!(&*data.l, eq(&expected_l));
 
-        assert_eq!(data.w[2], 0);
-        assert_eq!(data.w[3], 0);
-        assert_eq!(data.w[4], 0);
-        assert_eq!(data.w[5], 0);
-        assert_eq!(data.w[6], 5);
-        assert_eq!(data.w[7], 1);
-        assert_eq!(data.w[8], 6);
-        assert_eq!(data.w[9], 7);
+        assert_that!(data.w[2], eq(0));
+        assert_that!(data.w[3], eq(0));
+        assert_that!(data.w[4], eq(0));
+        assert_that!(data.w[5], eq(0));
+        assert_that!(data.w[6], eq(5));
+        assert_that!(data.w[7], eq(1));
+        assert_that!(data.w[8], eq(6));
+        assert_that!(data.w[9], eq(7));
 
-        assert_eq!(data.link[6], 4);
-        assert_eq!(data.link[4], 3);
-        assert_eq!(data.link[3], 0);
-        assert_eq!(data.link[7], 2);
-        assert_eq!(data.link[2], 0);
+        assert_that!(data.link[6], eq(4));
+        assert_that!(data.link[4], eq(3));
+        assert_that!(data.link[3], eq(0));
+        assert_that!(data.link[7], eq(2));
+        assert_that!(data.link[2], eq(0));
     }
 
     #[test]
@@ -301,13 +302,16 @@ mod tests {
 
         let moves = vec![0u8, 0, 0, 0, 0];
 
-        assert!(data.watch_false_literal(8, 1, &moves));
-        assert_eq!(data.w[8], 0);
+        assert_that!(data.watch_false_literal(8, 1, &moves), eq(true));
+        assert_that!(data.w[8], eq(0));
 
         let clause = 6usize;
         let start = data.start[clause] as usize;
-        assert_ne!(data.l[start], 8);
-        assert!(data.l[start + 1..data.start[clause - 1] as usize].contains(&8));
+        assert_that!(data.l[start], not(eq(8)));
+        assert_that!(
+            data.l[start + 1..data.start[clause - 1] as usize].contains(&8),
+            eq(true)
+        );
     }
 
     #[test]
@@ -319,20 +323,20 @@ mod tests {
         };
 
         let moves = vec![0u8, 0];
-        assert!(!data.watch_false_literal(3, 1, &moves));
-        assert_eq!(data.w[3], 2);
+        assert_that!(data.watch_false_literal(3, 1, &moves), eq(false));
+        assert_that!(data.w[3], eq(2));
     }
 
     #[test]
     fn test_solve_r_prime() {
         let p = r_prime();
         let assignment = solve_via_lazy_backtracking(&p).expect("R' is satisfiable");
-        assert!(p.is_satisfied(&assignment));
+        assert_that!(p.is_satisfied(&assignment), eq(true));
     }
 
     #[test]
     fn test_solve_r_prime_unsat() {
         let p = r_prime_unsat();
-        assert_eq!(solve_via_lazy_backtracking(&p), None);
+        assert_that!(solve_via_lazy_backtracking(&p), none());
     }
 }

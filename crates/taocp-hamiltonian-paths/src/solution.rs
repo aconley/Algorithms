@@ -204,21 +204,22 @@ mod tests {
 
     mod cycle {
         use super::*;
+        use test_that::prelude::*;
 
         #[test]
         fn vertices_returns_traversal_order() {
             let segment = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
-            assert_eq!(cycle.vertices(), &vs(&[0, 3, 5]));
+            assert_that!(cycle.vertices(), eq(&vs(&[0, 3, 5])));
         }
 
         #[test]
         fn edges_includes_wrap_around_edge() {
             let segment = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
-            assert_eq!(
+            assert_that!(
                 cycle.edges(),
-                vec![(v(0), v(3)), (v(3), v(5)), (v(5), v(0))]
+                eq(vec![(v(0), v(3)), (v(3), v(5)), (v(5), v(0))])
             );
         }
 
@@ -227,7 +228,7 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
             let segment = Segment::new_closed(vs(&[0, 1, 2, 3])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
-            assert!(cycle.is_valid_for(&graph));
+            assert_that!(cycle.is_valid_for(&graph), eq(true));
         }
 
         /// Vertex indices out of range for `graph` must report `false`, not
@@ -237,46 +238,47 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let segment = Segment::new_closed(vs(&[10, 11, 12])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
-            assert!(!cycle.is_valid_for(&graph));
+            assert_that!(cycle.is_valid_for(&graph), eq(false));
         }
 
         #[test]
         fn display_matches_arrow_form() {
             let segment = Segment::new_closed(vs(&[0, 3, 5])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
-            assert_eq!(cycle.to_string(), "0 \u{2192} 3 \u{2192} 5 \u{2192} 0");
+            assert_that!(cycle.to_string(), eq("0 \u{2192} 3 \u{2192} 5 \u{2192} 0"));
         }
     }
 
     mod path {
         use super::*;
+        use test_that::prelude::*;
 
         #[test]
         fn vertices_returns_traversal_order() {
             let segment = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert_eq!(path.vertices(), &vs(&[0, 3, 5]));
+            assert_that!(path.vertices(), eq(&vs(&[0, 3, 5])));
         }
 
         #[test]
         fn edges_excludes_wrap_around() {
             let segment = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert_eq!(path.edges(), vec![(v(0), v(3)), (v(3), v(5))]);
+            assert_that!(path.edges(), eq(vec![(v(0), v(3)), (v(3), v(5))]));
         }
 
         #[test]
         fn endpoints_multi_vertex_reports_first_and_last() {
             let segment = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert_eq!(path.endpoints(), (v(0), v(5)));
+            assert_that!(path.endpoints(), eq((v(0), v(5))));
         }
 
         #[test]
         fn endpoints_single_vertex_reports_it_twice() {
             let segment = Segment::new_open(vs(&[7])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert_eq!(path.endpoints(), (v(7), v(7)));
+            assert_that!(path.endpoints(), eq((v(7), v(7))));
         }
 
         #[test]
@@ -284,7 +286,7 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
             let segment = Segment::new_open(vs(&[0, 1, 2, 3])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert!(path.is_valid_for(&graph));
+            assert_that!(path.is_valid_for(&graph), eq(true));
         }
 
         /// Vertex indices out of range for `graph` must report `false`, not
@@ -294,14 +296,14 @@ mod tests {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
             let segment = Segment::new_open(vs(&[10, 11, 12])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert!(!path.is_valid_for(&graph));
+            assert_that!(path.is_valid_for(&graph), eq(false));
         }
 
         #[test]
         fn display_matches_arrow_form() {
             let segment = Segment::new_open(vs(&[0, 3, 5])).unwrap();
             let path = HamiltonianPath::new(segment);
-            assert_eq!(path.to_string(), "0 \u{2192} 3 \u{2192} 5");
+            assert_that!(path.to_string(), eq("0 \u{2192} 3 \u{2192} 5"));
         }
     }
 
@@ -309,14 +311,14 @@ mod tests {
     /// to a renderer.
     mod conversions {
         use super::*;
-        use claim::assert_ok;
+        use test_that::prelude::*;
 
         #[test]
         fn cycle_by_value_produces_single_segment_decomposition() {
             let segment = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
             let decomposition: Decomposition = cycle.into();
-            assert_eq!(decomposition.covered_vertices(), 3);
+            assert_that!(decomposition.covered_vertices(), eq(3));
         }
 
         #[test]
@@ -324,7 +326,7 @@ mod tests {
             let segment = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
             let cycle = HamiltonianCycle::new(segment);
             let decomposition: Decomposition = (&cycle).into();
-            assert_eq!(decomposition.covered_vertices(), 3);
+            assert_that!(decomposition.covered_vertices(), eq(3));
         }
 
         #[test]
@@ -332,7 +334,7 @@ mod tests {
             let segment = Segment::new_open(vs(&[0, 1, 2])).unwrap();
             let path = HamiltonianPath::new(segment);
             let decomposition: Decomposition = path.into();
-            assert_eq!(decomposition.covered_vertices(), 3);
+            assert_that!(decomposition.covered_vertices(), eq(3));
         }
 
         #[test]
@@ -340,15 +342,15 @@ mod tests {
             let segment = Segment::new_open(vs(&[0, 1, 2])).unwrap();
             let path = HamiltonianPath::new(segment);
             let decomposition: Decomposition = (&path).into();
-            assert_eq!(decomposition.covered_vertices(), 3);
+            assert_that!(decomposition.covered_vertices(), eq(3));
         }
 
         #[test]
         fn decomposition_by_reference_clones() {
             let segment = Segment::new_closed(vs(&[0, 1, 2])).unwrap();
-            let original = assert_ok!(Decomposition::new(vec![segment]));
+            let original = Decomposition::new(vec![segment]).unwrap();
             let cloned: Decomposition = (&original).into();
-            assert_eq!(cloned, original);
+            assert_that!(cloned, eq(original));
         }
     }
 }

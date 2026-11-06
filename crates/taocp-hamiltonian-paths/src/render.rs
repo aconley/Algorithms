@@ -249,8 +249,8 @@ mod tests {
     use crate::generators::knight_graph;
     use crate::segment::Segment;
     use crate::solution::HamiltonianCycle;
-    use claim::assert_ok;
     use petgraph::graph::NodeIndex;
+    use test_that::prelude::*;
 
     fn v(i: usize) -> NodeIndex {
         NodeIndex::new(i)
@@ -278,18 +278,19 @@ mod tests {
                 .into_iter()
                 .map(NodeIndex::new)
                 .collect();
-            let segment = assert_ok!(Segment::new_closed(vertices));
+            let segment = Segment::new_closed(vertices).unwrap();
 
             // A transcription typo in the hard-coded tour above should fail
             // loudly here, rather than silently golden-mastering a broken
             // tour.
-            assert!(
+            assert_that!(
                 segment.is_hamiltonian_cycle(&graph),
+                eq(true),
                 "hard-coded tour is not a genuine Hamiltonian cycle of the \
                  6x6 knight's graph"
             );
 
-            let decomposition = assert_ok!(Decomposition::new(vec![segment]));
+            let decomposition = Decomposition::new(vec![segment]).unwrap();
             let rendered = board_ascii(&decomposition, &squares, 6, 6);
 
             let expected = concat!(
@@ -300,7 +301,7 @@ mod tests {
                 " 7 32 25 12  5 34\n",
                 "26 11  6 33 24 13\n",
             );
-            assert_eq!(rendered, expected);
+            assert_that!(rendered, eq(expected));
         }
 
         /// The same tour and golden string as above, fed through a
@@ -314,8 +315,8 @@ mod tests {
                 .into_iter()
                 .map(NodeIndex::new)
                 .collect();
-            let segment = assert_ok!(Segment::new_closed(vertices));
-            assert!(segment.is_hamiltonian_cycle(&graph));
+            let segment = Segment::new_closed(vertices).unwrap();
+            assert_that!(segment.is_hamiltonian_cycle(&graph), eq(true));
             let cycle = HamiltonianCycle::new(segment);
 
             let rendered = board_ascii(&cycle, &squares, 6, 6);
@@ -328,7 +329,7 @@ mod tests {
                 " 7 32 25 12  5 34\n",
                 "26 11  6 33 24 13\n",
             );
-            assert_eq!(rendered, expected);
+            assert_that!(rendered, eq(expected));
         }
 
         #[test]
@@ -346,14 +347,14 @@ mod tests {
                 Square { rank: 1, file: 2 },
             ];
 
-            let a = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2)]));
-            let b = assert_ok!(Segment::new_closed(vec![v(3), v(4), v(5)]));
-            let decomposition = assert_ok!(Decomposition::new(vec![a, b]));
+            let a = Segment::new_closed(vec![v(0), v(1), v(2)]).unwrap();
+            let b = Segment::new_closed(vec![v(3), v(4), v(5)]).unwrap();
+            let decomposition = Decomposition::new(vec![a, b]).unwrap();
 
             let rendered = board_ascii(&decomposition, &squares, 2, 3);
 
             let expected = concat!("A1 A2 A3\n", "B1 B2 B3\n");
-            assert_eq!(rendered, expected);
+            assert_that!(rendered, eq(expected));
         }
     }
 
@@ -364,11 +365,11 @@ mod tests {
         #[test]
         fn contains_one_highlighted_entry_per_solution_edge() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
-            let segment = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2), v(3)]));
-            let decomposition = assert_ok!(Decomposition::new(vec![segment]));
+            let segment = Segment::new_closed(vec![v(0), v(1), v(2), v(3)]).unwrap();
+            let decomposition = Decomposition::new(vec![segment]).unwrap();
 
             let rendered = dot(&graph, &decomposition);
-            assert!(!rendered.is_empty());
+            assert_that!(rendered.is_empty(), eq(false));
 
             let solution_edges: usize = decomposition
                 .segments()
@@ -376,15 +377,15 @@ mod tests {
                 .map(|s| s.edges().len())
                 .sum();
             let highlighted_count = rendered.matches("penwidth=2").count();
-            assert_eq!(highlighted_count, solution_edges);
+            assert_that!(highlighted_count, eq(solution_edges));
         }
 
         #[test]
         fn multi_segment_highlights_every_segments_edges() {
             let graph = graph_of(6, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
-            let a = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2)]));
-            let b = assert_ok!(Segment::new_closed(vec![v(3), v(4), v(5)]));
-            let decomposition = assert_ok!(Decomposition::new(vec![a, b]));
+            let a = Segment::new_closed(vec![v(0), v(1), v(2)]).unwrap();
+            let b = Segment::new_closed(vec![v(3), v(4), v(5)]).unwrap();
+            let decomposition = Decomposition::new(vec![a, b]).unwrap();
 
             let rendered = dot(&graph, &decomposition);
             let solution_edges: usize = decomposition
@@ -393,7 +394,7 @@ mod tests {
                 .map(|s| s.edges().len())
                 .sum();
             let highlighted_count = rendered.matches("penwidth=2").count();
-            assert_eq!(highlighted_count, solution_edges);
+            assert_that!(highlighted_count, eq(solution_edges));
         }
 
         /// Pins the `impl Into<Decomposition>` plumbing: a `HamiltonianCycle`
@@ -401,12 +402,12 @@ mod tests {
         #[test]
         fn accepts_hamiltonian_cycle_via_into() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
-            let segment = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2), v(3)]));
+            let segment = Segment::new_closed(vec![v(0), v(1), v(2), v(3)]).unwrap();
             let cycle = HamiltonianCycle::new(segment);
 
             let rendered = dot(&graph, &cycle);
             let highlighted_count = rendered.matches("penwidth=2").count();
-            assert_eq!(highlighted_count, 4);
+            assert_that!(highlighted_count, eq(4));
         }
     }
 
@@ -417,14 +418,14 @@ mod tests {
         #[test]
         fn well_formed_and_has_one_element_per_solution_edge() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
-            let segment = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2), v(3)]));
-            let decomposition = assert_ok!(Decomposition::new(vec![segment]));
+            let segment = Segment::new_closed(vec![v(0), v(1), v(2), v(3)]).unwrap();
+            let decomposition = Decomposition::new(vec![segment]).unwrap();
             let coords = vec![(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)];
 
             let rendered = svg(&graph, &decomposition, &coords);
 
-            assert!(rendered.starts_with("<svg"));
-            assert!(rendered.contains("</svg>"));
+            assert_that!(rendered.starts_with("<svg"), eq(true));
+            assert_that!(rendered.contains("</svg>"), eq(true));
 
             let solution_edges: usize = decomposition
                 .segments()
@@ -432,7 +433,7 @@ mod tests {
                 .map(|s| s.edges().len())
                 .sum();
             let highlighted_count = rendered.matches("stroke-width=\"4\"").count();
-            assert_eq!(highlighted_count, solution_edges);
+            assert_that!(highlighted_count, eq(solution_edges));
         }
 
         /// Pins the `impl Into<Decomposition>` plumbing: a `HamiltonianCycle`
@@ -440,22 +441,22 @@ mod tests {
         #[test]
         fn accepts_hamiltonian_cycle_via_into() {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
-            let segment = assert_ok!(Segment::new_closed(vec![v(0), v(1), v(2), v(3)]));
+            let segment = Segment::new_closed(vec![v(0), v(1), v(2), v(3)]).unwrap();
             let cycle = HamiltonianCycle::new(segment);
             let coords = vec![(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)];
 
             let rendered = svg(&graph, &cycle, &coords);
             let highlighted_count = rendered.matches("stroke-width=\"4\"").count();
-            assert_eq!(highlighted_count, 4);
+            assert_that!(highlighted_count, eq(4));
         }
 
         #[test]
         fn empty_coords_does_not_panic() {
             let graph = graph_of(0, &[]);
-            let decomposition = assert_ok!(Decomposition::new(vec![]));
+            let decomposition = Decomposition::new(vec![]).unwrap();
             let rendered = svg(&graph, &decomposition, &[]);
-            assert!(rendered.starts_with("<svg"));
-            assert!(rendered.contains("</svg>"));
+            assert_that!(rendered.starts_with("<svg"), eq(true));
+            assert_that!(rendered.contains("</svg>"), eq(true));
         }
     }
 }

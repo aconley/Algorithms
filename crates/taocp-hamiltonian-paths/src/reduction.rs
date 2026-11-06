@@ -157,7 +157,7 @@ impl CycleInstance {
 mod tests {
     use super::*;
     use crate::testing::{graph_of, v};
-    use claim::{assert_err, assert_ok};
+    use test_that::prelude::*;
 
     /// Building the reduced graph, and the index-preservation invariant that
     /// the SAT encoding downstream depends on.
@@ -166,33 +166,33 @@ mod tests {
 
         #[test]
         fn rejects_order_zero() {
-            let err = assert_err!(CycleInstance::new(&graph_of(0, &[])));
-            assert_eq!(err, ReductionError::GraphTooSmall(0));
+            let err = CycleInstance::new(&graph_of(0, &[])).unwrap_err();
+            assert_that!(err, eq(ReductionError::GraphTooSmall(0)));
         }
 
         #[test]
         fn rejects_order_one() {
-            let err = assert_err!(CycleInstance::new(&graph_of(1, &[])));
-            assert_eq!(err, ReductionError::GraphTooSmall(1));
+            let err = CycleInstance::new(&graph_of(1, &[])).unwrap_err();
+            assert_that!(err, eq(ReductionError::GraphTooSmall(1)));
         }
 
         #[test]
         fn accepts_order_two() {
-            let instance = assert_ok!(CycleInstance::new(&graph_of(2, &[(0, 1)])));
-            assert_eq!(instance.original_order, 2);
+            let instance = CycleInstance::new(&graph_of(2, &[(0, 1)])).unwrap();
+            assert_that!(instance.original_order, eq(2));
             // Two originals plus the apex, and the apex joined to both: the
             // reduced graph is a triangle, the shortest legal cycle.
-            assert_eq!(instance.graph().node_count(), 3);
-            assert_eq!(instance.graph().edge_count(), 3);
+            assert_that!(instance.graph().node_count(), eq(3));
+            assert_that!(instance.graph().edge_count(), eq(3));
         }
 
         #[test]
         fn apex_is_index_n() {
             for order in 2..6 {
                 let instance = CycleInstance::new(&graph_of(order, &[(0, 1)])).unwrap();
-                assert_eq!(
+                assert_that!(
                     instance.apex,
-                    v(order),
+                    eq(v(order)),
                     "apex should be index n for order {order}"
                 );
             }
@@ -211,9 +211,9 @@ mod tests {
             let instance = CycleInstance::new(&graph).unwrap();
 
             for (edge, endpoints) in before {
-                assert_eq!(
+                assert_that!(
                     instance.graph().edge_endpoints(edge),
-                    Some(endpoints),
+                    eq(Some(endpoints)),
                     "edge index {} moved during reduction",
                     edge.index()
                 );
@@ -225,9 +225,9 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
             let instance = CycleInstance::new(&graph).unwrap();
             for i in 0..graph.node_count() {
-                assert!(instance.graph().node_weight(v(i)).is_some());
+                assert_that!(instance.graph().node_weight(v(i)), some(anything()));
             }
-            assert_eq!(instance.graph().node_count(), graph.node_count() + 1);
+            assert_that!(instance.graph().node_count(), eq(graph.node_count() + 1));
         }
 
         #[test]
@@ -236,7 +236,7 @@ mod tests {
             let m = graph.edge_count();
             let n = graph.node_count();
             let instance = CycleInstance::new(&graph).unwrap();
-            assert_eq!(instance.graph().edge_count(), m + n);
+            assert_that!(instance.graph().edge_count(), eq(m + n));
         }
 
         #[test]
@@ -244,16 +244,20 @@ mod tests {
             let graph = graph_of(4, &[(0, 1)]);
             let instance = CycleInstance::new(&graph).unwrap();
             for i in 0..4 {
-                assert!(
-                    instance.graph().find_edge(v(i), instance.apex).is_some(),
+                assert_that!(
+                    instance.graph().find_edge(v(i), instance.apex),
+                    some(anything()),
                     "apex not joined to vertex {i}"
                 );
             }
             // And never to itself.
-            assert!(instance
-                .graph()
-                .find_edge(instance.apex, instance.apex)
-                .is_none());
+            assert_that!(
+                instance
+                    .graph()
+                    .find_edge(instance.apex, instance.apex)
+                    .is_none(),
+                eq(true)
+            );
         }
 
         /// The reduction does not care about connectivity; the apex makes G′
@@ -262,10 +266,13 @@ mod tests {
         #[test]
         fn disconnected_graph_still_reduces() {
             let graph = graph_of(4, &[(0, 1), (2, 3)]);
-            let instance = assert_ok!(CycleInstance::new(&graph));
-            assert_eq!(instance.graph().node_count(), 5);
+            let instance = CycleInstance::new(&graph).unwrap();
+            assert_that!(instance.graph().node_count(), eq(5));
             for i in 0..4 {
-                assert!(instance.graph().find_edge(v(i), instance.apex).is_some());
+                assert_that!(
+                    instance.graph().find_edge(v(i), instance.apex),
+                    some(anything())
+                );
             }
         }
 
@@ -278,15 +285,16 @@ mod tests {
 
             // G has no Hamiltonian cycle: vertex 0 has degree 1, and a cycle
             // needs degree at least 2 everywhere.
-            assert_eq!(graph.edges(v(0)).count(), 1);
+            assert_that!(graph.edges(v(0)).count(), eq(1));
 
             let instance = CycleInstance::new(&graph).unwrap();
             let apex = instance.apex;
 
             // G′ does: apex → 0 → 1 → 2 → 3 → apex.
             let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
-            assert!(
+            assert_that!(
                 cycle.is_hamiltonian_cycle(instance.graph()),
+                eq(true),
                 "not a Hamiltonian cycle of the reduced graph: {cycle}"
             );
         }
@@ -309,9 +317,9 @@ mod tests {
             let apex = instance.apex;
             let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
 
-            let path = assert_ok!(instance.path_from_cycle(&cycle));
-            assert!(!path.is_closed());
-            assert_eq!(path.vertices(), &[v(0), v(1), v(2), v(3)]);
+            let path = instance.path_from_cycle(&cycle).unwrap();
+            assert_that!(path.is_closed(), eq(false));
+            assert_that!(path.vertices(), eq(&[v(0), v(1), v(2), v(3)]));
         }
 
         #[test]
@@ -321,14 +329,15 @@ mod tests {
             // 1-0-apex-3-2-1 is the same cycle traversed from a different
             // start, so it must translate to the same canonical path.
             let cycle = Segment::new_closed(vec![v(1), v(0), apex, v(3), v(2)]).unwrap();
-            assert!(
+            assert_that!(
                 cycle.is_hamiltonian_cycle(instance.graph()),
+                eq(true),
                 "not a Hamiltonian cycle: {cycle}"
             );
 
-            let path = assert_ok!(instance.path_from_cycle(&cycle));
-            assert!(!path.is_closed());
-            assert_eq!(path.vertices(), &[v(0), v(1), v(2), v(3)]);
+            let path = instance.path_from_cycle(&cycle).unwrap();
+            assert_that!(path.is_closed(), eq(false));
+            assert_that!(path.vertices(), eq(&[v(0), v(1), v(2), v(3)]));
         }
 
         #[test]
@@ -339,8 +348,9 @@ mod tests {
             let cycle = Segment::new_closed(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
 
             let path = instance.path_from_cycle(&cycle).unwrap();
-            assert!(
+            assert_that!(
                 path.is_hamiltonian_path(&graph),
+                eq(true),
                 "not a Hamiltonian path of the original graph: {path}"
             );
         }
@@ -353,18 +363,18 @@ mod tests {
             let instance = instance();
             let apex = instance.apex;
             let open = Segment::new_open(vec![apex, v(0), v(1), v(2), v(3)]).unwrap();
-            assert_eq!(open.len(), instance.original_order + 1);
+            assert_that!(open.len(), eq(instance.original_order + 1));
 
-            let err = assert_err!(instance.path_from_cycle(&open));
-            assert_eq!(err, ReductionError::CycleNotClosed);
+            let err = instance.path_from_cycle(&open).unwrap_err();
+            assert_that!(err, eq(ReductionError::CycleNotClosed));
         }
 
         #[test]
         fn rejects_cycle_without_the_apex() {
             let instance = instance();
             let cycle = Segment::new_closed(vec![v(0), v(1), v(2)]).unwrap();
-            let err = assert_err!(instance.path_from_cycle(&cycle));
-            assert_eq!(err, ReductionError::ApexNotInCycle);
+            let err = instance.path_from_cycle(&cycle).unwrap_err();
+            assert_that!(err, eq(ReductionError::ApexNotInCycle));
         }
 
         #[test]
@@ -373,8 +383,8 @@ mod tests {
             let apex = instance.apex;
             // Contains the apex, but only 3 of the 5 vertices of G′.
             let cycle = Segment::new_closed(vec![apex, v(0), v(1)]).unwrap();
-            let err = assert_err!(instance.path_from_cycle(&cycle));
-            assert_eq!(err, ReductionError::CycleNotSpanning);
+            let err = instance.path_from_cycle(&cycle).unwrap_err();
+            assert_that!(err, eq(ReductionError::CycleNotSpanning));
         }
     }
 
@@ -383,21 +393,21 @@ mod tests {
 
         #[test]
         fn reduction_error() {
-            assert_eq!(
+            assert_that!(
                 ReductionError::GraphTooSmall(1).to_string(),
-                "graph has 1 vertices, need at least 2 for the apex construction"
+                eq("graph has 1 vertices, need at least 2 for the apex construction")
             );
-            assert_eq!(
+            assert_that!(
                 ReductionError::CycleNotClosed.to_string(),
-                "segment is open, so it is not a cycle"
+                eq("segment is open, so it is not a cycle")
             );
-            assert_eq!(
+            assert_that!(
                 ReductionError::ApexNotInCycle.to_string(),
-                "cycle does not pass through the apex vertex"
+                eq("cycle does not pass through the apex vertex")
             );
-            assert_eq!(
+            assert_that!(
                 ReductionError::CycleNotSpanning.to_string(),
-                "cycle does not span the reduced graph"
+                eq("cycle does not span the reduced graph")
             );
         }
     }

@@ -389,6 +389,7 @@ impl<'a, T> Iterator for SetPartitions<'a, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     const BELL: [usize; 11] = [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147, 115975];
 
@@ -454,17 +455,21 @@ mod tests {
     #[test]
     fn bell_counts() {
         for (n, &bell) in BELL.iter().enumerate() {
-            assert_eq!(SetPartitionIndices::new(n).count(), bell, "indices n={n}");
-            assert_eq!(
+            assert_that!(
+                SetPartitionIndices::new(n).count(),
+                eq(bell),
+                "indices n={n}"
+            );
+            assert_that!(
                 SetPartitionIndicesLending::new(n).count(),
-                bell,
+                eq(bell),
                 "indices lending n={n}"
             );
             let v: Vec<usize> = (0..n).collect();
-            assert_eq!(SetPartitions::new(&v).count(), bell, "partitions n={n}");
-            assert_eq!(
+            assert_that!(SetPartitions::new(&v).count(), eq(bell), "partitions n={n}");
+            assert_that!(
                 SetPartitionsLending::new(&v).count(),
-                bell,
+                eq(bell),
                 "partitions lending n={n}"
             );
         }
@@ -479,18 +484,21 @@ mod tests {
             vec![0, 1, 1],
             vec![0, 1, 2],
         ];
-        assert_eq!(SetPartitionIndices::new(3).collect::<Vec<_>>(), expected);
-        assert_eq!(collect_indices_lending(3), expected);
+        assert_that!(
+            SetPartitionIndices::new(3).collect::<Vec<_>>(),
+            eq_deref_of(&expected)
+        );
+        assert_that!(collect_indices_lending(3), eq(expected));
     }
 
     #[test]
     fn indices_match_brute_force() {
         for n in 0..=7 {
             let expected = brute_force_rgs(n);
-            assert_eq!(collect_indices_lending(n), expected, "n={n}");
-            assert_eq!(
+            assert_that!(collect_indices_lending(n), eq_deref_of(&expected), "n={n}");
+            assert_that!(
                 SetPartitionIndices::new(n).collect::<Vec<_>>(),
-                expected,
+                eq(expected),
                 "n={n}"
             );
         }
@@ -503,7 +511,7 @@ mod tests {
             while let Some(a) = it.next() {
                 let expected = a.iter().max().map_or(0, |m| m + 1);
                 let a = a.to_vec();
-                assert_eq!(it.num_blocks(), expected, "{a:?}");
+                assert_that!(it.num_blocks(), eq(expected), "{a:?}");
             }
         }
     }
@@ -511,23 +519,23 @@ mod tests {
     #[test]
     fn empty_input_has_one_empty_partition() {
         let empty: Vec<i32> = Vec::new();
-        assert_eq!(
+        assert_that!(
             SetPartitionIndices::new(0).collect::<Vec<_>>(),
-            vec![vec![]]
+            eq(vec![vec![]])
         );
         let mut it = SetPartitionsLending::new(&empty);
         let p = it.next().unwrap();
-        assert!(p.is_empty());
-        assert_eq!(p.len(), 0);
-        assert_eq!(p.blocks().count(), 0);
-        assert!(it.next().is_none());
-        assert_eq!(SetPartitions::new(&empty).count(), 1);
+        assert_that!(p.is_empty(), eq(true));
+        assert_that!(p.len(), eq(0));
+        assert_that!(p.blocks().count(), eq(0));
+        assert_that!(it.next(), none());
+        assert_that!(SetPartitions::new(&empty).count(), eq(1));
     }
 
     #[test]
     fn single_element() {
         let v = vec!['x'];
-        assert_eq!(collect_lending(&v), vec![vec![vec!['x']]]);
+        assert_that!(collect_lending(&v), eq(vec![vec![vec!['x']]]));
     }
 
     #[test]
@@ -540,7 +548,7 @@ mod tests {
             vec![vec!['a'], vec!['b', 'c']],
             vec![vec!['a'], vec!['b'], vec!['c']],
         ];
-        assert_eq!(collect_lending(&v), expected);
+        assert_that!(collect_lending(&v), eq_deref_of(&expected));
         let plain: Vec<Vec<Vec<char>>> = SetPartitions::new(&v)
             .map(|p| {
                 p.into_iter()
@@ -548,7 +556,7 @@ mod tests {
                     .collect()
             })
             .collect();
-        assert_eq!(plain, expected);
+        assert_that!(plain, eq(expected));
     }
 
     #[test]
@@ -559,15 +567,15 @@ mod tests {
         while let Some(p) = it.next() {
             if p.rgs() == [0, 1, 0, 2] {
                 found = true;
-                assert_eq!(p.len(), 3);
-                assert_eq!(p.block(0), [&'a', &'c']);
-                assert_eq!(p.block(1), [&'b']);
-                assert_eq!(p.block(2), [&'d']);
-                assert_eq!(p.get(3), None);
-                assert_eq!(format!("{p:?}"), "[['a', 'c'], ['b'], ['d']]");
+                assert_that!(p.len(), eq(3));
+                assert_that!(p.block(0), eq([&'a', &'c']));
+                assert_that!(p.block(1), eq([&'b']));
+                assert_that!(p.block(2), eq([&'d']));
+                assert_that!(p.get(3), none());
+                assert_that!(format!("{p:?}"), eq("[['a', 'c'], ['b'], ['d']]"));
             }
         }
-        assert!(found);
+        assert_that!(found, eq(true));
     }
 
     // Every structural promise of the Partition view, checked against the RGS.
@@ -578,29 +586,33 @@ mod tests {
             let mut it = SetPartitionsLending::new(&v);
             while let Some(p) = it.next() {
                 let rgs = p.rgs();
-                assert_eq!(rgs.len(), n);
-                assert!(is_rgs(rgs), "{rgs:?}");
-                assert_eq!(p.len(), rgs.iter().max().map_or(0, |m| m + 1));
-                assert_eq!(p.blocks().len(), p.len());
+                assert_that!(rgs.len(), eq(n));
+                assert_that!(is_rgs(rgs), eq(true), "{rgs:?}");
+                assert_that!(p.len(), eq(rgs.iter().max().map_or(0, |m| m + 1)));
+                assert_that!(p.blocks().len(), eq(p.len()));
 
                 let mut seen = vec![false; n];
                 let mut prev_min = None;
                 for (b, block) in p.blocks().enumerate() {
-                    assert!(!block.is_empty(), "empty block in {rgs:?}");
-                    assert!(block.windows(2).all(|w| *w[0] < *w[1]));
+                    assert_that!(*block, not(empty()), "empty block in {rgs:?}");
+                    assert_that!(block.windows(2).all(|w| *w[0] < *w[1]), eq(true));
                     // Blocks are ordered by smallest element.
                     let min = **block.first().unwrap();
-                    assert!(prev_min.is_none_or(|m| m < min));
+                    assert_that!(prev_min, none().or(some(lt(min))));
                     prev_min = Some(min);
                     for &&x in block {
                         let i = x - 10;
-                        assert!(!seen[i], "element {i} repeated in {rgs:?}");
+                        assert_that!(
+                            seen[i],
+                            eq(false),
+                            "element {i} repeated in {rgs:?}"
+                        );
                         seen[i] = true;
-                        assert_eq!(p.block_of(i), b);
-                        assert_eq!(rgs[i], b);
+                        assert_that!(p.block_of(i), eq(b));
+                        assert_that!(rgs[i], eq(b));
                     }
                 }
-                assert!(seen.iter().all(|&s| s), "element missing in {rgs:?}");
+                assert_that!(seen, each(eq(true)), "element missing in {rgs:?}");
             }
         }
     }
@@ -612,7 +624,7 @@ mod tests {
         while let Some(p) = it.next() {
             for block in &p {
                 for &s in block {
-                    assert!(v.iter().any(|orig| std::ptr::eq(orig, s)));
+                    assert_that!(v.iter().any(|orig| std::ptr::eq(orig, s)), eq(true));
                 }
             }
         }
@@ -626,7 +638,7 @@ mod tests {
             let fwd: Vec<_> = p.blocks().collect();
             let mut rev: Vec<_> = p.blocks().rev().collect();
             rev.reverse();
-            assert_eq!(fwd, rev);
+            assert_that!(fwd, eq(rev));
         }
     }
 
@@ -641,7 +653,7 @@ mod tests {
                 best = p.to_vecs();
             }
         }
-        assert_eq!(best, vec![vec![&1], vec![&2], vec![&3], vec![&4]]);
+        assert_that!(best, eq(vec![vec![&1], vec![&2], vec![&3], vec![&4]]));
     }
 
     #[test]
@@ -654,30 +666,30 @@ mod tests {
                     .collect()
             })
             .collect();
-        assert_eq!(plain, collect_lending(&v));
+        assert_that!(plain, eq(collect_lending(&v)));
     }
 
     #[test]
     fn duplicate_values_are_distinct_elements() {
         let v = vec!['x', 'x'];
-        assert_eq!(SetPartitions::new(&v).count(), 2);
+        assert_that!(SetPartitions::new(&v).count(), eq(2));
     }
 
     #[test]
     fn stays_exhausted() {
         let v = vec![1, 2, 3];
         let mut it = SetPartitions::new(&v);
-        assert_eq!(it.by_ref().count(), 5);
-        assert!(it.next().is_none());
+        assert_that!(it.by_ref().count(), eq(5));
+        assert_that!(it.next(), none());
 
         let mut lit = SetPartitionsLending::new(&v);
         while lit.next().is_some() {}
-        assert!(lit.next().is_none());
-        assert!(lit.next().is_none());
+        assert_that!(lit.next(), none());
+        assert_that!(lit.next(), none());
 
         let mut idx = SetPartitionIndicesLending::new(3);
         while idx.next().is_some() {}
-        assert!(idx.next().is_none());
-        assert!(idx.next().is_none());
+        assert_that!(idx.next(), none());
+        assert_that!(idx.next(), none());
     }
 }

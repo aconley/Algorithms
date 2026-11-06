@@ -323,7 +323,8 @@ impl DpllData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{sample_problems::waerden, Clause};
+    use crate::{Clause, sample_problems::waerden};
+    use test_that::prelude::*;
 
     fn make(clauses: &[Vec<u32>]) -> SatProblem {
         SatProblem::from_literals(clauses).unwrap()
@@ -359,14 +360,14 @@ mod tests {
     #[test]
     fn test_new_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(matches!(Dpll::new(&p), Dpll::Trivial));
+        assert_that!(matches!(Dpll::new(&p), Dpll::Trivial), eq(true));
     }
 
     #[test]
     fn test_new_unsatisfiable() {
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(matches!(Dpll::new(&p), Dpll::Unsatisfiable));
+        assert_that!(matches!(Dpll::new(&p), Dpll::Unsatisfiable), eq(true));
     }
 
     #[test]
@@ -376,20 +377,20 @@ mod tests {
             other => panic!("expected active, got {other:?}"),
         };
 
-        assert_eq!(data.n, 4);
-        assert_eq!(data.start.len() - 1, 7);
-        assert_eq!(data.start[0], 21);
+        assert_that!(data.n, eq(4));
+        assert_that!(data.start.len() - 1, eq(7));
+        assert_that!(data.start[0], eq(21));
         for j in 1..=7 {
-            assert_eq!(data.start[j], (21 - 3 * j) as u32, "start[{j}]");
+            assert_that!(data.start[j], eq((21 - 3 * j) as u32), "start[{j}]");
         }
 
         let expected_l: Vec<u32> = vec![
             9, 7, 3, 8, 7, 5, 6, 5, 3, 8, 4, 3, 8, 6, 2, 9, 6, 4, 7, 4, 2,
         ];
-        assert_eq!(&*data.l, &expected_l[..]);
+        assert_that!(&*data.l, eq(&expected_l[..]));
 
         // next should be all zeros before solve()
-        assert!(data.next.iter().all(|&x| x == 0));
+        assert_that!(data.next.iter().all(|&x| x == 0), eq(true));
     }
 
     // --- literal_is_false tests ---
@@ -399,8 +400,8 @@ mod tests {
         let depth_of = vec![0usize; 3];
         let moves = vec![0u8; 3];
         // var 1, depth_of[1]=0 → always false
-        assert!(!DpllData::literal_is_false(2, &depth_of, &moves));
-        assert!(!DpllData::literal_is_false(3, &depth_of, &moves));
+        assert_that!(DpllData::literal_is_false(2, &depth_of, &moves), eq(false));
+        assert_that!(DpllData::literal_is_false(3, &depth_of, &moves), eq(false));
     }
 
     #[test]
@@ -410,8 +411,8 @@ mod tests {
         let mut moves = vec![0u8; 3];
         depth_of[1] = 1;
         moves[1] = 0;
-        assert!(!DpllData::literal_is_false(2, &depth_of, &moves)); // pos x1
-        assert!(DpllData::literal_is_false(3, &depth_of, &moves));  // neg x1
+        assert_that!(DpllData::literal_is_false(2, &depth_of, &moves), eq(false)); // pos x1
+        assert_that!(DpllData::literal_is_false(3, &depth_of, &moves), eq(true)); // neg x1
     }
 
     #[test]
@@ -421,13 +422,13 @@ mod tests {
         let mut moves = vec![0u8; 3];
         depth_of[1] = 1;
         moves[1] = 4;
-        assert!(!DpllData::literal_is_false(2, &depth_of, &moves));
-        assert!(DpllData::literal_is_false(3, &depth_of, &moves));
+        assert_that!(DpllData::literal_is_false(2, &depth_of, &moves), eq(false));
+        assert_that!(DpllData::literal_is_false(3, &depth_of, &moves), eq(true));
 
         // move 5 behaves like 1 (x=0)
         moves[1] = 5;
-        assert!(DpllData::literal_is_false(2, &depth_of, &moves));
-        assert!(!DpllData::literal_is_false(3, &depth_of, &moves));
+        assert_that!(DpllData::literal_is_false(2, &depth_of, &moves), eq(true));
+        assert_that!(DpllData::literal_is_false(3, &depth_of, &moves), eq(false));
     }
 
     // --- is_unit tests ---
@@ -441,7 +442,7 @@ mod tests {
         let depth_of = vec![0usize; data.n + 1];
         let moves = vec![0u8; data.n + 1];
         // w[2]=0, so lit 2 has no watch list
-        assert!(!data.is_unit(2, &depth_of, &moves));
+        assert_that!(data.is_unit(2, &depth_of, &moves), eq(false));
     }
 
     #[test]
@@ -455,7 +456,7 @@ mod tests {
         let depth_of = vec![0usize; data.n + 1];
         let moves = vec![0u8; data.n + 1];
         // The clause has only one literal, so p starts at i+1 == i_end → unit
-        assert!(data.is_unit(2, &depth_of, &moves));
+        assert_that!(data.is_unit(2, &depth_of, &moves), eq(true));
     }
 
     #[test]
@@ -477,7 +478,7 @@ mod tests {
         moves[1] = 1; // x1=0
         // Now is_unit(4): clause 1, scan l[i+1]=2, literal_is_false(2,...) → depth_of[1]=1, (2+1)&1=1 → true
         // p→p+1=i_end → return true
-        assert!(data.is_unit(4, &depth_of, &moves));
+        assert_that!(data.is_unit(4, &depth_of, &moves), eq(true));
     }
 
     #[test]
@@ -490,7 +491,7 @@ mod tests {
         let depth_of = vec![0usize; data.n + 1];
         let moves = vec![0u8; data.n + 1];
         // Neither x1 nor x2 set → clause not unit
-        assert!(!data.is_unit(4, &depth_of, &moves));
+        assert_that!(data.is_unit(4, &depth_of, &moves), eq(false));
     }
 
     // --- End-to-end solve tests ---
@@ -498,40 +499,40 @@ mod tests {
     #[test]
     fn test_solve_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert_eq!(solve_via_dpll(&p), Some(vec![]));
+        assert_that!(solve_via_dpll(&p), eq(Some(vec![])));
     }
 
     #[test]
     fn test_solve_unsatisfiable_empty_clause() {
         let p = make(&[vec![]]);
-        assert_eq!(solve_via_dpll(&p), None);
+        assert_that!(solve_via_dpll(&p), none());
     }
 
     #[test]
     fn test_solve_unit_clause() {
         let p = make(&[vec![2]]); // {x1}
         let result = solve_via_dpll(&p).expect("satisfiable");
-        assert!(p.is_satisfied(&result));
-        assert!(result[0]); // x1 = true
+        assert_that!(p.is_satisfied(&result), eq(true));
+        assert_that!(result[0], eq(true)); // x1 = true
     }
 
     #[test]
     fn test_solve_contradiction() {
         let p = make(&[vec![2], vec![3]]); // {x1} ∧ {¬x1}
-        assert_eq!(solve_via_dpll(&p), None);
+        assert_that!(solve_via_dpll(&p), none());
     }
 
     #[test]
     fn test_solve_r_prime_sat() {
         let p = r_prime();
         let result = solve_via_dpll(&p).expect("R' is satisfiable");
-        assert!(p.is_satisfied(&result));
+        assert_that!(p.is_satisfied(&result), eq(true));
     }
 
     #[test]
     fn test_solve_r_prime_unsat() {
         let p = r_prime_unsat();
-        assert_eq!(solve_via_dpll(&p), None);
+        assert_that!(solve_via_dpll(&p), none());
     }
 
     // W(3,3) = 9: waerden(3,3,n) is SAT for n < 9, UNSAT for n >= 9.
@@ -541,7 +542,11 @@ mod tests {
             let p = waerden(3, 3, n).unwrap();
             let assignment = solve_via_dpll(&p)
                 .unwrap_or_else(|| panic!("waerden(3,3,{n}) should be satisfiable"));
-            assert!(p.is_satisfied(&assignment), "invalid solution at n={n}");
+            assert_that!(
+                p.is_satisfied(&assignment),
+                eq(true),
+                "invalid solution at n={n}"
+            );
         }
     }
 
@@ -549,8 +554,9 @@ mod tests {
     fn test_solve_waerden_unsat() {
         for n in 9u8..=11 {
             let p = waerden(3, 3, n).unwrap();
-            assert!(
-                solve_via_dpll(&p).is_none(),
+            assert_that!(
+                solve_via_dpll(&p),
+                none(),
                 "waerden(3,3,{n}) should be unsatisfiable"
             );
         }
@@ -562,9 +568,13 @@ mod tests {
         for n in [3, 4, 7] {
             let p = langford(n).unwrap();
             let res = solve_via_dpll(&p);
-            assert!(res.is_some(), "langford({n}) should be satisfiable");
+            assert_that!(res, some(anything()), "langford({n}) should be satisfiable");
             if let Some(ref assignment) = res {
-                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
+                assert_that!(
+                    p.is_satisfied(assignment),
+                    eq(true),
+                    "invalid solution at n={n}"
+                );
             }
         }
     }
@@ -575,7 +585,7 @@ mod tests {
         for n in [1, 2, 5, 6] {
             let p = langford(n).unwrap();
             let res = solve_via_dpll(&p);
-            assert!(res.is_none(), "langford({n}) should be unsatisfiable");
+            assert_that!(res, none(), "langford({n}) should be unsatisfiable");
         }
     }
 }
