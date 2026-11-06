@@ -192,50 +192,51 @@ impl<'a, T: Clone> LendingIterator for PermutationsLendingIter<'a, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     #[test]
     fn one_elem() {
-        assert_eq!(next_permutation(vec![3]), None);
+        assert_that!(next_permutation(vec![3]), none());
     }
 
     #[test]
     fn two_elem_first() {
-        assert_eq!(next_permutation(vec![1, 3]), Some(vec![3, 1]));
+        assert_that!(next_permutation(vec![1, 3]), some(eq(vec![3, 1])));
     }
 
     #[test]
     fn two_elem_second() {
-        assert_eq!(next_permutation(vec![3, 1]), None);
+        assert_that!(next_permutation(vec![3, 1]), none());
     }
 
     #[test]
     fn count_3() {
-        assert_eq!(count_permutations(vec![1, 2, 3]), 6);
+        assert_that!(count_permutations(vec![1, 2, 3]), eq(6));
     }
 
     #[test]
     fn count_4() {
-        assert_eq!(count_permutations(vec![1, 2, 3, 4]), 24);
+        assert_that!(count_permutations(vec![1, 2, 3, 4]), eq(24));
     }
 
     #[test]
     fn count_4_with_repeat() {
-        assert_eq!(count_permutations(vec![1, 2, 2, 4]), 12);
+        assert_that!(count_permutations(vec![1, 2, 2, 4]), eq(12));
     }
 
     #[test]
     fn count_4_with_repeat_starting_on_second() {
-        assert_eq!(count_permutations(vec![1, 2, 3, 2]), 11);
+        assert_that!(count_permutations(vec![1, 2, 3, 2]), eq(11));
     }
 
     #[test]
     fn count_5_identical() {
-        assert_eq!(count_permutations(vec![1, 1, 1, 1, 1]), 1);
+        assert_that!(count_permutations(vec![1, 1, 1, 1, 1]), eq(1));
     }
 
     #[test]
     fn count_7_identical() {
-        assert_eq!(count_permutations(vec![-1, 2, 4, 11, 22, 33, 34]), 5040);
+        assert_that!(count_permutations(vec![-1, 2, 4, 11, 22, 33, 34]), eq(5040));
     }
 
     #[test]
@@ -285,7 +286,7 @@ mod tests {
         ];
 
         let actual: Vec<Vec<char>> = PermutationsIterator::new(&v).unwrap().collect();
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
@@ -305,24 +306,28 @@ mod tests {
         while let Some(p) = iter.next() {
             actual.push(p.to_vec());
         }
-        assert_eq!(actual, expected);
+        assert_that!(actual, eq(expected));
     }
 
     #[test]
     fn permutations_iterator_invalid_params() {
         let empty: Vec<i32> = Vec::new();
-        assert_eq!(
-            PermutationsIterator::new(&empty).unwrap_err(),
-            InvalidPermutationParams::new("values must not be empty")
+        assert_that!(
+            PermutationsIterator::new(&empty),
+            err(eq(InvalidPermutationParams::new(
+                "values must not be empty"
+            )))
         );
     }
 
     #[test]
     fn permutations_lending_iter_invalid_params() {
         let empty: Vec<i32> = Vec::new();
-        assert_eq!(
-            PermutationsLendingIter::new(&empty).unwrap_err(),
-            InvalidPermutationParams::new("values must not be empty")
+        assert_that!(
+            PermutationsLendingIter::new(&empty),
+            err(eq(InvalidPermutationParams::new(
+                "values must not be empty"
+            )))
         );
     }
 
@@ -340,10 +345,10 @@ mod tests {
     }
 
     fn check_permutations(mut a: Vec<i32>, expected: Vec<Vec<i32>>) {
-        assert_eq!(a, expected[0]);
+        assert_that!(a, eq_deref_of(&expected[0]));
         let mut niter = 1;
         while let Some(k) = next_permutation(a) {
-            assert_eq!(expected[niter], k);
+            assert_that!(k, eq_deref_of(&expected[niter]));
             niter += 1;
             a = k;
         }

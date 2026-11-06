@@ -207,6 +207,7 @@ impl<'a, T> LendingIterator for SubsetsRefLendingIter<'a, T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     fn expected_abc() -> Vec<Vec<char>> {
         vec![
@@ -293,42 +294,56 @@ mod tests {
     fn subsets_iterator_3() {
         let v = vec!['a', 'b', 'c'];
         let actual: Vec<Vec<char>> = SubsetsIterator::new(&v).collect();
-        assert_eq!(actual, expected_abc());
+        assert_that!(actual, eq(expected_abc()));
     }
 
     #[test]
     fn subsets_lending_iter_3() {
         let v = vec!['a', 'b', 'c'];
-        assert_eq!(collect_lending(&v), expected_abc());
+        assert_that!(collect_lending(&v), eq(expected_abc()));
     }
 
     #[test]
     fn empty_input_has_one_subset() {
         let empty: Vec<i32> = Vec::new();
         let expected: Vec<Vec<i32>> = vec![vec![]];
-        assert_eq!(SubsetsIterator::new(&empty).collect::<Vec<_>>(), expected);
-        assert_eq!(collect_lending(&empty), expected);
-        assert_eq!(collect_ref_lending(&empty), expected);
+        assert_that!(
+            SubsetsIterator::new(&empty).collect::<Vec<_>>(),
+            eq_deref_of(&expected)
+        );
+        assert_that!(collect_lending(&empty), eq_deref_of(&expected));
+        assert_that!(collect_ref_lending(&empty), eq(expected));
     }
 
     #[test]
     fn single_element() {
         let v = vec![7];
         let expected = vec![vec![], vec![7]];
-        assert_eq!(SubsetsIterator::new(&v).collect::<Vec<_>>(), expected);
-        assert_eq!(collect_lending(&v), expected);
-        assert_eq!(collect_ref_lending(&v), expected);
+        assert_that!(
+            SubsetsIterator::new(&v).collect::<Vec<_>>(),
+            eq_deref_of(&expected)
+        );
+        assert_that!(collect_lending(&v), eq_deref_of(&expected));
+        assert_that!(collect_ref_lending(&v), eq(expected));
     }
 
     #[test]
     fn count_is_power_of_two() {
         for n in 0..=12 {
             let v: Vec<u32> = (0..n).collect();
-            assert_eq!(SubsetsIterator::new(&v).count(), 1 << n, "Iterator n={n}");
-            assert_eq!(SubsetsLendingIter::new(&v).count(), 1 << n, "Lending n={n}");
-            assert_eq!(
+            assert_that!(
+                SubsetsIterator::new(&v).count(),
+                eq(1 << n),
+                "Iterator n={n}"
+            );
+            assert_that!(
+                SubsetsLendingIter::new(&v).count(),
+                eq(1 << n),
+                "Lending n={n}"
+            );
+            assert_that!(
                 SubsetsRefLendingIter::new(&v).count(),
-                1 << n,
+                eq(1 << n),
                 "RefLending n={n}"
             );
         }
@@ -338,8 +353,8 @@ mod tests {
     fn iterator_and_lending_agree() {
         let v: Vec<u32> = (0..6).collect();
         let owned: Vec<Vec<u32>> = SubsetsIterator::new(&v).collect();
-        assert_eq!(owned, collect_lending(&v));
-        assert_eq!(owned, collect_ref_lending(&v));
+        assert_that!(owned, eq(collect_lending(&v)));
+        assert_that!(owned, eq(collect_ref_lending(&v)));
     }
 
     #[test]
@@ -347,12 +362,16 @@ mod tests {
         let v: Vec<u32> = (0..8).collect();
         let all = collect_lending(&v);
         for s in &all {
-            assert!(s.windows(2).all(|w| w[0] < w[1]), "{s:?} not increasing");
+            assert_that!(
+                s.windows(2).all(|w| w[0] < w[1]),
+                eq(true),
+                "{s:?} not increasing"
+            );
         }
         let mut sorted = all.clone();
         sorted.sort();
         sorted.dedup();
-        assert_eq!(sorted.len(), all.len());
+        assert_that!(sorted.len(), eq(all.len()));
     }
 
     #[test]
@@ -362,7 +381,7 @@ mod tests {
         while let Some(s) = iter.next() {
             let s = s.to_vec();
             let from_indices: Vec<char> = iter.indices().iter().map(|&i| v[i]).collect();
-            assert_eq!(s, from_indices);
+            assert_that!(s, eq(from_indices));
         }
     }
 
@@ -370,17 +389,17 @@ mod tests {
     fn stays_exhausted() {
         let v = vec![1, 2];
         let mut it = SubsetsIterator::new(&v);
-        assert_eq!(it.by_ref().count(), 4);
-        assert_eq!(it.next(), None);
+        assert_that!(it.by_ref().count(), eq(4));
+        assert_that!(it.next(), none());
 
         let mut lit = SubsetsLendingIter::new(&v);
         while lit.next().is_some() {}
-        assert!(lit.next().is_none());
-        assert!(lit.next().is_none());
+        assert_that!(lit.next(), none());
+        assert_that!(lit.next(), none());
 
         let mut rit = SubsetsRefLendingIter::new(&v);
         while rit.next().is_some() {}
-        assert!(rit.next().is_none());
-        assert!(rit.next().is_none());
+        assert_that!(rit.next(), none());
+        assert_that!(rit.next(), none());
     }
 }
