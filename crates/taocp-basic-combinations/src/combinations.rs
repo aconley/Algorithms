@@ -528,6 +528,7 @@ impl LendingIterator for CombinationsLendingIter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     #[test]
     fn basic_count() {
@@ -591,66 +592,66 @@ mod tests {
 
     #[test]
     fn basic_generate_iter_invalid_params() {
-        assert_eq!(
-            BasicGenerateIter::new(2, 3).unwrap_err(),
-            InvalidCombinationParams::new("n must be >= t")
+        assert_that!(
+            BasicGenerateIter::new(2, 3),
+            err(eq(InvalidCombinationParams::new("n must be >= t")))
         );
     }
 
     #[test]
     fn combinations_iter_invalid_params() {
-        assert_eq!(
-            CombinationsIter::new(2, 3).unwrap_err(),
-            InvalidCombinationParams::new("n must be >= t")
+        assert_that!(
+            CombinationsIter::new(2, 3),
+            err(eq(InvalidCombinationParams::new("n must be >= t")))
         );
     }
 
     #[test]
     fn basic_generate_lending_invalid_params() {
-        assert_eq!(
-            BasicGenerateLendingIter::new(2, 3).unwrap_err(),
-            InvalidCombinationParams::new("n must be >= t")
+        assert_that!(
+            BasicGenerateLendingIter::new(2, 3),
+            err(eq(InvalidCombinationParams::new("n must be >= t")))
         );
     }
 
     #[test]
     fn combinations_lending_invalid_params() {
-        assert_eq!(
-            CombinationsLendingIter::new(2, 3).unwrap_err(),
-            InvalidCombinationParams::new("n must be >= t")
+        assert_that!(
+            CombinationsLendingIter::new(2, 3),
+            err(eq(InvalidCombinationParams::new("n must be >= t")))
         );
     }
 
     fn test_counts(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
         // 3 choose 3
-        assert_eq!(count(f, 3, 3), 1);
+        assert_that!(count(f, 3, 3), eq(1));
 
         // 3 choose 2
-        assert_eq!(count(f, 3, 2), 3);
+        assert_that!(count(f, 3, 2), eq(3));
 
         // 5 choose 2
-        assert_eq!(count(f, 5, 2), 10);
+        assert_that!(count(f, 5, 2), eq(10));
 
         // 6 choose 3
-        assert_eq!(count(f, 6, 3), 20);
+        assert_that!(count(f, 6, 3), eq(20));
 
         // 10 choose 4
-        assert_eq!(count(f, 10, 4), 210);
+        assert_that!(count(f, 10, 4), eq(210));
     }
 
     fn test_visit(f: &dyn Fn(u32, u32, &mut dyn Visitor)) {
         // 4 choose 4
         let mut v = RecordingVisitor::new();
         f(4, 4, &mut v);
-        assert_eq!(v.get_n_solutions(), 1);
-        assert_eq!(v.get_solution(0), [0, 1, 2, 3]);
+        assert_that!(v.get_n_solutions(), eq(1));
+        assert_that!(v.get_solution(0), eq([0, 1, 2, 3]));
 
         // 6 choose 3
         v = RecordingVisitor::new();
         f(6, 3, &mut v);
-        assert_eq!(v.get_n_solutions(), 20);
-        assert_eq!(v.get_solution(0), [0, 1, 2]);
-        assert_eq!(v.get_solution(1), [0, 1, 3]);
+        assert_that!(v.get_n_solutions(), eq(20));
+        assert_that!(v.get_solution(0), eq([0, 1, 2]));
+        assert_that!(v.get_solution(1), eq([0, 1, 3]));
     }
 
     fn count(f: &dyn Fn(u32, u32, &mut dyn Visitor), n: u32, t: u32) -> u64 {
@@ -661,50 +662,50 @@ mod tests {
 
     fn test_iter_counts<I: Iterator<Item = Vec<u32>>>(f: impl Fn(u32, u32) -> I) {
         // 3 choose 3
-        assert_eq!(f(3, 3).count(), 1);
+        assert_that!(f(3, 3).count(), eq(1));
 
         // 3 choose 2
-        assert_eq!(f(3, 2).count(), 3);
+        assert_that!(f(3, 2).count(), eq(3));
 
         // 5 choose 2
-        assert_eq!(f(5, 2).count(), 10);
+        assert_that!(f(5, 2).count(), eq(10));
 
         // 6 choose 3
-        assert_eq!(f(6, 3).count(), 20);
+        assert_that!(f(6, 3).count(), eq(20));
 
         // 10 choose 4
-        assert_eq!(f(10, 4).count(), 210);
+        assert_that!(f(10, 4).count(), eq(210));
     }
 
     fn test_iter_visit<I: Iterator<Item = Vec<u32>>>(f: impl Fn(u32, u32) -> I) {
         // 4 choose 4
         let solutions: Vec<_> = f(4, 4).collect();
-        assert_eq!(solutions.len(), 1);
-        assert_eq!(solutions[0], [0, 1, 2, 3]);
+        assert_that!(solutions.len(), eq(1));
+        assert_that!(solutions[0], eq([0, 1, 2, 3]));
 
         // 6 choose 3
         let solutions: Vec<_> = f(6, 3).collect();
-        assert_eq!(solutions.len(), 20);
-        assert_eq!(solutions[0], [0, 1, 2]);
-        assert_eq!(solutions[1], [0, 1, 3]);
+        assert_that!(solutions.len(), eq(20));
+        assert_that!(solutions[0], eq([0, 1, 2]));
+        assert_that!(solutions[1], eq([0, 1, 3]));
     }
 
     #[apply(Gat!)]
     fn test_lending_counts<I: LendingIterator>(f: impl Fn(u32, u32) -> I) {
         // 3 choose 3
-        assert_eq!(f(3, 3).count(), 1);
+        assert_that!(f(3, 3).count(), eq(1));
 
         // 3 choose 2
-        assert_eq!(f(3, 2).count(), 3);
+        assert_that!(f(3, 2).count(), eq(3));
 
         // 5 choose 2
-        assert_eq!(f(5, 2).count(), 10);
+        assert_that!(f(5, 2).count(), eq(10));
 
         // 6 choose 3
-        assert_eq!(f(6, 3).count(), 20);
+        assert_that!(f(6, 3).count(), eq(20));
 
         // 10 choose 4
-        assert_eq!(f(10, 4).count(), 210);
+        assert_that!(f(10, 4).count(), eq(210));
     }
 
     #[apply(Gat!)]
@@ -714,12 +715,12 @@ mod tests {
     {
         // 4 choose 4
         let mut iter = f(4, 4);
-        assert_eq!(iter.next(), Some(&[0, 1, 2, 3][..]));
-        assert_eq!(iter.next(), None);
+        assert_that!(iter.next(), some(eq(&[0, 1, 2, 3][..])));
+        assert_that!(iter.next(), none());
 
         // 6 choose 3
         let mut iter = f(6, 3);
-        assert_eq!(iter.next(), Some(&[0, 1, 2][..]));
-        assert_eq!(iter.next(), Some(&[0, 1, 3][..]));
+        assert_that!(iter.next(), some(eq(&[0, 1, 2][..])));
+        assert_that!(iter.next(), some(eq(&[0, 1, 3][..])));
     }
 }

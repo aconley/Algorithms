@@ -9,6 +9,7 @@ lending-iterator.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+test-that.workspace = true
 
 [[bench]]
 name = "combinations_benchmark"
