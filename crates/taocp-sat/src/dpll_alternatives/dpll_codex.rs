@@ -194,7 +194,12 @@ impl DpllCodexData {
             trail.push(Undo::L(idx, this.l[idx]));
             this.l[idx] = val;
         }
-        fn set_link(this: &mut DpllCodexData, idx: usize, val: u32, trail: &mut Vec<Undo>) {
+        fn set_link(
+            this: &mut DpllCodexData,
+            idx: usize,
+            val: u32,
+            trail: &mut Vec<Undo>,
+        ) {
             trail.push(Undo::Link(idx, this.link[idx]));
             this.link[idx] = val;
         }
@@ -493,6 +498,7 @@ impl DpllCodexData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     fn make(clauses: &[Vec<u32>]) -> SatProblem {
         SatProblem::from_literals(clauses).unwrap()
@@ -526,7 +532,7 @@ mod tests {
     #[test]
     fn test_new_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(matches!(DpllCodex::new(&p), DpllCodex::Trivial));
+        assert_that!(matches!(DpllCodex::new(&p), DpllCodex::Trivial), eq(true));
     }
 
     #[test]
@@ -534,7 +540,10 @@ mod tests {
         use crate::Clause;
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(matches!(DpllCodex::new(&p), DpllCodex::Unsatisfiable));
+        assert_that!(
+            matches!(DpllCodex::new(&p), DpllCodex::Unsatisfiable),
+            eq(true)
+        );
     }
 
     #[test]
@@ -544,26 +553,26 @@ mod tests {
             other => panic!("expected active, got {other:?}"),
         };
 
-        assert_eq!(data.n, 4);
-        assert_eq!(data.start.len() - 1, 7);
-        assert_eq!(data.start[0], 21);
+        assert_that!(data.n, eq(4));
+        assert_that!(data.start.len() - 1, eq(7));
+        assert_that!(data.start[0], eq(21));
         for j in 1..=7 {
-            assert_eq!(data.start[j], (21 - 3 * j) as u32, "start[{j}]");
+            assert_that!(data.start[j], eq((21 - 3 * j) as u32), "start[{j}]");
         }
 
         let expected_l = vec![
             9, 7, 3, 8, 7, 5, 6, 5, 3, 8, 4, 3, 8, 6, 2, 9, 6, 4, 7, 4, 2,
         ];
-        assert_eq!(&*data.l, &expected_l);
+        assert_that!(&*data.l, eq(&expected_l));
 
-        assert_eq!(data.w[2], 0);
-        assert_eq!(data.w[3], 0);
-        assert_eq!(data.w[4], 0);
-        assert_eq!(data.w[5], 0);
-        assert_eq!(data.w[6], 5);
-        assert_eq!(data.w[7], 1);
-        assert_eq!(data.w[8], 6);
-        assert_eq!(data.w[9], 7);
+        assert_that!(data.w[2], eq(0));
+        assert_that!(data.w[3], eq(0));
+        assert_that!(data.w[4], eq(0));
+        assert_that!(data.w[5], eq(0));
+        assert_that!(data.w[6], eq(5));
+        assert_that!(data.w[7], eq(1));
+        assert_that!(data.w[8], eq(6));
+        assert_that!(data.w[9], eq(7));
     }
 
     #[test]
@@ -574,9 +583,9 @@ mod tests {
         };
 
         let (next, t) = data.init_active_ring();
-        assert_eq!(t, 4);
-        assert_eq!(next[4], 3);
-        assert_eq!(next[3], 4);
+        assert_that!(t, eq(4));
+        assert_that!(next[4], eq(3));
+        assert_that!(next[3], eq(4));
     }
 
     #[test]
@@ -587,8 +596,8 @@ mod tests {
         };
 
         let x = vec![-1, -1, -1];
-        assert!(data.check_unit_literal(3, &x));
-        assert!(!data.check_unit_literal(2, &x));
+        assert_that!(data.check_unit_literal(3, &x), eq(true));
+        assert_that!(data.check_unit_literal(2, &x), eq(false));
     }
 
     #[test]
@@ -599,28 +608,31 @@ mod tests {
         };
 
         let x = vec![-1, -1];
-        assert_eq!(data.forced_choice_for_var(1, &x), ForcedChoice::Conflict);
+        assert_that!(
+            data.forced_choice_for_var(1, &x),
+            eq(ForcedChoice::Conflict)
+        );
     }
 
     #[test]
     fn test_solve_r_prime() {
         let p = r_prime();
         let assignment = solve_via_dpll_codex(&p).expect("R' is satisfiable");
-        assert!(p.is_satisfied(&assignment));
+        assert_that!(p.is_satisfied(&assignment), eq(true));
     }
 
     #[test]
     fn test_solve_r_prime_unsat() {
         let p = r_prime_unsat();
-        assert_eq!(solve_via_dpll_codex(&p), None);
+        assert_that!(solve_via_dpll_codex(&p), none());
     }
 
     #[test]
     fn test_solve_prefers_forced_move_when_unit_exists() {
         let p = make(&[vec![2], vec![2, 4]]);
         let assignment = solve_via_dpll_codex(&p).expect("expected satisfiable");
-        assert!(assignment[0]);
-        assert!(p.is_satisfied(&assignment));
+        assert_that!(assignment[0], eq(true));
+        assert_that!(p.is_satisfied(&assignment), eq(true));
     }
 
     #[test]
@@ -634,13 +646,24 @@ mod tests {
         let (mut next, mut t) = data.init_active_ring();
         let mut trail = Vec::new();
 
-        assert_eq!(t, 4);
-        assert_eq!(next[4], 3);
-        assert_eq!(next[3], 4);
+        assert_that!(t, eq(4));
+        assert_that!(next[4], eq(3));
+        assert_that!(next[3], eq(4));
 
-        assert!(data.apply_move(&mut x, &mut next, &mut t, &mut trail, 3, 4, MOVE_TRY_TRUE_FIRST));
-        assert_eq!(t, 3);
-        assert_eq!(next[3], 3);
+        assert_that!(
+            data.apply_move(
+                &mut x,
+                &mut next,
+                &mut t,
+                &mut trail,
+                3,
+                4,
+                MOVE_TRY_TRUE_FIRST
+            ),
+            eq(true)
+        );
+        assert_that!(t, eq(3));
+        assert_that!(next[3], eq(3));
     }
 
     // W(3,3) = 9: waerden(3,3,n) is SAT for n < 9, UNSAT for n >= 9.
@@ -651,7 +674,11 @@ mod tests {
             let p = waerden(3, 3, n).unwrap();
             let assignment = solve_via_dpll_codex(&p)
                 .unwrap_or_else(|| panic!("waerden(3,3,{n}) should be satisfiable"));
-            assert!(p.is_satisfied(&assignment), "invalid solution at n={n}");
+            assert_that!(
+                p.is_satisfied(&assignment),
+                eq(true),
+                "invalid solution at n={n}"
+            );
         }
     }
 
@@ -660,8 +687,9 @@ mod tests {
         use crate::sample_problems::waerden;
         for n in 9u8..=11 {
             let p = waerden(3, 3, n).unwrap();
-            assert!(
-                solve_via_dpll_codex(&p).is_none(),
+            assert_that!(
+                solve_via_dpll_codex(&p),
+                none(),
                 "waerden(3,3,{n}) should be unsatisfiable"
             );
         }
@@ -673,9 +701,13 @@ mod tests {
         for n in [3, 4, 7] {
             let p = langford(n).unwrap();
             let res = solve_via_dpll_codex(&p);
-            assert!(res.is_some(), "langford({n}) should be satisfiable");
+            assert_that!(res, some(anything()), "langford({n}) should be satisfiable");
             if let Some(ref assignment) = res {
-                assert!(p.is_satisfied(assignment), "invalid solution at n={n}");
+                assert_that!(
+                    p.is_satisfied(assignment),
+                    eq(true),
+                    "invalid solution at n={n}"
+                );
             }
         }
     }
@@ -686,7 +718,7 @@ mod tests {
         for n in [1, 2, 5, 6] {
             let p = langford(n).unwrap();
             let res = solve_via_dpll_codex(&p);
-            assert!(res.is_none(), "langford({n}) should be unsatisfiable");
+            assert_that!(res, none(), "langford({n}) should be unsatisfiable");
         }
     }
 }

@@ -139,7 +139,8 @@ impl Iterator for NQueensIterator {
             self.a[self.l] = self.a[self.l - 1] + t;
             self.b[self.l] = (self.b[self.l - 1] + t) >> 1;
             self.c[self.l] = ((self.c[self.l - 1] + t) << 1) & self.mu;
-            self.s[self.l] = self.mu & !self.a[self.l] & !self.b[self.l] & !self.c[self.l];
+            self.s[self.l] =
+                self.mu & !self.a[self.l] & !self.b[self.l] & !self.c[self.l];
         }
     }
 }
@@ -269,123 +270,126 @@ impl Iterator for NQueensIteratorAlt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     #[test]
     fn formatter_works() {
         let sol = Solution {
             rows: vec![2, 0, 3, 1],
         };
-        assert_eq!(
+        assert_that!(
             format!("{}", sol),
-            ". . Q . \nQ . . . \n. . . Q \n. Q . . \n"
+            eq(". . Q . \nQ . . . \n. . . Q \n. Q . . \n")
         );
     }
 
     mod nqueens_iterator_test {
         use crate::nqueens::NQueensIterator;
         use crate::nqueens::Solution;
+        use test_that::prelude::*;
 
         #[test]
         fn count_n1() {
-            assert_eq!(NQueensIterator::new(1).count(), 1);
+            assert_that!(NQueensIterator::new(1).count(), eq(1));
         }
 
         #[test]
         fn count_n2() {
-            assert_eq!(NQueensIterator::new(2).count(), 0);
+            assert_that!(NQueensIterator::new(2).count(), eq(0));
         }
 
         #[test]
         fn count_n4() {
-            assert_eq!(NQueensIterator::new(4).count(), 2);
+            assert_that!(NQueensIterator::new(4).count(), eq(2));
         }
 
         #[test]
         fn count_n5() {
-            assert_eq!(NQueensIterator::new(5).count(), 10);
+            assert_that!(NQueensIterator::new(5).count(), eq(10));
         }
 
         #[test]
         fn count_n8() {
-            assert_eq!(NQueensIterator::new(8).count(), 92);
+            assert_that!(NQueensIterator::new(8).count(), eq(92));
         }
 
         #[test]
         fn count_n10() {
-            assert_eq!(NQueensIterator::new(10).count(), 724);
+            assert_that!(NQueensIterator::new(10).count(), eq(724));
         }
 
         #[test]
         fn values_n4() {
             let mut q = NQueensIterator::new(4);
-            assert_eq!(
+            assert_that!(
                 q.next(),
-                Some(Solution {
+                eq(Some(Solution {
                     rows: vec![1, 3, 0, 2]
-                })
+                }))
             );
-            assert_eq!(
+            assert_that!(
                 q.next(),
-                Some(Solution {
+                eq(Some(Solution {
                     rows: vec![2, 0, 3, 1]
-                })
+                }))
             );
-            assert_eq!(q.next(), None);
-            assert_eq!(q.next(), None);
+            assert_that!(q.next(), none());
+            assert_that!(q.next(), none());
         }
     }
 
     mod nqueens_alt_iterator_test {
         use crate::nqueens::NQueensIteratorAlt;
         use crate::nqueens::Solution;
+        use test_that::prelude::*;
 
         #[test]
         fn count_n1() {
-            assert_eq!(NQueensIteratorAlt::new(1).count(), 1);
+            assert_that!(NQueensIteratorAlt::new(1).count(), eq(1));
         }
 
         #[test]
         fn count_n2() {
-            assert_eq!(NQueensIteratorAlt::new(2).count(), 0);
+            assert_that!(NQueensIteratorAlt::new(2).count(), eq(0));
         }
 
         #[test]
         fn count_n4() {
-            assert_eq!(NQueensIteratorAlt::new(4).count(), 2);
+            assert_that!(NQueensIteratorAlt::new(4).count(), eq(2));
         }
 
         #[test]
         fn count_n5() {
-            assert_eq!(NQueensIteratorAlt::new(5).count(), 10);
+            assert_that!(NQueensIteratorAlt::new(5).count(), eq(10));
         }
 
         #[test]
         fn count_n8() {
-            assert_eq!(NQueensIteratorAlt::new(8).count(), 92);
+            assert_that!(NQueensIteratorAlt::new(8).count(), eq(92));
         }
 
         #[test]
         fn count_n10() {
-            assert_eq!(NQueensIteratorAlt::new(10).count(), 724);
+            assert_that!(NQueensIteratorAlt::new(10).count(), eq(724));
         }
 
         #[test]
         fn values_n4() {
             let mut q = NQueensIteratorAlt::new(4);
-            assert_eq!(
+            assert_that!(
                 q.next(),
-                Some(Solution {
+                eq(Some(Solution {
                     rows: vec![1, 3, 0, 2]
-                })
+                }))
             );
-            assert_eq!(
+            assert_that!(
                 q.next(),
-                Some(Solution {
+                eq(Some(Solution {
                     rows: vec![2, 0, 3, 1]
-                })
+                }))
             );
-            assert_eq!(q.next(), None);
-            assert_eq!(q.next(), None);
+            assert_that!(q.next(), none());
+            assert_that!(q.next(), none());
         }
     }
 }

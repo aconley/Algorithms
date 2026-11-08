@@ -31,7 +31,7 @@
 use std::f64::consts::PI;
 use std::path::PathBuf;
 
-use taocp_hamiltonian_paths::{generators::petersen, render, Config, Progress, Search};
+use taocp_hamiltonian_paths::{Config, Progress, Search, generators::petersen, render};
 
 /// Radius of the outer pentagon, in SVG user units.
 const OUTER_RADIUS: f64 = 100.0;

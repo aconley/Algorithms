@@ -12,8 +12,8 @@
 //! ```
 
 use taocp_hamiltonian_paths::{
-    find_hamiltonian_cycle, find_hamiltonian_path, generators::knight_graph, render,
-    Config,
+    Config, find_hamiltonian_cycle, find_hamiltonian_path, generators::knight_graph,
+    render,
 };
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

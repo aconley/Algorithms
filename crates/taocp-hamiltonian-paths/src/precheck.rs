@@ -109,6 +109,7 @@ pub(crate) fn check_preconditions(graph: &UnGraph<(), ()>) -> Option<Obstruction
 mod tests {
     use super::*;
     use crate::testing::{graph_of, v};
+    use test_that::prelude::*;
 
     mod check_preconditions {
         use super::*;
@@ -116,25 +117,25 @@ mod tests {
         #[test]
         fn empty_graph_is_empty() {
             let graph = graph_of(0, &[]);
-            assert_eq!(check_preconditions(&graph), Some(Obstruction::Empty));
+            assert_that!(check_preconditions(&graph), eq(Some(Obstruction::Empty)));
         }
 
         #[test]
         fn self_loop_is_reported() {
             let graph = graph_of(3, &[(0, 0), (0, 1), (1, 2), (2, 0)]);
             let self_loop_edge = graph.find_edge(v(0), v(0)).unwrap();
-            assert_eq!(
+            assert_that!(
                 check_preconditions(&graph),
-                Some(Obstruction::SelfLoop(self_loop_edge))
+                eq(Some(Obstruction::SelfLoop(self_loop_edge)))
             );
         }
 
         #[test]
         fn parallel_edges_are_reported() {
             let graph = graph_of(3, &[(0, 1), (0, 1), (1, 2), (2, 0)]);
-            assert_eq!(
+            assert_that!(
                 check_preconditions(&graph),
-                Some(Obstruction::ParallelEdges(v(0), v(1)))
+                eq(Some(Obstruction::ParallelEdges(v(0), v(1))))
             );
         }
 
@@ -144,7 +145,10 @@ mod tests {
             // 2-connected, so this exercises connectivity specifically, not
             // degree or bridges.
             let graph = graph_of(6, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
-            assert_eq!(check_preconditions(&graph), Some(Obstruction::Disconnected));
+            assert_that!(
+                check_preconditions(&graph),
+                eq(Some(Obstruction::Disconnected))
+            );
         }
 
         #[test]
@@ -152,9 +156,9 @@ mod tests {
             // A triangle with a pendant vertex hanging off of it: vertex 3
             // has degree 1.
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 0), (2, 3)]);
-            assert_eq!(
+            assert_that!(
                 check_preconditions(&graph),
-                Some(Obstruction::LowDegree(v(3)))
+                eq(Some(Obstruction::LowDegree(v(3))))
             );
         }
 
@@ -167,9 +171,9 @@ mod tests {
             let graph =
                 graph_of(6, &[(0, 1), (1, 2), (2, 0), (2, 3), (3, 4), (4, 5), (5, 3)]);
             let bridge_edge = graph.find_edge(v(2), v(3)).unwrap();
-            assert_eq!(
+            assert_that!(
                 check_preconditions(&graph),
-                Some(Obstruction::Bridge(bridge_edge))
+                eq(Some(Obstruction::Bridge(bridge_edge)))
             );
         }
 
@@ -180,9 +184,9 @@ mod tests {
             // cycles remain after removing any one edge), but the shared
             // vertex is an articulation point.
             let graph = graph_of(5, &[(0, 1), (1, 2), (2, 0), (2, 3), (3, 4), (4, 2)]);
-            assert_eq!(
+            assert_that!(
                 check_preconditions(&graph),
-                Some(Obstruction::ArticulationPoint(v(2)))
+                eq(Some(Obstruction::ArticulationPoint(v(2))))
             );
         }
 
@@ -191,7 +195,7 @@ mod tests {
             // A 4-cycle: connected, minimum degree 2, no bridges, no
             // articulation points.
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3), (3, 0)]);
-            assert_eq!(check_preconditions(&graph), None);
+            assert_that!(check_preconditions(&graph), none());
         }
     }
 }

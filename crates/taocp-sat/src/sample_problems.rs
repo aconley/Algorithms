@@ -130,7 +130,8 @@ pub fn waerden(j: u8, k: u8, n: u8) -> Result<SatProblem, SampleProblemError> {
                 break;
             }
             for i in 1..=(n_u16 - span) {
-                let lits: Vec<u32> = (0..k_u16).map(|t| 2 * (i + t * d) as u32 + 1).collect();
+                let lits: Vec<u32> =
+                    (0..k_u16).map(|t| 2 * (i + t * d) as u32 + 1).collect();
                 clauses.push(Clause::new(&lits)?);
             }
         }
@@ -270,78 +271,79 @@ pub fn langford_solution_arrangement(
 mod tests {
     use super::*;
     use crate::solve_via_backtracking;
+    use test_that::prelude::*;
 
     #[test]
     fn waerden_rejects_zero_inputs() {
-        assert!(waerden(0, 3, 8).is_err());
-        assert!(waerden(3, 0, 8).is_err());
-        assert!(waerden(3, 3, 0).is_err());
+        assert_that!(waerden(0, 3, 8), err(anything()));
+        assert_that!(waerden(3, 0, 8), err(anything()));
+        assert_that!(waerden(3, 3, 0), err(anything()));
     }
 
     #[test]
     fn waerden_338_is_satisfiable_and_matches_known_assignment() {
         let problem = waerden(3, 3, 8).expect("valid input");
-        assert_eq!(problem.clause_count(), 24);
+        assert_that!(problem.clause_count(), eq(24));
 
         let known = vec![false, false, true, true, false, false, true, true];
-        assert!(problem.is_satisfied(&known));
-        assert!(solve_via_backtracking(&problem).is_some());
+        assert_that!(problem.is_satisfied(&known), eq(true));
+        assert_that!(solve_via_backtracking(&problem), some(anything()));
     }
 
     #[test]
     fn waerden_339_is_unsatisfiable() {
         let problem = waerden(3, 3, 9).expect("valid input");
-        assert_eq!(problem.clause_count(), 32);
-        assert_eq!(solve_via_backtracking(&problem), None);
+        assert_that!(problem.clause_count(), eq(32));
+        assert_that!(solve_via_backtracking(&problem), none());
     }
 
     #[test]
     fn langford_rejects_zero() {
-        assert!(langford(0).is_err());
+        assert_that!(langford(0), err(anything()));
     }
 
     #[test]
     fn langford_n3_clause_count_with_symmetry_break() {
         let problem = langford(3).expect("valid input");
-        assert_eq!(problem.clause_count(), 32);
+        assert_that!(problem.clause_count(), eq(32));
     }
 
     #[test]
     fn langford_n3_sat() {
         let problem = langford(3).expect("valid input");
-        assert!(solve_via_backtracking(&problem).is_some());
+        assert_that!(solve_via_backtracking(&problem), some(anything()));
     }
 
     #[test]
     fn langford_n4_sat() {
         let problem = langford(4).expect("valid input");
-        assert!(solve_via_backtracking(&problem).is_some());
+        assert_that!(solve_via_backtracking(&problem), some(anything()));
     }
 
     #[test]
     fn langford_n5_unsat() {
         let problem = langford(5).expect("valid input");
-        assert_eq!(solve_via_backtracking(&problem), None);
+        assert_that!(solve_via_backtracking(&problem), none());
     }
 
     #[test]
     fn waerden_solution_string_none() {
-        assert_eq!(waerden_solution_string(8, None).unwrap(), None);
+        assert_that!(waerden_solution_string(8, None).unwrap(), none());
     }
 
     #[test]
     fn waerden_solution_string_known_sequence() {
         let known = vec![false, false, true, true, false, false, true, true];
-        assert_eq!(
+        assert_that!(
             waerden_solution_string(8, Some(&known)).unwrap(),
-            Some("00110011".to_string())
+            eq(Some("00110011".to_string()))
         );
     }
 
     #[test]
     fn waerden_solution_string_rejects_short_assignment() {
         let short = vec![true, false];
-        assert!(waerden_solution_string(3, Some(&short)).is_err());
+        assert_that!(waerden_solution_string(3, Some(&short)), err(anything()));
     }
 
     fn is_valid_langford(arrangement: &[u8], n: u8) -> bool {
@@ -366,7 +368,7 @@ mod tests {
 
     #[test]
     fn langford_solution_arrangement_none() {
-        assert_eq!(langford_solution_arrangement(3, None).unwrap(), None);
+        assert_that!(langford_solution_arrangement(3, None).unwrap(), none());
     }
 
     #[test]
@@ -376,12 +378,15 @@ mod tests {
         let arrangement = langford_solution_arrangement(3, Some(&solution))
             .unwrap()
             .expect("present");
-        assert!(is_valid_langford(&arrangement, 3));
+        assert_that!(is_valid_langford(&arrangement, 3), eq(true));
     }
 
     #[test]
     fn langford_solution_arrangement_rejects_malformed_solution() {
         let malformed = vec![false; langford_options(3).len()];
-        assert!(langford_solution_arrangement(3, Some(&malformed)).is_err());
+        assert_that!(
+            langford_solution_arrangement(3, Some(&malformed)),
+            err(anything())
+        );
     }
 }

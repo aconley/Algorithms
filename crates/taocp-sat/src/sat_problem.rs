@@ -160,11 +160,7 @@ impl Clause {
             }
 
             let value = assignment[var - 1];
-            if lit.is_multiple_of(2) {
-                value
-            } else {
-                !value
-            }
+            if lit.is_multiple_of(2) { value } else { !value }
         })
     }
 }
@@ -309,178 +305,182 @@ impl fmt::Display for SatProblem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use claim::{assert_err, assert_ok};
     use std::collections::HashSet;
+    use test_that::prelude::*;
 
     // --- Literal helpers ---
 
     #[test]
     fn test_literal_display_positive_single_digit() {
-        assert_eq!(literal_display_str(2), "1");
-        assert_eq!(literal_display_str(4), "2");
-        assert_eq!(literal_display_str(10), "5");
+        assert_that!(literal_display_str(2), eq("1"));
+        assert_that!(literal_display_str(4), eq("2"));
+        assert_that!(literal_display_str(10), eq("5"));
     }
 
     #[test]
     fn test_literal_display_negative_single_digit() {
         // ¬x_1 = lit 3 → "1̅"
-        assert_eq!(literal_display_str(3), "1\u{0305}");
-        assert_eq!(literal_display_str(5), "2\u{0305}");
+        assert_that!(literal_display_str(3), eq("1\u{0305}"));
+        assert_that!(literal_display_str(5), eq("2\u{0305}"));
     }
 
     #[test]
     fn test_literal_display_positive_multi_digit() {
         // x_12 = lit 24
-        assert_eq!(literal_display_str(24), "12");
+        assert_that!(literal_display_str(24), eq("12"));
     }
 
     #[test]
     fn test_literal_display_negative_multi_digit() {
         // ¬x_12 = lit 25 → "1̅2̅"
-        assert_eq!(literal_display_str(25), "1\u{0305}2\u{0305}");
+        assert_that!(literal_display_str(25), eq("1\u{0305}2\u{0305}"));
     }
 
     // --- Clause::new success ---
 
     #[test]
     fn test_clause_new_empty() {
-        let c = assert_ok!(Clause::new(&[]));
-        assert!(c.is_empty());
-        assert_eq!(c.len(), 0);
+        let c = Clause::new(&[]).unwrap();
+        assert_that!(c.is_empty(), eq(true));
+        assert_that!(c.len(), eq(0));
     }
 
     #[test]
     fn test_clause_new_single_positive() {
-        let c = assert_ok!(Clause::new(&[2]));
-        assert_eq!(c.literals(), &[2]);
+        let c = Clause::new(&[2]).unwrap();
+        assert_that!(c.literals(), eq(&[2]));
     }
 
     #[test]
     fn test_clause_new_single_negative() {
-        let c = assert_ok!(Clause::new(&[3]));
-        assert_eq!(c.literals(), &[3]);
+        let c = Clause::new(&[3]).unwrap();
+        assert_that!(c.literals(), eq(&[3]));
     }
 
     #[test]
     fn test_clause_new_unsorted_gets_sorted() {
-        let c = assert_ok!(Clause::new(&[6, 2, 4]));
-        assert_eq!(c.literals(), &[2, 4, 6]);
+        let c = Clause::new(&[6, 2, 4]).unwrap();
+        assert_that!(c.literals(), eq(&[2, 4, 6]));
     }
 
     // --- Clause::new errors ---
 
     #[test]
     fn test_clause_new_literal_zero() {
-        let err = assert_err!(Clause::new(&[0]));
-        assert_eq!(
+        let err = Clause::new(&[0]).unwrap_err();
+        assert_that!(
             err,
-            ClauseError::new("invalid literal 0: literals must be >= 2 (variables are 1-indexed)")
+            eq(ClauseError::new(
+                "invalid literal 0: literals must be >= 2 (variables are 1-indexed)"
+            ))
         );
     }
 
     #[test]
     fn test_clause_new_literal_one() {
-        let err = assert_err!(Clause::new(&[1]));
-        assert_eq!(
+        let err = Clause::new(&[1]).unwrap_err();
+        assert_that!(
             err,
-            ClauseError::new("invalid literal 1: literals must be >= 2 (variables are 1-indexed)")
+            eq(ClauseError::new(
+                "invalid literal 1: literals must be >= 2 (variables are 1-indexed)"
+            ))
         );
     }
 
     #[test]
     fn test_clause_new_duplicate_literal() {
-        let err = assert_err!(Clause::new(&[2, 2]));
-        assert_eq!(err, ClauseError::new("duplicate literal 2 in clause"));
+        let err = Clause::new(&[2, 2]).unwrap_err();
+        assert_that!(err, eq(ClauseError::new("duplicate literal 2 in clause")));
     }
 
     // --- Clause equality ---
 
     #[test]
     fn test_clause_equality_same_order() {
-        let a = assert_ok!(Clause::new(&[2, 4, 6]));
-        let b = assert_ok!(Clause::new(&[2, 4, 6]));
-        assert_eq!(a, b);
+        let a = Clause::new(&[2, 4, 6]).unwrap();
+        let b = Clause::new(&[2, 4, 6]).unwrap();
+        assert_that!(a, eq(b));
     }
 
     #[test]
     fn test_clause_equality_different_order() {
-        let a = assert_ok!(Clause::new(&[6, 2, 4]));
-        let b = assert_ok!(Clause::new(&[2, 4, 6]));
-        assert_eq!(a, b);
+        let a = Clause::new(&[6, 2, 4]).unwrap();
+        let b = Clause::new(&[2, 4, 6]).unwrap();
+        assert_that!(a, eq(b));
     }
 
     #[test]
     fn test_clause_inequality() {
-        let a = assert_ok!(Clause::new(&[2, 4]));
-        let b = assert_ok!(Clause::new(&[2, 6]));
-        assert_ne!(a, b);
+        let a = Clause::new(&[2, 4]).unwrap();
+        let b = Clause::new(&[2, 6]).unwrap();
+        assert_that!(a, not(eq(b)));
     }
 
     // --- Clause in HashSet ---
 
     #[test]
     fn test_clause_hashset_deduplication() {
-        let a = assert_ok!(Clause::new(&[6, 2, 4]));
-        let b = assert_ok!(Clause::new(&[2, 4, 6]));
+        let a = Clause::new(&[6, 2, 4]).unwrap();
+        let b = Clause::new(&[2, 4, 6]).unwrap();
         let mut set = HashSet::new();
         set.insert(a);
         set.insert(b);
-        assert_eq!(set.len(), 1);
+        assert_that!(set, len(eq(1)));
     }
 
     // --- Clause Display ---
 
     #[test]
     fn test_clause_display_empty() {
-        let c = assert_ok!(Clause::new(&[]));
-        assert_eq!(format!("{}", c), "{}");
+        let c = Clause::new(&[]).unwrap();
+        assert_that!(format!("{}", c), eq("{}"));
     }
 
     #[test]
     fn test_clause_display_single() {
-        let c = assert_ok!(Clause::new(&[2]));
-        assert_eq!(format!("{}", c), "{1}");
+        let c = Clause::new(&[2]).unwrap();
+        assert_that!(format!("{}", c), eq("{1}"));
     }
 
     #[test]
     fn test_clause_display_single_negative() {
-        let c = assert_ok!(Clause::new(&[3]));
-        assert_eq!(format!("{}", c), "{1\u{0305}}");
+        let c = Clause::new(&[3]).unwrap();
+        assert_that!(format!("{}", c), eq("{1\u{0305}}"));
     }
 
     #[test]
     fn test_clause_display_multi() {
         // Spec example: {1̅ 2 3}  → lits: ¬x_1=3, x_2=4, x_3=6
-        let c = assert_ok!(Clause::new(&[3, 4, 6]));
-        assert_eq!(format!("{}", c), "{1\u{0305} 2 3}");
+        let c = Clause::new(&[3, 4, 6]).unwrap();
+        assert_that!(format!("{}", c), eq("{1\u{0305} 2 3}"));
     }
 
     // --- Clause Debug ---
 
     #[test]
     fn test_clause_debug_equals_display() {
-        let c = assert_ok!(Clause::new(&[3, 4, 6]));
-        assert_eq!(format!("{:?}", c), format!("{}", c));
+        let c = Clause::new(&[3, 4, 6]).unwrap();
+        assert_that!(format!("{:?}", c), eq(format!("{}", c)));
     }
 
     // --- Clause::is_satisfied ---
 
     #[test]
     fn test_clause_is_satisfied_true() {
-        let c = assert_ok!(Clause::new(&[2, 5])); // x1 ∨ ¬x2
-        assert!(c.is_satisfied(&[true, true]));
+        let c = Clause::new(&[2, 5]).unwrap(); // x1 ∨ ¬x2
+        assert_that!(c.is_satisfied(&[true, true]), eq(true));
     }
 
     #[test]
     fn test_clause_is_satisfied_false() {
-        let c = assert_ok!(Clause::new(&[2, 5])); // x1 ∨ ¬x2
-        assert!(!c.is_satisfied(&[false, true]));
+        let c = Clause::new(&[2, 5]).unwrap(); // x1 ∨ ¬x2
+        assert_that!(c.is_satisfied(&[false, true]), eq(false));
     }
 
     #[test]
     fn test_clause_is_satisfied_short_assignment() {
-        let c = assert_ok!(Clause::new(&[6])); // x3
-        assert!(!c.is_satisfied(&[true, true]));
+        let c = Clause::new(&[6]).unwrap(); // x3
+        assert_that!(c.is_satisfied(&[true, true]), eq(false));
     }
 
     // --- SatProblem constructors ---
@@ -488,56 +488,56 @@ mod tests {
     #[test]
     fn test_sat_problem_empty_from_clauses() {
         let p = SatProblem::from_clauses(&[]);
-        assert_eq!(p.clause_count(), 0);
+        assert_that!(p.clause_count(), eq(0));
     }
 
     #[test]
     fn test_sat_problem_new_empty_clause_collapses() {
-        let empty = assert_ok!(Clause::new(&[]));
-        let other = assert_ok!(Clause::new(&[2, 3]));
+        let empty = Clause::new(&[]).unwrap();
+        let other = Clause::new(&[2, 3]).unwrap();
         let p = SatProblem::new(vec![other, empty]);
-        assert_eq!(p.clause_count(), 1);
-        assert!(p.clauses()[0].is_empty());
+        assert_that!(p.clause_count(), eq(1));
+        assert_that!(p.clauses()[0].is_empty(), eq(true));
     }
 
     #[test]
     fn test_sat_problem_from_clauses_empty_clause_collapses() {
-        let empty = assert_ok!(Clause::new(&[]));
-        let other = assert_ok!(Clause::new(&[2, 3]));
+        let empty = Clause::new(&[]).unwrap();
+        let other = Clause::new(&[2, 3]).unwrap();
         let p = SatProblem::from_clauses(&[other, empty]);
-        assert_eq!(p.clause_count(), 1);
-        assert!(p.clauses()[0].is_empty());
+        assert_that!(p.clause_count(), eq(1));
+        assert_that!(p.clauses()[0].is_empty(), eq(true));
     }
 
     #[test]
     fn test_sat_problem_from_literals_empty_clause_collapses() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3], vec![]]));
-        assert_eq!(p.clause_count(), 1);
-        assert!(p.clauses()[0].is_empty());
+        let p = SatProblem::from_literals(&[vec![2, 3], vec![]]).unwrap();
+        assert_that!(p.clause_count(), eq(1));
+        assert_that!(p.clauses()[0].is_empty(), eq(true));
     }
 
     #[test]
     fn test_sat_problem_from_clauses() {
-        let c1 = assert_ok!(Clause::new(&[2, 3]));
-        let c2 = assert_ok!(Clause::new(&[4, 5]));
+        let c1 = Clause::new(&[2, 3]).unwrap();
+        let c2 = Clause::new(&[4, 5]).unwrap();
         let p = SatProblem::from_clauses(&[c1, c2]);
-        assert_eq!(p.clause_count(), 2);
+        assert_that!(p.clause_count(), eq(2));
     }
 
     #[test]
     fn test_sat_problem_from_literals_success() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3], vec![4, 5]]));
-        assert_eq!(p.clause_count(), 2);
+        let p = SatProblem::from_literals(&[vec![2, 3], vec![4, 5]]).unwrap();
+        assert_that!(p.clause_count(), eq(2));
     }
 
     #[test]
     fn test_sat_problem_from_literals_error_propagation() {
-        let err = assert_err!(SatProblem::from_literals(&[vec![2, 3], vec![0]]));
-        assert_eq!(
+        let err = SatProblem::from_literals(&[vec![2, 3], vec![0]]).unwrap_err();
+        assert_that!(
             err,
-            SatProblemError::from(
+            eq(SatProblemError::from(
                 "invalid literal 0: literals must be >= 2 (variables are 1-indexed)"
-            )
+            ))
         );
     }
 
@@ -546,51 +546,51 @@ mod tests {
     #[test]
     fn test_sat_problem_display_empty() {
         let p = SatProblem::from_clauses(&[]);
-        assert_eq!(format!("{}", p), "");
+        assert_that!(format!("{}", p), eq(""));
     }
 
     #[test]
     fn test_sat_problem_display_one_clause() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3]]));
-        assert_eq!(format!("{}", p), "{1 1\u{0305}}");
+        let p = SatProblem::from_literals(&[vec![2, 3]]).unwrap();
+        assert_that!(format!("{}", p), eq("{1 1\u{0305}}"));
     }
 
     #[test]
     fn test_sat_problem_display_two_clauses() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![4]]));
-        assert_eq!(format!("{}", p), "{1} {2}");
+        let p = SatProblem::from_literals(&[vec![2], vec![4]]).unwrap();
+        assert_that!(format!("{}", p), eq("{1} {2}"));
     }
 
     // --- is_satisfied ---
 
     #[test]
     fn test_is_satisfied_true() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 3], vec![4]]));
-        assert!(p.is_satisfied(&[true, true]));
+        let p = SatProblem::from_literals(&[vec![2, 3], vec![4]]).unwrap();
+        assert_that!(p.is_satisfied(&[true, true]), eq(true));
     }
 
     #[test]
     fn test_is_satisfied_false() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![5]]));
-        assert!(!p.is_satisfied(&[false, true]));
+        let p = SatProblem::from_literals(&[vec![2], vec![5]]).unwrap();
+        assert_that!(p.is_satisfied(&[false, true]), eq(false));
     }
 
     #[test]
     fn test_is_satisfied_empty_problem() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(p.is_satisfied(&[]));
+        assert_that!(p.is_satisfied(&[]), eq(true));
     }
 
     #[test]
     fn test_is_satisfied_empty_clause_problem() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![]]));
-        assert!(!p.is_satisfied(&[]));
+        let p = SatProblem::from_literals(&[vec![]]).unwrap();
+        assert_that!(p.is_satisfied(&[]), eq(false));
     }
 
     #[test]
     fn test_is_satisfied_short_assignment() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![6]])); // x_3
-        assert!(!p.is_satisfied(&[true, true]));
+        let p = SatProblem::from_literals(&[vec![6]]).unwrap(); // x_3
+        assert_that!(p.is_satisfied(&[true, true]), eq(false));
     }
 
     // --- display_latex ---
@@ -598,50 +598,50 @@ mod tests {
     #[test]
     fn test_display_latex_empty() {
         let p = SatProblem::from_clauses(&[]);
-        assert_eq!(p.display_latex(), r"$\emptyset$");
+        assert_that!(p.display_latex(), eq(r"$\emptyset$"));
     }
 
     #[test]
     fn test_display_latex_unsat() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![]]));
-        assert_eq!(p.display_latex(), r"$\bot$");
+        let p = SatProblem::from_literals(&[vec![]]).unwrap();
+        assert_that!(p.display_latex(), eq(r"$\bot$"));
     }
 
     #[test]
     fn test_display_latex_single_positive_literal() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2]]));
-        assert_eq!(p.display_latex(), r"$\left(x_{1}\right)$");
+        let p = SatProblem::from_literals(&[vec![2]]).unwrap();
+        assert_that!(p.display_latex(), eq(r"$\left(x_{1}\right)$"));
     }
 
     #[test]
     fn test_display_latex_single_negative_literal() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![3]]));
-        assert_eq!(p.display_latex(), r"$\left({\bar x}_{1}\right)$");
+        let p = SatProblem::from_literals(&[vec![3]]).unwrap();
+        assert_that!(p.display_latex(), eq(r"$\left({\bar x}_{1}\right)$"));
     }
 
     #[test]
     fn test_display_latex_spec_example() {
         // (x_1 ∨ ¬x_2 ∨ x_4): lits 2, 5, 8
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2, 5, 8]]));
-        assert_eq!(
+        let p = SatProblem::from_literals(&[vec![2, 5, 8]]).unwrap();
+        assert_that!(
             p.display_latex(),
-            r"$\left(x_{1} \vee {\bar x}_{2} \vee x_{4}\right)$"
+            eq(r"$\left(x_{1} \vee {\bar x}_{2} \vee x_{4}\right)$")
         );
     }
 
     #[test]
     fn test_display_latex_multi_digit_variable() {
         // x_12 = lit 24
-        let p = assert_ok!(SatProblem::from_literals(&[vec![24]]));
-        assert_eq!(p.display_latex(), r"$\left(x_{12}\right)$");
+        let p = SatProblem::from_literals(&[vec![24]]).unwrap();
+        assert_that!(p.display_latex(), eq(r"$\left(x_{12}\right)$"));
     }
 
     #[test]
     fn test_display_latex_two_clauses() {
-        let p = assert_ok!(SatProblem::from_literals(&[vec![2], vec![4]]));
-        assert_eq!(
+        let p = SatProblem::from_literals(&[vec![2], vec![4]]).unwrap();
+        assert_that!(
             p.display_latex(),
-            r"$\left(x_{1}\right) \wedge \left(x_{2}\right)$"
+            eq(r"$\left(x_{1}\right) \wedge \left(x_{2}\right)$")
         );
     }
 }

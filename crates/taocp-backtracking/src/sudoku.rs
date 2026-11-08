@@ -29,7 +29,15 @@ impl fmt::Display for SudokuSolution {
                 write!(
                     f,
                     "|{}{}{}|{}{}{}|{}{}{}|\n",
-                    row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8]
+                    row[0],
+                    row[1],
+                    row[2],
+                    row[3],
+                    row[4],
+                    row[5],
+                    row[6],
+                    row[7],
+                    row[8]
                 )?;
             }
         }
@@ -260,12 +268,14 @@ impl SolutionState {
     // Chooses the next move and swaps it into place as m[l].
     // Assumes that self.l is in the range [0, n)
     #[inline(always)]
-    unsafe fn choose_next_move(&mut self) -> () { unsafe {
-        let next_move = self.suggest_next_move();
-        self.m.swap(self.l, next_move.idx);
-        self.m[self.l].current_move = 0;
-        self.m[self.l].available_moves = next_move.available_moves;
-    }}
+    unsafe fn choose_next_move(&mut self) -> () {
+        unsafe {
+            let next_move = self.suggest_next_move();
+            self.m.swap(self.l, next_move.idx);
+            self.m[self.l].current_move = 0;
+            self.m[self.l].available_moves = next_move.available_moves;
+        }
+    }
 
     // Returns the next move that should be made.  Assumes that self.l is in
     // the range [0, n)
@@ -441,6 +451,7 @@ mod tests {
         use super::SOL;
         use crate::sudoku::SudokuSolution;
         use std::fmt::Write;
+        use test_that::prelude::*;
 
         #[test]
         fn formatter_produces_expected_output() {
@@ -462,21 +473,23 @@ mod tests {
                       |287|419|635|\n\
                       |345|286|179|\n\
                       +---+---+---+";
-            assert_eq!(buf, expected);
+            assert_that!(buf, eq(expected));
         }
     }
 
     mod solution_state {
         use super::{PARTIAL, SOL};
         use crate::sudoku::{InitialPosition, NextMove, SolutionState, Square};
+        use test_that::prelude::*;
 
         #[test]
         fn invalid_input_value() {
             let mut bad_input = SOL;
             bad_input[10] = 10;
 
-            assert!(
-                SolutionState::create(InitialPosition::create_from_values(&bad_input)).is_none()
+            assert_that!(
+                SolutionState::create(InitialPosition::create_from_values(&bad_input)),
+                none()
             );
         }
 
@@ -484,7 +497,10 @@ mod tests {
         fn conflicting_input_row() {
             let bad_input = vec![0, 1, 1, 2, 3, 4, 5, 6, 7];
 
-            assert!(SolutionState::create(InitialPosition::create_from_vec(&bad_input)).is_none());
+            assert_that!(
+                SolutionState::create(InitialPosition::create_from_vec(&bad_input)),
+                none()
+            );
         }
 
         #[test]
@@ -494,18 +510,18 @@ mod tests {
             let s = SolutionState::create(initial_position).unwrap();
 
             let next_move = unsafe { s.suggest_next_move() };
-            assert_eq!(
+            assert_that!(
                 next_move.available_moves,
-                1u16 << 2,
+                eq(1u16 << 2),
                 "Unexpected available moves"
             );
-            assert_eq!(
+            assert_that!(
                 s.m[next_move.idx].square,
-                Square {
+                eq(Square {
                     row: 0,
                     col: 4,
                     r#box: 1
-                },
+                }),
                 "Unexpected position for next move"
             );
         }
@@ -517,20 +533,21 @@ mod tests {
             almost_sol[21] = 0; // was 3.
 
             let s =
-                SolutionState::create(InitialPosition::create_from_values(&almost_sol)).unwrap();
+                SolutionState::create(InitialPosition::create_from_values(&almost_sol))
+                    .unwrap();
             let next_move = unsafe { s.suggest_next_move() };
-            assert_eq!(
+            assert_that!(
                 next_move.available_moves,
-                1u16 << 3,
+                eq(1u16 << 3),
                 "Unexpected available moves"
             );
-            assert_eq!(
+            assert_that!(
                 s.m[next_move.idx].square,
-                Square {
+                eq(Square {
                     row: 2,
                     col: 3,
                     r#box: 1
-                },
+                }),
                 "Unexpected position for next move"
             );
         }
@@ -546,18 +563,18 @@ mod tests {
             let s = SolutionState::create(initial_position).unwrap();
 
             let next_move = unsafe { s.suggest_next_move() };
-            assert_eq!(
+            assert_that!(
                 next_move.available_moves,
-                1u16 << 4,
+                eq(1u16 << 4),
                 "Unexpected available moves"
             );
-            assert_eq!(
+            assert_that!(
                 s.m[next_move.idx].square,
-                Square {
+                eq(Square {
                     row: 0,
                     col: 3,
                     r#box: 1
-                },
+                }),
                 "Unexpected position for next move"
             );
         }
@@ -576,18 +593,18 @@ mod tests {
             let s = SolutionState::create(initial_position).unwrap();
 
             let next_move = unsafe { s.suggest_next_move() };
-            assert_eq!(
+            assert_that!(
                 s.m[next_move.idx].square,
-                Square {
+                eq(Square {
                     row: 0,
                     col: 3,
                     r#box: 1
-                },
+                }),
                 "Unexpected position for next move"
             );
-            assert_eq!(
+            assert_that!(
                 next_move.available_moves,
-                (1u16 << 4 | 1u16 << 6),
+                eq(1u16 << 4 | 1u16 << 6),
                 "Unexpected available moves"
             );
         }
@@ -599,18 +616,18 @@ mod tests {
             let s = SolutionState::create(initial_position).unwrap();
 
             let next_move = unsafe { s.suggest_next_move() };
-            assert_eq!(
+            assert_that!(
                 s.m[next_move.idx].square,
-                Square {
+                eq(Square {
                     row: 0,
                     col: 0,
                     r#box: 0
-                },
+                }),
                 "Unexpected position for next move"
             );
-            assert_eq!(
+            assert_that!(
                 next_move.available_moves,
-                (1u16 << 4 | 1u16 << 5),
+                eq(1u16 << 4 | 1u16 << 5),
                 "Unexpected available moves"
             );
         }
@@ -628,14 +645,18 @@ mod tests {
             let s = SolutionState::create(initial_position).unwrap();
 
             let next_move = unsafe { s.suggest_next_move() };
-            assert_eq!(next_move.available_moves, 0, "Should be no available moves");
-            assert_eq!(
+            assert_that!(
+                next_move.available_moves,
+                eq(0),
+                "Should be no available moves"
+            );
+            assert_that!(
                 s.m[next_move.idx].square,
-                Square {
+                eq(Square {
                     row: 1,
                     col: 8,
                     r#box: 2
-                },
+                }),
                 "Unexpected position for next move"
             );
         }
@@ -644,15 +665,17 @@ mod tests {
         fn already_solved_puzzle_should_force_single_move() {
             let initial_position = InitialPosition::create_from_values(&SOL);
             match SolutionState::create(initial_position) {
-                None => panic!("Should have been able to initialize from completed solution"),
+                None => {
+                    panic!("Should have been able to initialize from completed solution")
+                }
                 Some(state) => {
-                    assert_eq!(state.m.len(), 1, "Should be single move in m");
-                    assert_eq!(
+                    assert_that!(state.m, len(eq(1)), "Should be single move in m");
+                    assert_that!(
                         unsafe { state.suggest_next_move() },
-                        NextMove {
+                        eq(NextMove {
                             idx: 0,
                             available_moves: 1u16 << SOL[state.m[0].square.position()]
-                        }
+                        })
                     );
                 }
             }
@@ -664,19 +687,20 @@ mod tests {
         use crate::sudoku::{
             InitialPosition, IteratorState, SudokuIterator, SudokuSolution,
         };
-        use claim::{assert_none, assert_some_eq};
+        use test_that::prelude::*;
 
         #[test]
         fn solves_already_solved_puzzle() {
             let initial_position = InitialPosition::create_from_values(&SOL);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&SOL));
-            assert_none!(iterator.next());
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(iterator.next(), some(eq(SudokuSolution::create(&SOL))));
+            assert_that!(iterator.next(), none());
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -691,15 +715,17 @@ mod tests {
             }
             let initial_position = InitialPosition::create_from_values(&puzzle);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(
+            assert_that!(
                 matches!(*iterator.state, IteratorState::NEW(_)),
+                eq(true),
                 "Iterator not in initial state"
             );
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&SOL));
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(iterator.next(), some(eq(SudokuSolution::create(&SOL))));
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -721,12 +747,16 @@ mod tests {
 
             let initial_position = InitialPosition::create_from_values(&PARTIAL);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(
+                iterator.next(),
+                some(eq(SudokuSolution::create(&expected_solution)))
+            );
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -760,12 +790,16 @@ mod tests {
 
             let initial_position = InitialPosition::create_from_values(&problem);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(
+                iterator.next(),
+                some(eq(SudokuSolution::create(&expected_solution)))
+            );
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -799,12 +833,16 @@ mod tests {
 
             let initial_position = InitialPosition::create_from_values(&problem);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(
+                iterator.next(),
+                some(eq(SudokuSolution::create(&expected_solution)))
+            );
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -838,12 +876,16 @@ mod tests {
 
             let initial_position = InitialPosition::create_from_values(&problem);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(
+                iterator.next(),
+                some(eq(SudokuSolution::create(&expected_solution)))
+            );
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -879,12 +921,16 @@ mod tests {
 
             let initial_position = InitialPosition::create_from_values(&problem);
             let mut iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
-            assert_none!(iterator.next());
-            assert!(
+            assert_that!(
+                iterator.next(),
+                some(eq(SudokuSolution::create(&expected_solution)))
+            );
+            assert_that!(iterator.next(), none());
+            assert_that!(
                 matches!(*iterator.state, IteratorState::DONE),
+                eq(true),
                 "Iterator should be done after discovering there are no more solutions"
             );
         }
@@ -931,13 +977,13 @@ mod tests {
 
             let initial_position = InitialPosition::create_from_values(&problem);
             let iterator = SudokuIterator::create(initial_position);
-            assert!(matches!(*iterator.state, IteratorState::NEW(_)));
+            assert_that!(matches!(*iterator.state, IteratorState::NEW(_)), eq(true));
 
             let sols: Vec<SudokuSolution> = iterator.collect();
-            assert_eq!(sols.len(), 2);
+            assert_that!(sols, len(eq(2)));
 
-            assert_eq!(sols[0], SudokuSolution::create(&expected_solution1));
-            assert_eq!(sols[1], SudokuSolution::create(&expected_solution2));
+            assert_that!(sols[0], eq(SudokuSolution::create(&expected_solution1)));
+            assert_that!(sols[1], eq(SudokuSolution::create(&expected_solution2)));
         }
 
         #[test]
@@ -971,8 +1017,11 @@ mod tests {
             let initial_position = InitialPosition::create_from_values(&problem);
             let mut iterator = SudokuIterator::create(initial_position);
 
-            assert_some_eq!(iterator.next(), SudokuSolution::create(&expected_solution));
-            assert_none!(iterator.next());
+            assert_that!(
+                iterator.next(),
+                some(eq(SudokuSolution::create(&expected_solution)))
+            );
+            assert_that!(iterator.next(), none());
         }
     }
 }

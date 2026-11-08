@@ -14,7 +14,6 @@
 
 use super::cycles::CycleCover;
 use super::encoding::ArcVars;
-use claim::assert_ok;
 use petgraph::graph::{NodeIndex, UnGraph};
 use rustsat::types::{Assignment, Lit};
 
@@ -112,5 +111,5 @@ pub(crate) fn knuth_cover() -> CycleCover {
     let graph = knuth_graph();
     let vars = ArcVars::new(&graph);
     let model = model_of(&graph, &knuth_cover_arcs());
-    assert_ok!(CycleCover::from_model(&graph, &vars, &model))
+    CycleCover::from_model(&graph, &vars, &model).unwrap()
 }

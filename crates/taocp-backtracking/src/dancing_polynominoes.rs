@@ -208,7 +208,9 @@ impl PolynominoIterator {
         }
         let mut options = Vec::with_capacity(polynominoes.len());
         for polynomino in polynominoes {
-            for polynomino_cells in polynomino.cell_info.generate_rotations_and_transpositions() {
+            for polynomino_cells in
+                polynomino.cell_info.generate_rotations_and_transpositions()
+            {
                 for shape_cell in shape.cells() {
                     let positions_at_offset = polynomino_cells.offset(shape_cell);
                     if positions_at_offset
@@ -338,11 +340,11 @@ impl ProblemOptionBuilder<PolynominoItem> for PolynominoOption {
 mod tests {
     mod polynomino_tests {
         use crate::dancing_polynominoes::{Cell, CellInfo, Polynomino};
-        use claim::{assert_err, assert_ok_eq};
+        use test_that::prelude::*;
 
         #[test]
         fn creates_expected_polynomino() {
-            assert_ok_eq!(
+            assert_that!(
                 Polynomino::new(
                     'x',
                     vec![
@@ -352,7 +354,7 @@ mod tests {
                         Cell { x: 0, y: 1 }
                     ]
                 ),
-                Polynomino {
+                ok(eq(Polynomino {
                     label: 'x',
                     cell_info: CellInfo {
                         cells: vec![
@@ -364,13 +366,13 @@ mod tests {
                         max_x: 2,
                         max_y: 1
                     }
-                }
+                }))
             );
         }
 
         #[test]
         fn handles_offset_polynominos() {
-            assert_ok_eq!(
+            assert_that!(
                 Polynomino::new(
                     'Y',
                     vec![
@@ -379,7 +381,7 @@ mod tests {
                         Cell { x: 2, y: 2 },
                     ]
                 ),
-                Polynomino {
+                ok(eq(Polynomino {
                     label: 'Y',
                     cell_info: CellInfo {
                         cells: vec![
@@ -390,18 +392,19 @@ mod tests {
                         max_x: 1,
                         max_y: 1
                     }
-                }
+                }))
             );
         }
 
         #[test]
         fn empty_cells_is_error() {
-            assert_err!(Polynomino::new('Z', vec![]));
+            assert_that!(Polynomino::new('Z', vec![]), err(anything()));
         }
     }
 
     mod cell_info {
         use crate::dancing_polynominoes::{Cell, CellInfo};
+        use test_that::prelude::*;
 
         #[test]
         fn generates_all_variants() {
@@ -418,10 +421,11 @@ mod tests {
                 max_y: 2,
             };
 
-            let positions: Vec<CellInfo> = base.generate_rotations_and_transpositions().collect();
-            assert_eq!(
+            let positions: Vec<CellInfo> =
+                base.generate_rotations_and_transpositions().collect();
+            assert_that!(
                 positions,
-                vec![
+                eq(vec![
                     // *
                     // *
                     // * *
@@ -522,7 +526,7 @@ mod tests {
                         max_x: 1,
                         max_y: 2
                     }
-                ]
+                ])
             );
         }
 
@@ -540,10 +544,10 @@ mod tests {
                 max_y: 1,
             };
 
-            assert_eq!(
+            assert_that!(
                 base.generate_rotations_and_transpositions()
                     .collect::<Vec<_>>(),
-                vec![base]
+                eq(vec![base])
             );
         }
 
@@ -560,10 +564,10 @@ mod tests {
                 max_y: 1,
             };
 
-            assert_eq!(
+            assert_that!(
                 base.generate_rotations_and_transpositions()
                     .collect::<Vec<_>>(),
-                vec![
+                eq(vec![
                     // *
                     // * *
                     CellInfo {
@@ -608,7 +612,7 @@ mod tests {
                         max_x: 1,
                         max_y: 1
                     }
-                ]
+                ])
             );
         }
     }
@@ -617,11 +621,11 @@ mod tests {
         use crate::dancing_polynominoes::{
             Cell, Polynomino, PolynominoIterator, SimpleBox,
         };
-        use claim::assert_ok;
+        use test_that::prelude::*;
 
         #[test]
         fn single_item_filling_box() {
-            let box_piece = assert_ok!(Polynomino::new(
+            let box_piece = Polynomino::new(
                 'B',
                 vec![
                     Cell { x: 0, y: 0 },
@@ -629,51 +633,55 @@ mod tests {
                     Cell { x: 1, y: 0 },
                     Cell { x: 1, y: 1 },
                 ],
-            ));
+            )
+            .unwrap();
             let shape = SimpleBox {
                 height: 2,
                 width: 2,
             };
 
-            let iterator = assert_ok!(PolynominoIterator::new(vec![box_piece], shape));
+            let iterator = PolynominoIterator::new(vec![box_piece], shape).unwrap();
 
-            assert_eq!(iterator.count(), 1);
+            assert_that!(iterator.count(), eq(1));
         }
 
         #[test]
         fn two_item_filling_box() {
             // *
             // * *
-            let l_piece = assert_ok!(Polynomino::new(
+            let l_piece = Polynomino::new(
                 'L',
                 vec![
                     Cell { x: 0, y: 0 },
                     Cell { x: 0, y: 1 },
                     Cell { x: 1, y: 0 },
                 ],
-            ));
+            )
+            .unwrap();
             // * *
             // * * *
-            let p_piece = assert_ok!(Polynomino::new(
+            let p_piece = Polynomino::new(
                 'P',
                 vec![
                     Cell { x: 0, y: 0 },
                     Cell { x: 0, y: 1 },
                     Cell { x: 0, y: 2 },
                     Cell { x: 1, y: 0 },
-                    Cell { x: 1, y: 1 }
+                    Cell { x: 1, y: 1 },
                 ],
-            ));
+            )
+            .unwrap();
 
             let shape_wide = SimpleBox {
                 height: 2,
                 width: 4,
             };
-            let iterator_wide = assert_ok!(PolynominoIterator::new(
+            let iterator_wide = PolynominoIterator::new(
                 vec![l_piece.clone(), p_piece.clone()],
-                shape_wide
-            ));
-            assert_eq!(iterator_wide.count(), 4);
+                shape_wide,
+            )
+            .unwrap();
+            assert_that!(iterator_wide.count(), eq(4));
 
             // Rotating the box shouldn't affect anything.
             let shape_tall = SimpleBox {
@@ -681,8 +689,8 @@ mod tests {
                 width: 2,
             };
             let iterator_tall =
-                assert_ok!(PolynominoIterator::new(vec![l_piece, p_piece], shape_tall));
-            assert_eq!(iterator_tall.count(), 4);
+                PolynominoIterator::new(vec![l_piece, p_piece], shape_tall).unwrap();
+            assert_that!(iterator_tall.count(), eq(4));
         }
     }
 }

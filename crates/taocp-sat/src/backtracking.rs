@@ -326,6 +326,7 @@ impl BasicBacktrackingData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     fn make(clauses: &[Vec<u32>]) -> SatProblem {
         SatProblem::from_literals(clauses).unwrap()
@@ -334,10 +335,10 @@ mod tests {
     #[test]
     fn test_trivial() {
         let p = SatProblem::from_clauses(&[]);
-        assert!(matches!(
-            BasicBacktracking::new(&p),
-            BasicBacktracking::Trivial
-        ));
+        assert_that!(
+            matches!(BasicBacktracking::new(&p), BasicBacktracking::Trivial),
+            eq(true)
+        );
     }
 
     #[test]
@@ -346,10 +347,10 @@ mod tests {
         use super::super::Clause;
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
-        assert!(matches!(
-            BasicBacktracking::new(&p),
-            BasicBacktracking::Unsatisfiable
-        ));
+        assert_that!(
+            matches!(BasicBacktracking::new(&p), BasicBacktracking::Unsatisfiable),
+            eq(true)
+        );
     }
 
     #[test]
@@ -361,25 +362,25 @@ mod tests {
             other => panic!("expected Active, got {:?}", other),
         };
 
-        assert_eq!(data.n, 1);
+        assert_that!(data.n, eq(1));
         // total_cells = 2*1+2 + 1 = 5
-        assert_eq!(data.l.len(), 5);
+        assert_that!(data.l, len(eq(5)));
 
         // Clause cell at p=4: l[4]=2, c[4]=1
-        assert_eq!(data.l[4], 2);
-        assert_eq!(data.c[4], 1);
+        assert_that!(data.l[4], eq(2));
+        assert_that!(data.c[4], eq(1));
 
         // Literal header at p=2: f[2]=4, b[2]=4, c[2]=1
-        assert_eq!(data.f[2], 4);
-        assert_eq!(data.b[2], 4);
-        assert_eq!(data.c[2], 1);
+        assert_that!(data.f[2], eq(4));
+        assert_that!(data.b[2], eq(4));
+        assert_that!(data.c[2], eq(1));
 
         // Clause cell linked back: f[4]=2, b[4]=2
-        assert_eq!(data.f[4], 2);
-        assert_eq!(data.b[4], 2);
+        assert_that!(data.f[4], eq(2));
+        assert_that!(data.b[4], eq(2));
 
-        assert_eq!(data.start[1], 4);
-        assert_eq!(data.size[1], 1);
+        assert_that!(data.start[1], eq(4));
+        assert_that!(data.size[1], eq(1));
     }
 
     fn spec_example_data() -> BasicBacktrackingData {
@@ -402,13 +403,13 @@ mod tests {
     fn test_spec_example() {
         let data = spec_example_data();
 
-        assert_eq!(data.n, 4);
-        assert_eq!(data.l.len(), 31);
+        assert_that!(data.n, eq(4));
+        assert_that!(data.l, len(eq(31)));
 
         // start(i) = 31 - 3i, size(i) = 3
         for i in 1..=7usize {
-            assert_eq!(data.start[i], (31 - 3 * i) as u32, "start[{i}]");
-            assert_eq!(data.size[i], 3u32, "size[{i}]");
+            assert_that!(data.start[i], eq((31 - 3 * i) as u32), "start[{i}]");
+            assert_that!(data.size[i], eq(3u32), "size[{i}]");
         }
 
         let expected_l: &[u32] = &[
@@ -421,32 +422,32 @@ mod tests {
             9, 6, 4, // clause 2  (cells 25-27)
             7, 4, 2, // clause 1  (cells 28-30)
         ];
-        assert_eq!(&data.l[10..=30], &expected_l[10..=30], "l[10..=30]");
+        assert_that!(&data.l[10..=30], eq(&expected_l[10..=30]), "l[10..=30]");
 
         let expected_f: &[u32] = &[
             0, 0, 30, 21, 29, 17, 26, 28, 22, 25, // 0..9
             9, 7, 3, 8, 11, 5, 6, 15, 12, 13, 4, 18, 19, 16, 2, 10, 23, 20, 14, 27, 24,
         ];
-        assert_eq!(&*data.f, expected_f, "f");
+        assert_that!(&*data.f, eq(expected_f), "f");
 
         let expected_b: &[u32] = &[
             0, 0, 24, 12, 20, 15, 16, 11, 13, 10, // 0..9
             25, 14, 18, 19, 28, 17, 23, 5, 21, 22, 27, 3, 8, 26, 30, 9, 6, 29, 7, 4, 2,
         ];
-        assert_eq!(&*data.b, expected_b, "b");
+        assert_that!(&*data.b, eq(expected_b), "b");
 
         let expected_c: &[u32] = &[
             0, 0, 2, 3, 3, 2, 3, 3, 3, 2, // 0..9
             7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 1, 1, 1,
         ];
-        assert_eq!(&*data.c, expected_c, "c");
+        assert_that!(&*data.c, eq(expected_c), "c");
     }
 
     #[test]
     fn test_initial_active_clauses_and_depth() {
         let data = spec_example_data();
-        assert_eq!(data.a, 7);
-        assert_eq!(data.d, 0);
+        assert_that!(data.a, eq(7));
+        assert_that!(data.d, eq(0));
     }
 
     #[test]
@@ -454,15 +455,15 @@ mod tests {
         // R′: set x_1=true → remove ¬x_1 (lit 3) from clauses 4, 5, 7.
         // All have initial size 3, so none become empty.
         let mut data = spec_example_data();
-        assert!(data.remove_false_literal(2));
-        assert_eq!(data.size[4], 2, "size[4]");
-        assert_eq!(data.size[5], 2, "size[5]");
-        assert_eq!(data.size[7], 2, "size[7]");
+        assert_that!(data.remove_false_literal(2), eq(true));
+        assert_that!(data.size[4], eq(2), "size[4]");
+        assert_that!(data.size[5], eq(2), "size[5]");
+        assert_that!(data.size[7], eq(2), "size[7]");
         // Unaffected clauses stay at 3.
-        assert_eq!(data.size[1], 3, "size[1]");
-        assert_eq!(data.size[2], 3, "size[2]");
-        assert_eq!(data.size[3], 3, "size[3]");
-        assert_eq!(data.size[6], 3, "size[6]");
+        assert_that!(data.size[1], eq(3), "size[1]");
+        assert_that!(data.size[2], eq(3), "size[2]");
+        assert_that!(data.size[3], eq(3), "size[3]");
+        assert_that!(data.size[6], eq(3), "size[6]");
     }
 
     #[test]
@@ -481,8 +482,8 @@ mod tests {
             other => panic!("expected Active, got {:?}", other),
         };
         // ¬x_1 = lit 3 does not appear in any clause → f[3] == 3 (self-loop).
-        assert!(data.remove_false_literal(2));
-        assert_eq!(data.size[1], 1); // unchanged
+        assert_that!(data.remove_false_literal(2), eq(true));
+        assert_that!(data.size[1], eq(1)); // unchanged
     }
 
     #[test]
@@ -497,9 +498,9 @@ mod tests {
             BasicBacktracking::Active(d) => d,
             other => panic!("expected Active, got {:?}", other),
         };
-        assert!(!data.remove_false_literal(2)); // setting x_1=true fails
-        assert_eq!(data.size[1], 2, "size[1] should be restored");
-        assert_eq!(data.size[2], 1, "size[2] unchanged");
+        assert_that!(data.remove_false_literal(2), eq(false)); // setting x_1=true fails
+        assert_that!(data.size[1], eq(2), "size[1] should be restored");
+        assert_that!(data.size[2], eq(1), "size[2] unchanged");
     }
 
     #[test]
@@ -511,25 +512,57 @@ mod tests {
         let mut data = spec_example_data();
         data.deactivate_literal(2);
 
-        assert_eq!(data.a, 5, "a");
-        assert_eq!(data.d, 0, "d unchanged by deactivate_literal");
-        assert_eq!(data.c[4], 2, "c[4] (x_2)");
-        assert_eq!(data.c[6], 2, "c[6] (x_3)");
-        assert_eq!(data.c[7], 2, "c[7] (¬x_3)");
-        assert_eq!(data.c[8], 2, "c[8] (x_4)");
+        assert_that!(data.a, eq(5), "a");
+        assert_that!(data.d, eq(0), "d unchanged by deactivate_literal");
+        assert_that!(data.c[4], eq(2), "c[4] (x_2)");
+        assert_that!(data.c[6], eq(2), "c[6] (x_3)");
+        assert_that!(data.c[7], eq(2), "c[7] (¬x_3)");
+        assert_that!(data.c[8], eq(2), "c[8] (x_4)");
 
         // Cells 28 (l=7) and 29 (l=4) of clause 1 must be spliced out.
         // For cell 28: b[f[28]] and f[b[28]] no longer point to 28.
-        assert_ne!(data.b[data.f[28] as usize], 28, "cell 28 still in list");
-        assert_ne!(data.f[data.b[28] as usize], 28, "cell 28 still in list");
+        assert_that!(
+            data.b[data.f[28] as usize],
+            not(eq(28)),
+            "cell 28 still in list"
+        );
+        assert_that!(
+            data.f[data.b[28] as usize],
+            not(eq(28)),
+            "cell 28 still in list"
+        );
         // For cell 29: same check.
-        assert_ne!(data.b[data.f[29] as usize], 29, "cell 29 still in list");
-        assert_ne!(data.f[data.b[29] as usize], 29, "cell 29 still in list");
+        assert_that!(
+            data.b[data.f[29] as usize],
+            not(eq(29)),
+            "cell 29 still in list"
+        );
+        assert_that!(
+            data.f[data.b[29] as usize],
+            not(eq(29)),
+            "cell 29 still in list"
+        );
         // Cells 22 (l=8) and 23 (l=6) of clause 3 must be spliced out.
-        assert_ne!(data.b[data.f[22] as usize], 22, "cell 22 still in list");
-        assert_ne!(data.f[data.b[22] as usize], 22, "cell 22 still in list");
-        assert_ne!(data.b[data.f[23] as usize], 23, "cell 23 still in list");
-        assert_ne!(data.f[data.b[23] as usize], 23, "cell 23 still in list");
+        assert_that!(
+            data.b[data.f[22] as usize],
+            not(eq(22)),
+            "cell 22 still in list"
+        );
+        assert_that!(
+            data.f[data.b[22] as usize],
+            not(eq(22)),
+            "cell 22 still in list"
+        );
+        assert_that!(
+            data.b[data.f[23] as usize],
+            not(eq(23)),
+            "cell 23 still in list"
+        );
+        assert_that!(
+            data.f[data.b[23] as usize],
+            not(eq(23)),
+            "cell 23 still in list"
+        );
     }
 
     #[test]
@@ -540,20 +573,20 @@ mod tests {
         data.deactivate_literal(2);
         data.reactivate_literal(2);
 
-        assert_eq!(data.a, original.a, "a");
-        assert_eq!(data.c[4], original.c[4], "c[4]");
-        assert_eq!(data.c[6], original.c[6], "c[6]");
-        assert_eq!(data.c[7], original.c[7], "c[7]");
-        assert_eq!(data.c[8], original.c[8], "c[8]");
+        assert_that!(data.a, eq(original.a), "a");
+        assert_that!(data.c[4], eq(original.c[4]), "c[4]");
+        assert_that!(data.c[6], eq(original.c[6]), "c[6]");
+        assert_that!(data.c[7], eq(original.c[7]), "c[7]");
+        assert_that!(data.c[8], eq(original.c[8]), "c[8]");
         // Cells 28, 29, 22, 23 must be back in their lists.
-        assert_eq!(data.b[data.f[28] as usize], 28, "cell 28 not restored");
-        assert_eq!(data.f[data.b[28] as usize], 28, "cell 28 not restored");
-        assert_eq!(data.b[data.f[29] as usize], 29, "cell 29 not restored");
-        assert_eq!(data.f[data.b[29] as usize], 29, "cell 29 not restored");
-        assert_eq!(data.b[data.f[22] as usize], 22, "cell 22 not restored");
-        assert_eq!(data.f[data.b[22] as usize], 22, "cell 22 not restored");
-        assert_eq!(data.b[data.f[23] as usize], 23, "cell 23 not restored");
-        assert_eq!(data.f[data.b[23] as usize], 23, "cell 23 not restored");
+        assert_that!(data.b[data.f[28] as usize], eq(28), "cell 28 not restored");
+        assert_that!(data.f[data.b[28] as usize], eq(28), "cell 28 not restored");
+        assert_that!(data.b[data.f[29] as usize], eq(29), "cell 29 not restored");
+        assert_that!(data.f[data.b[29] as usize], eq(29), "cell 29 not restored");
+        assert_that!(data.b[data.f[22] as usize], eq(22), "cell 22 not restored");
+        assert_that!(data.f[data.b[22] as usize], eq(22), "cell 22 not restored");
+        assert_that!(data.b[data.f[23] as usize], eq(23), "cell 23 not restored");
+        assert_that!(data.f[data.b[23] as usize], eq(23), "cell 23 not restored");
     }
 
     #[test]
@@ -561,16 +594,16 @@ mod tests {
         // After remove_false_literal(2) sizes of clauses 4, 5, 7 are 2.
         // unremove_false_literal(2) should restore them to 3.
         let mut data = spec_example_data();
-        assert!(data.remove_false_literal(2));
+        assert_that!(data.remove_false_literal(2), eq(true));
         data.unremove_false_literal(2);
-        assert_eq!(data.size[4], 3, "size[4]");
-        assert_eq!(data.size[5], 3, "size[5]");
-        assert_eq!(data.size[7], 3, "size[7]");
+        assert_that!(data.size[4], eq(3), "size[4]");
+        assert_that!(data.size[5], eq(3), "size[5]");
+        assert_that!(data.size[7], eq(3), "size[7]");
         // Unaffected clauses unchanged.
-        assert_eq!(data.size[1], 3, "size[1]");
-        assert_eq!(data.size[2], 3, "size[2]");
-        assert_eq!(data.size[3], 3, "size[3]");
-        assert_eq!(data.size[6], 3, "size[6]");
+        assert_that!(data.size[1], eq(3), "size[1]");
+        assert_that!(data.size[2], eq(3), "size[2]");
+        assert_that!(data.size[3], eq(3), "size[3]");
+        assert_that!(data.size[6], eq(3), "size[6]");
     }
 
     // ---------------------------------------------------------------------------
@@ -581,7 +614,7 @@ mod tests {
     fn test_solve_trivial() {
         let p = SatProblem::from_clauses(&[]);
         let bb = BasicBacktracking::new(&p);
-        assert_eq!(bb.solve(), Some(vec![]));
+        assert_that!(bb.solve(), eq(Some(vec![])));
     }
 
     #[test]
@@ -590,7 +623,7 @@ mod tests {
         let empty = Clause::new(&[]).unwrap();
         let p = SatProblem::from_clauses(&[empty]);
         let bb = BasicBacktracking::new(&p);
-        assert_eq!(bb.solve(), None);
+        assert_that!(bb.solve(), none());
     }
 
     #[test]
@@ -599,8 +632,8 @@ mod tests {
         let p = make(&[vec![2]]);
         let bb = BasicBacktracking::new(&p);
         let assignment = bb.solve().expect("satisfiable");
-        assert_eq!(assignment.len(), 1);
-        assert!(p.is_satisfied(&assignment));
+        assert_that!(assignment, len(eq(1)));
+        assert_that!(p.is_satisfied(&assignment), eq(true));
     }
 
     #[test]
@@ -618,8 +651,8 @@ mod tests {
         ]);
         let bb = BasicBacktracking::new(&p);
         let assignment = bb.solve().expect("R' is satisfiable");
-        assert_eq!(assignment, vec![false, true, false, true]);
-        assert!(p.is_satisfied(&assignment));
+        assert_that!(assignment, eq(vec![false, true, false, true]));
+        assert_that!(p.is_satisfied(&assignment), eq(true));
     }
 
     #[test]
@@ -636,6 +669,6 @@ mod tests {
             vec![2, 5, 9], // x_1 ∨ ¬x_2 ∨ ¬x_4
         ]);
         let bb = BasicBacktracking::new(&p);
-        assert_eq!(bb.solve(), None);
+        assert_that!(bb.solve(), none());
     }
 }

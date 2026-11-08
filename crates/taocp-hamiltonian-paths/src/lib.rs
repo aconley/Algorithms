@@ -205,7 +205,7 @@ pub fn find_hamiltonian_path(
 mod tests {
     use super::*;
     use crate::testing::graph_of;
-    use claim::assert_ok;
+    use test_that::prelude::*;
 
     mod basic_entry_points {
         use super::*;
@@ -216,15 +216,17 @@ mod tests {
             let graph = graph_of(4, &[(0, 1), (1, 2), (2, 3)]);
 
             // Path should succeed.
-            let path_result =
-                assert_ok!(find_hamiltonian_path(&graph, Config::default()));
+            let path_result = find_hamiltonian_path(&graph, Config::default()).unwrap();
             let path = path_result.expect("path graph has a Hamiltonian path");
-            assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
+            assert_that!(
+                path.is_valid_for(&graph),
+                eq(true),
+                "not a Hamiltonian path: {path}"
+            );
 
             // Cycle should fail (conclusively).
-            let cycle_result =
-                assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
-            assert!(cycle_result.is_none());
+            let cycle_result = find_hamiltonian_cycle(&graph, Config::default()).unwrap();
+            assert_that!(cycle_result, none());
         }
 
         #[test]
@@ -232,26 +234,28 @@ mod tests {
             let graph = crate::generators::knight_graph(5, 5).0;
 
             // Path should succeed.
-            let path_result =
-                assert_ok!(find_hamiltonian_path(&graph, Config::default()));
+            let path_result = find_hamiltonian_path(&graph, Config::default()).unwrap();
             let path = path_result.expect("5x5 knight's graph has an open tour");
-            assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
+            assert_that!(
+                path.is_valid_for(&graph),
+                eq(true),
+                "not a Hamiltonian path: {path}"
+            );
 
             // Cycle should fail.
-            let cycle_result =
-                assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
-            assert!(cycle_result.is_none());
+            let cycle_result = find_hamiltonian_cycle(&graph, Config::default()).unwrap();
+            assert_that!(cycle_result, none());
         }
 
         #[test]
         fn triangle_has_cycle() {
             let graph = graph_of(3, &[(0, 1), (1, 2), (2, 0)]);
 
-            let cycle_result =
-                assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
+            let cycle_result = find_hamiltonian_cycle(&graph, Config::default()).unwrap();
             let cycle = cycle_result.expect("triangle has a Hamiltonian cycle");
-            assert!(
+            assert_that!(
                 cycle.is_valid_for(&graph),
+                eq(true),
                 "not a Hamiltonian cycle: {cycle}"
             );
         }
@@ -263,45 +267,49 @@ mod tests {
         #[test]
         fn cycle_empty_graph() {
             let graph = graph_of(0, &[]);
-            let result = assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
-            assert!(result.is_none());
+            let result = find_hamiltonian_cycle(&graph, Config::default()).unwrap();
+            assert_that!(result, none());
         }
 
         #[test]
         fn cycle_single_vertex() {
             let graph = graph_of(1, &[]);
-            let result = assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
-            assert!(result.is_none());
+            let result = find_hamiltonian_cycle(&graph, Config::default()).unwrap();
+            assert_that!(result, none());
         }
 
         #[test]
         fn cycle_two_vertices() {
             let graph = graph_of(2, &[(0, 1)]);
-            let result = assert_ok!(find_hamiltonian_cycle(&graph, Config::default()));
-            assert!(result.is_none());
+            let result = find_hamiltonian_cycle(&graph, Config::default()).unwrap();
+            assert_that!(result, none());
         }
 
         #[test]
         fn path_empty_graph() {
             let graph = graph_of(0, &[]);
-            let result = assert_ok!(find_hamiltonian_path(&graph, Config::default()));
-            assert!(result.is_none());
+            let result = find_hamiltonian_path(&graph, Config::default()).unwrap();
+            assert_that!(result, none());
         }
 
         #[test]
         fn path_single_vertex() {
             let graph = graph_of(1, &[]);
-            let result = assert_ok!(find_hamiltonian_path(&graph, Config::default()));
+            let result = find_hamiltonian_path(&graph, Config::default()).unwrap();
             let path = result.expect("a single vertex is a trivial open path");
-            assert_eq!(path.vertices().len(), 1);
+            assert_that!(path.vertices().len(), eq(1));
         }
 
         #[test]
         fn path_two_vertices() {
             let graph = graph_of(2, &[(0, 1)]);
-            let result = assert_ok!(find_hamiltonian_path(&graph, Config::default()));
+            let result = find_hamiltonian_path(&graph, Config::default()).unwrap();
             let path = result.expect("two connected vertices form a trivial open path");
-            assert!(path.is_valid_for(&graph), "not a Hamiltonian path: {path}");
+            assert_that!(
+                path.is_valid_for(&graph),
+                eq(true),
+                "not a Hamiltonian path: {path}"
+            );
         }
     }
 
@@ -312,33 +320,33 @@ mod tests {
         fn display_solver_error() {
             let err = Error::Solver("test message".to_string());
             let display = err.to_string();
-            assert!(!display.is_empty());
-            assert!(display.contains("solver error"));
-            assert!(display.contains("test message"));
+            assert_that!(display.is_empty(), eq(false));
+            assert_that!(display.contains("solver error"), eq(true));
+            assert_that!(display.contains("test message"), eq(true));
         }
 
         #[test]
         fn display_limit_exceeded() {
             let err = Error::LimitExceeded;
             let display = err.to_string();
-            assert!(!display.is_empty());
-            assert!(display.contains("limit"));
+            assert_that!(display.is_empty(), eq(false));
+            assert_that!(display.contains("limit"), eq(true));
         }
 
         #[test]
         fn display_reduction_error() {
             let err = Error::Reduction(ReductionError::GraphTooSmall(0));
             let display = err.to_string();
-            assert!(!display.is_empty());
-            assert!(display.contains("reduction"));
+            assert_that!(display.is_empty(), eq(false));
+            assert_that!(display.contains("reduction"), eq(true));
         }
 
         #[test]
         fn display_malformed_error() {
             let err = Error::Malformed(SegmentError::Empty);
             let display = err.to_string();
-            assert!(!display.is_empty());
-            assert!(display.contains("malformed"));
+            assert_that!(display.is_empty(), eq(false));
+            assert_that!(display.contains("malformed"), eq(true));
         }
 
         #[test]
@@ -347,8 +355,8 @@ mod tests {
                 petgraph::graph::NodeIndex::new(0),
             ));
             let display = err.to_string();
-            assert!(!display.is_empty());
-            assert!(display.contains("cover"));
+            assert_that!(display.is_empty(), eq(false));
+            assert_that!(display.contains("cover"), eq(true));
         }
     }
 }

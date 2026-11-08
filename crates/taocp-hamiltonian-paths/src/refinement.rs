@@ -106,7 +106,7 @@ pub(crate) fn cut_clauses(
 mod tests {
     use super::*;
     use crate::testing::{graph_of, knuth_cover, knuth_graph, model_of, v};
-    use claim::assert_ok;
+    use test_that::prelude::*;
 
     /// Unwraps the clauses of a `Cut`, failing the test on `NoCycle`.
     fn expect_clauses(cut: Cut) -> Vec<Clause> {
@@ -137,7 +137,7 @@ mod tests {
     fn two_triangles_cover(graph: &UnGraph<(), ()>) -> CycleCover {
         let vars = ArcVars::new(graph);
         let model = model_of(graph, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 5), (5, 3)]);
-        assert_ok!(CycleCover::from_model(graph, &vars, &model))
+        CycleCover::from_model(graph, &vars, &model).unwrap()
     }
 
     mod t_equals_two {
@@ -147,11 +147,11 @@ mod tests {
         fn emits_exactly_two_clauses() {
             let graph = two_triangles();
             let cover = two_triangles_cover(&graph);
-            assert_eq!(cover.t(), 2);
+            assert_that!(cover.t(), eq(2));
 
             let clauses =
                 expect_clauses(cut_clauses(&graph, &ArcVars::new(&graph), &cover));
-            assert_eq!(clauses.len(), 2);
+            assert_that!(clauses, len(eq(2)));
         }
 
         #[test]
@@ -173,7 +173,7 @@ mod tests {
                 Lit::positive(vars.var(v(4), v(1)).unwrap()),
             ]);
 
-            assert_eq!(clauses, vec![leave, enter]);
+            assert_that!(clauses, eq(vec![leave, enter]));
         }
 
         #[test]
@@ -187,9 +187,9 @@ mod tests {
                 clauses[0].iter().map(|lit| lit.var().idx32()).collect();
             let enter: Vec<u32> =
                 clauses[1].iter().map(|lit| lit.var().idx32()).collect();
-            assert_eq!(leave.len(), enter.len());
+            assert_that!(leave, len(eq(enter.len())));
             for (l, e) in leave.iter().zip(&enter) {
-                assert_eq!(l ^ 1, *e);
+                assert_that!(l ^ 1, eq(*e));
             }
         }
     }
@@ -200,12 +200,12 @@ mod tests {
         #[test]
         fn emits_exactly_six_clauses() {
             let cover = knuth_cover();
-            assert_eq!(cover.t(), 3);
+            assert_that!(cover.t(), eq(3));
             let graph = knuth_graph();
             let vars = ArcVars::new(&graph);
 
             let clauses = expect_clauses(cut_clauses(&graph, &vars, &cover));
-            assert_eq!(clauses.len(), 6);
+            assert_that!(clauses, len(eq(6)));
         }
 
         /// Pins the exact literal sets for the book's three-cycle cover,
@@ -221,7 +221,7 @@ mod tests {
             let cover = knuth_cover();
 
             let clauses = expect_clauses(cut_clauses(&graph, &vars, &cover));
-            assert_eq!(clauses.len(), 6);
+            assert_that!(clauses, len(eq(6)));
 
             let lit =
                 |from: usize, to: usize| Lit::positive(vars.var(v(from), v(to)).unwrap());
@@ -260,7 +260,7 @@ mod tests {
             .collect();
 
             let actual: Vec<Vec<u32>> = clauses.iter().map(sorted_set).collect();
-            assert_eq!(actual, expected);
+            assert_that!(actual, eq(expected));
         }
     }
 
@@ -276,11 +276,15 @@ mod tests {
             let graph = graph_of(5, &[(0, 1), (1, 2), (2, 0), (3, 4), (0, 3)]);
             let vars = ArcVars::new(&graph);
             let model = model_of(&graph, &[(0, 1), (1, 2), (2, 0), (3, 4), (4, 3)]);
-            let cover = assert_ok!(CycleCover::from_model(&graph, &vars, &model));
-            assert_eq!(cover.t(), 2);
+            let cover = CycleCover::from_model(&graph, &vars, &model).unwrap();
+            assert_that!(cover.t(), eq(2));
 
             let cut = cut_clauses(&graph, &vars, &cover);
-            assert!(matches!(cut, Cut::NoCycle), "expected NoCycle, got {cut:?}");
+            assert_that!(
+                matches!(cut, Cut::NoCycle),
+                eq(true),
+                "expected NoCycle, got {cut:?}"
+            );
         }
     }
 }

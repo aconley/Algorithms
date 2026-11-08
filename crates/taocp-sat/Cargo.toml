@@ -5,7 +5,7 @@ edition.workspace = true
 authors.workspace = true
 
 [dev-dependencies]
-claim.workspace = true
+test-that.workspace = true
 criterion.workspace = true
 
 [[bench]]

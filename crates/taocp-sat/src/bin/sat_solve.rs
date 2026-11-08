@@ -23,8 +23,9 @@ use std::fmt;
 use std::process;
 
 use taocp_sat::{
-    langford, langford_solution_arrangement, solve_via_backtracking, solve_via_lazy_backtracking,
-    solve_via_dpll, waerden, waerden_solution_string, SampleProblemError, SatProblem,
+    SampleProblemError, SatProblem, langford, langford_solution_arrangement,
+    solve_via_backtracking, solve_via_dpll, solve_via_lazy_backtracking, waerden,
+    waerden_solution_string,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -72,7 +73,9 @@ fn parse_problem(args: &[String]) -> Result<Problem, String> {
         }
         "waerden" => {
             if args.len() != 6 {
-                return Err("waerden expects exactly 3 parameters: <j> <k> <n>".to_string());
+                return Err(
+                    "waerden expects exactly 3 parameters: <j> <k> <n>".to_string()
+                );
             }
             let j = parse_u8("waerden j", &args[3])?;
             let k = parse_u8("waerden k", &args[4])?;
@@ -108,7 +111,10 @@ fn solve(problem: &SatProblem, solver: Solver) -> Option<Vec<bool>> {
     }
 }
 
-fn format_solution(problem: Problem, assignment: &[bool]) -> Result<String, SampleProblemError> {
+fn format_solution(
+    problem: Problem,
+    assignment: &[bool],
+) -> Result<String, SampleProblemError> {
     match problem {
         Problem::Langford { n } => {
             let arrangement = langford_solution_arrangement(n, Some(assignment))
@@ -121,7 +127,8 @@ fn format_solution(problem: Problem, assignment: &[bool]) -> Result<String, Samp
             Ok(format!("Langford arrangement: [{text}]"))
         }
         Problem::Waerden { n, .. } => {
-            let sequence = waerden_solution_string(n, Some(assignment))?.unwrap_or_default();
+            let sequence =
+                waerden_solution_string(n, Some(assignment))?.unwrap_or_default();
             Ok(format!("Waerden bitstring: {sequence}"))
         }
     }
@@ -141,7 +148,8 @@ fn run() -> Result<(), String> {
 
     match assignment {
         Some(values) => {
-            let formatted = format_solution(problem_kind, &values).map_err(|e| e.to_string())?;
+            let formatted =
+                format_solution(problem_kind, &values).map_err(|e| e.to_string())?;
             println!("Solution found.");
             println!("{formatted}");
         }
@@ -172,6 +180,7 @@ impl fmt::Display for Solver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_that::prelude::*;
 
     fn cli(parts: &[&str]) -> Vec<String> {
         parts.iter().map(|s| s.to_string()).collect()
@@ -180,43 +189,43 @@ mod tests {
     #[test]
     fn parse_cli_langford_ok() {
         let args = cli(&["sat_solve", "backtracking", "langford", "4"]);
-        assert_eq!(
+        assert_that!(
             parse_cli(&args),
-            Ok((Solver::Backtracking, Problem::Langford { n: 4 }))
+            eq(Ok((Solver::Backtracking, Problem::Langford { n: 4 })))
         );
     }
 
     #[test]
     fn parse_cli_waerden_ok() {
         let args = cli(&["sat_solve", "lazy_backtracking", "waerden", "3", "3", "8"]);
-        assert_eq!(
+        assert_that!(
             parse_cli(&args),
-            Ok((
+            eq(Ok((
                 Solver::LazyBacktracking,
                 Problem::Waerden { j: 3, k: 3, n: 8 }
-            ))
+            )))
         );
     }
 
     #[test]
     fn parse_cli_rejects_unknown_solver() {
         let args = cli(&["sat_solve", "foo", "langford", "4"]);
-        assert!(parse_cli(&args).is_err());
+        assert_that!(parse_cli(&args), err(anything()));
     }
 
     #[test]
     fn parse_cli_rejects_bad_waerden_arity() {
         let args = cli(&["sat_solve", "backtracking", "waerden", "3", "8"]);
-        assert!(parse_cli(&args).is_err());
+        assert_that!(parse_cli(&args), err(anything()));
     }
 
     #[test]
     fn help_flag_short_is_recognized() {
-        assert!(is_help_flag("-h"));
+        assert_that!(is_help_flag("-h"), eq(true));
     }
 
     #[test]
     fn help_flag_long_is_recognized() {
-        assert!(is_help_flag("--help"));
+        assert_that!(is_help_flag("--help"), eq(true));
     }
 }
